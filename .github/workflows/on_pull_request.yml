@@ -1,0 +1,45 @@
+name: Pull request
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build
+        run: mvn clean package -DskipTests
+
+      - name: Test
+        run: mvn test
+
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: '**/target/surefire-reports/TEST-*.xml'
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: spring-kafka-streams
+          path: ${{ github.workspace }}/spring-kafka-streams/target/spring-kafka-streams-*.jar
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: spring-kafka-streams-test
+          path: ${{ github.workspace }}/spring-kafka-streams-test/target/spring-kafka-streams-test-*.jar

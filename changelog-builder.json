@@ -1,0 +1,26 @@
+{
+  "categories": [
+    {
+      "title": "## :sparkles: New features",
+      "labels": ["feature"]
+    },
+    {
+      "title": "## :bug: Bug fixes",
+      "labels": ["bug"]
+    },
+    {
+      "title": "## :zap: Improvements",
+      "labels": ["enhancement"]
+    },
+    {
+      "title": "## :memo: Documentation",
+      "labels": ["documentation"]
+    },
+    {
+      "title": "## :arrow_up: Dependency updates",
+      "labels": ["dependencies"]
+    }
+  ],
+  "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
+  "pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}"
+}
