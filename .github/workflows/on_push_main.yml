@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-jar:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project
