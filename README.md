@@ -1,1 +1,1 @@
-# kafka-streams-utils
+# Kafka Streams Starter
