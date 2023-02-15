@@ -1,7 +1,7 @@
 {
-  "namespace": "com.michelin.kafka.streams.utils",
+  "namespace": "com.michelin.kafka.streams.starter.avro",
   "type": "record",
-  "name": "GenericErrorModel",
+  "name": "GenericError",
   "fields": [
     {
       "name": "cause",

@@ -1,5 +1,6 @@
 package com.michelin.kafka.streams.starter.init;
 
+import com.michelin.kafka.streams.starter.avro.GenericError;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.avro.specific.SpecificRecord;
 
@@ -20,9 +21,9 @@ public class SerdesUtils {
         return serdes;
     }
 
-    /*public static SpecificAvroSerde<GenericErrorModel> getErrorSerde() {
-        SpecificAvroSerde<GenericErrorModel> serde = new SpecificAvroSerde<>();
-        serde.configure(StreamExecutionContext.getSerdesConfig(), false);
+    public static SpecificAvroSerde<GenericError> getErrorSerde() {
+        SpecificAvroSerde<GenericError> serde = new SpecificAvroSerde<>();
+        serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), false);
         return serde;
-    }*/
+    }
 }
