@@ -17,6 +17,13 @@
 	<name>kafka-streams-starter</name>
 	<description>Kafka Streams Utils</description>
 
+	<repositories>
+		<repository>
+			<id>confluent</id>
+			<url>https://packages.confluent.io/maven/</url>
+		</repository>
+	</repositories>
+
 	<modules>
 		<module>kafka-streams-init</module>
 		<module>kafka-streams-healthcheck</module>
