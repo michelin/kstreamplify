@@ -33,7 +33,7 @@
 	<properties>
 		<avro.version>1.11.1</avro.version>
 		<java.version>11</java.version>
-		<kafka-streams.version>3.4.0</kafka-streams.version>
+		<kafka-streams.version>7.3.1-ce</kafka-streams.version>
 		<kafka-streams-avro-serde.version>7.3.1</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.26</lombok.version>
 	</properties>
