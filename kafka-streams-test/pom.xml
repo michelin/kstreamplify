@@ -10,4 +10,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kafka-streams-test</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.michelin.kafka</groupId>
+            <artifactId>kafka-streams-init</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
