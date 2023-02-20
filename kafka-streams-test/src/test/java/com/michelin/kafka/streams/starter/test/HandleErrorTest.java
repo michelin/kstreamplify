@@ -33,7 +33,7 @@ public class HandleErrorTest extends TopologyTestBase {
         ErrorHandler.handleError(stringMapped);
 
         // Avro case
-        var initialStreamAvro = builder.stream("AVRO", Consumed.with(Serdes.String(), SerdesUtils.getSerdes()));
+        var initialStreamAvro = builder.stream("AVRO", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
         KStream<String, ProcessingException<SpecificRecord>> avroMapped = initialStreamAvro
                 .mapValues(m -> new ProcessingException<>(new NullPointerException(), m));
 
@@ -41,10 +41,10 @@ public class HandleErrorTest extends TopologyTestBase {
     }
 
     @Test
-    void shouldSendExceptionToDLQForStringValues() throws Exception {
+    void shouldSendExceptionToDLQForStringValues() {
        
         TestInputTopic<String, String> inputTopic = testDriver.createInputTopic("STRING", new StringSerializer(), new StringSerializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
         
         inputTopic.pipeInput("any", "any message");
 
@@ -61,8 +61,8 @@ public class HandleErrorTest extends TopologyTestBase {
     @Test
     void shouldSendExceptionToDLQForAvroValues() {
 
-        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdes().serializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdesForValue().serializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
 
         
         var avroModel = GenericError.newBuilder()

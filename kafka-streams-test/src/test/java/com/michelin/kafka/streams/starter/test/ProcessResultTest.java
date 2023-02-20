@@ -38,7 +38,7 @@ public class ProcessResultTest extends TopologyTestBase {
         ErrorHandler.processResult(stringMapped).to("OUTPUT_STRING", Produced.with(Serdes.String(), Serdes.String()));
 
         // Avro case
-        var initialStreamAvro = builder.stream("AVRO", Consumed.with(Serdes.String(), SerdesUtils.<GenericError>getSerdes()));
+        var initialStreamAvro = builder.stream("AVRO", Consumed.with(Serdes.String(), SerdesUtils.<GenericError>getSerdesForValue()));
         KStream<String, ProcessingResult<GenericError, GenericError>> avroMapped = initialStreamAvro
                 .mapValues(m -> {
 
@@ -50,14 +50,14 @@ public class ProcessResultTest extends TopologyTestBase {
 
                 });
 
-        ErrorHandler.processResult(avroMapped).to("OUTPUT_AVRO", Produced.with(Serdes.String(),SerdesUtils.getSerdes()));
+        ErrorHandler.processResult(avroMapped).to("OUTPUT_AVRO", Produced.with(Serdes.String(),SerdesUtils.getSerdesForValue()));
     }
 
     @Test
     void shouldContinueWhenProcessingValueIsValid() {
 
         TestInputTopic<String, String> inputTopic = testDriver.createInputTopic("STRING", new StringSerializer(), new StringSerializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
         TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic("OUTPUT_STRING", new StringDeserializer(), new StringDeserializer());
 
         inputTopic.pipeInput("any", "any message");
@@ -73,7 +73,7 @@ public class ProcessResultTest extends TopologyTestBase {
     void shouldSendExceptionToDLQWhenProcessingValueIsInvalid() {
 
         TestInputTopic<String, String> inputTopic = testDriver.createInputTopic("STRING", new StringSerializer(), new StringSerializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
         TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic("OUTPUT_STRING", new StringDeserializer(), new StringDeserializer());
 
         inputTopic.pipeInput("any", "ERROR");
@@ -87,9 +87,9 @@ public class ProcessResultTest extends TopologyTestBase {
     @Test
     void shouldContinueWhenProcessingValueIsValidAvro() {
 
-        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdes().serializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
-        TestOutputTopic<String, GenericError> outputTopic = testDriver.createOutputTopic("OUTPUT_AVRO", new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdesForValue().serializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
+        TestOutputTopic<String, GenericError> outputTopic = testDriver.createOutputTopic("OUTPUT_AVRO", new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
         
         var avroModel = GenericError.newBuilder()
                 .setTopic("TOPIC")
@@ -111,9 +111,9 @@ public class ProcessResultTest extends TopologyTestBase {
     @Test
     void shouldContinueWhenProcessingValueIsInvalidAvro() {
 
-        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdes().serializer());
-        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
-        TestOutputTopic<String, GenericError> outputTopic = testDriver.createOutputTopic("OUTPUT_AVRO", new StringDeserializer(), SerdesUtils.<GenericError>getSerdes().deserializer());
+        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO", new StringSerializer(), SerdesUtils.<GenericError>getSerdesForValue().serializer());
+        TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
+        TestOutputTopic<String, GenericError> outputTopic = testDriver.createOutputTopic("OUTPUT_AVRO", new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
         
         inputTopic.pipeInput("any", null);
         

@@ -5,10 +5,9 @@ import com.michelin.kafka.streams.starter.init.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.kafka.streams.kstream.*;
+
+import java.util.Map;
 
 
 /**
@@ -22,9 +21,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ErrorHandler {
 
-    final static Logger logger = LoggerFactory.getLogger(ErrorHandler.class.getName());
-
-
+    private static final String BRANCHING_NAME_ERROR = "branch-error";
+    private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
     private static SpecificAvroSerde<GenericError> getErrorSerde() {
         SpecificAvroSerde<GenericError> serde = new SpecificAvroSerde<>();
@@ -43,12 +41,15 @@ public class ErrorHandler {
      */
     public static <K, V>KStream<K,V> catchError(KStream<K, ?> inputStream) {
 
-        var branches = inputStream.branch(
-            (key, value) -> value instanceof ProcessingException, /* Any error occured  */
-            (key, value) -> true /* nominal case  */
-        );
-        var errorOutput = branches[0].mapValues( e -> (ProcessingException) e);
-        var nominalOutput = branches[1].mapValues( e -> (V) e);
+        String branchNamePrefix = inputStream.toString().split("@")[1];
+
+        Map<String, ? extends KStream<K, ?>> branches = inputStream.split(Named.as(branchNamePrefix))
+                .branch((key, value) -> value instanceof ProcessingException, Branched.as(BRANCHING_NAME_ERROR))
+                .branch((key, value) -> true, Branched.as(BRANCHING_NAME_NOMINAL))
+                .noDefaultBranch();
+
+        KStream<K, ProcessingException> errorOutput = branches.get(branchNamePrefix+BRANCHING_NAME_ERROR).mapValues(e -> (ProcessingException) e);
+        KStream<K, V> nominalOutput = branches.get(branchNamePrefix+BRANCHING_NAME_NOMINAL).mapValues(e -> (V) e);
 
         errorOutput
                 .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), v))
@@ -77,34 +78,33 @@ public class ErrorHandler {
      * @return
      */
     public static <K, V, EV>KStream<K,V> processResult(KStream<K, ProcessingResult<V, EV>> inputStream, boolean allowTombstone) {
+        Map<String, KStream<K,ProcessingResult<V, EV>>> branches;
 
+        String branchNamePrefix = inputStream.toString().split("@")[1];
 
-        KStream<K,ProcessingResult<V, EV>>[] branches = null;
-        
         if(!allowTombstone) {
             branches = inputStream
-                    .filter((k,v) -> v !=  null) // Remove null value from stream
-                    .filterNot((k,v) -> v.getValue() == null && v.getException() == null) // Remove nprocess result will null content
-                    .branch(
-                            (key, value) ->
-                                    value.isValid(), /* standard output */
-                            (key, value) -> true /* error output  */
-                    );
+                    .filter((k,v) -> v !=  null)
+                    .filterNot((k,v) -> v.getValue() == null && v.getException() == null)
+                    .split(Named.as(branchNamePrefix))
+                    .branch((key, value) -> value.isValid(), Branched.as(BRANCHING_NAME_NOMINAL))
+                    .branch((key, value) -> true, Branched.as(BRANCHING_NAME_ERROR))
+                    .noDefaultBranch();
         } else {
             branches = inputStream
-                    .filter((k,v) -> v !=  null) // Remove null value from stream
-                    .branch(
-                            (key, value) ->
-                                    value.getException() == null, /* standard output */
-                            (key, value) -> true /* error output  */
-                    );
+                    .filter((k,v) -> v !=  null)
+                    .split(Named.as(branchNamePrefix))
+                    .branch((key, value) -> value.getException() == null, Branched.as(BRANCHING_NAME_NOMINAL))
+                    .branch((key, value) -> true, Branched.as(BRANCHING_NAME_ERROR))
+                    .noDefaultBranch();;
         }
 
-        var errorOutput = branches[1].mapValues(ProcessingResult::getException);
-        var nominalOutput = branches[0].mapValues(ProcessingResult::getValue);
+
+        KStream<K, ProcessingException> errorOutput = branches.get(branchNamePrefix+BRANCHING_NAME_ERROR).mapValues(ProcessingResult::getException);
+        KStream<K, V> nominalOutput = branches.get(branchNamePrefix+BRANCHING_NAME_NOMINAL).mapValues(ProcessingResult::getValue);
 
         errorOutput
-                .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), (ProcessingException)v))
+                .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), v))
                 .transformValues(GenericErrorTransformer::new)
                 .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), getErrorSerde()));
 
@@ -120,15 +120,5 @@ public class ErrorHandler {
                 .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), (ProcessingException)v))
                 .transformValues(GenericErrorTransformer::new)
                 .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), getErrorSerde()));
-    }
-    
-    
-    /**
-     * @param applicationId the application common name
-     * @param e the exception threw by the kafka
-     */
-    public static void closeAndLogStreams(String applicationId, Throwable e ){
-        logger.error("Severe irrecoverable error occurred in " + applicationId + " stream", e);
-        logger.error("Kafka Stream is currently shuting down");
     }
 }
