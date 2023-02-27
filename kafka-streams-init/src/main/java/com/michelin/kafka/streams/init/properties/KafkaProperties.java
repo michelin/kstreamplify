@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.properties;
+package com.michelin.kafka.streams.init.properties;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,45 +1,30 @@
 package com.michelin.kafka.streams.starter.commons.error;
 
-/**
- * @param <V> type of returned value in case of processing success
- * @param <EV> type of initial value in case of processing exception
- *            
- * Hold the result of a V value processing
- */
-public class ProcessingResult<V,EV> {
+import lombok.Getter;
 
-    private ProcessingException<EV> exception;
+@Getter
+public class ProcessingResult<V, V2> {
     private V value;
-    
-    public static <V,EV>ProcessingResult<V,EV> success(V value) {
-        return new ProcessingResult<V,EV>(value);
-    };
 
-    public static <V,EV>ProcessingResult<V,EV> fail(ProcessingException<EV> processException) {
-        return new ProcessingResult<>(processException);
-    }
-
-    private ProcessingResult(ProcessingException<EV> exception){
-        this.exception = exception;
-    };
+    private ProcessingError<V2> error;
 
     private ProcessingResult(V value){
         this.value = value;
     }
 
+    private ProcessingResult(ProcessingError<V2> error){
+        this.error = error;
+    };
 
-    public V getValue() {
-        return value;
+    public static <V, V2> ProcessingResult<V, V2> success(V value) {
+        return new ProcessingResult<>(value);
+    };
+
+    public static <V, V2> ProcessingResult<V, V2> fail(ProcessingError<V2> error) {
+        return new ProcessingResult<>(error);
     }
-    public ProcessingException<EV> getException() {
-        return exception;
-    }
 
-
-    /**
-     * @return true if processing result is ok
-     */
     public boolean isValid() {
-        return value != null & exception == null;
+        return value != null && error == null;
     }
 }

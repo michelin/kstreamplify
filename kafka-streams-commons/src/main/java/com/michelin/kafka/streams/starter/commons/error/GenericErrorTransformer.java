@@ -10,36 +10,29 @@ import java.io.StringWriter;
 /**
  * Transform an exception in the stream to message for DLQ
  */
-public class GenericErrorTransformer implements ValueTransformer<ProcessingException, GenericError> {
+public class GenericErrorTransformer<V> implements ValueTransformer<ProcessingError<V>, GenericError> {
 
-    private ProcessorContext localContext;
+    private ProcessorContext processorContext;
 
     @Override
     public void init(ProcessorContext processorContext) {
-        localContext = processorContext;
+        this.processorContext = processorContext;
     }
 
     @Override
-    public GenericError transform(ProcessingException e) {
-
-        var offset = localContext.offset();
-        var partition = localContext.partition();
-        var topic = localContext.topic();
-        var message = e.getMessage();
-        var exception = e.getException();
-
+    public GenericError transform(ProcessingError e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.getException().printStackTrace(pw);
 
         return GenericError.newBuilder()
-                .setCause(exception.getMessage())
+                .setCause(e.getException().getMessage())
                 .setContextMessage(e.getContextMessage())
-                .setOffset(offset)
-                .setPartition(partition)
+                .setOffset(processorContext.offset())
+                .setPartition(processorContext.partition())
                 .setStack(sw.toString())
-                .setTopic(topic == null ? "Outside topic context" : topic)
-                .setValue(message)
+                .setTopic(processorContext.topic() == null ? "Outside topic context" : processorContext.topic())
+                .setValue(e.getMessage())
                 .build();
     }
 

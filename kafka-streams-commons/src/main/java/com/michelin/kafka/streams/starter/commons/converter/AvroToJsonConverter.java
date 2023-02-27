@@ -29,79 +29,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Converts Avro record to human readable Json record
- */
 public class AvroToJsonConverter {
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private AvroToJsonConverter() { }
 
-    /**
-     * Convert any Avro Model in an human readable Json text
-     * MUST NOT be used for application interactions
-     * @param inputRecord the avro model to convert
-     * @return a human readable version of the avro
-     */
+    private static final Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
+
     public static String convertRecord(GenericRecord inputRecord) {
-        Map<String, Object> record = recordAsMap(inputRecord);
-        return gson.toJson(record);
+        return gson.toJson(recordAsMap(inputRecord));
     }
 
     private static Map<String, Object> recordAsMap(GenericRecord inputRecord) {
-        Map<String, Object> record = new HashMap<>();
+        Map<String, Object> recordMapping = new HashMap<>();
 
         for (Field field : inputRecord.getSchema().getFields()) {
-            Object col = inputRecord.get(field.name());
-            if ((col instanceof Utf8 || col instanceof Instant)) {
-                col = col.toString();
+            Object recordValue = inputRecord.get(field.name());
+
+            if ((recordValue instanceof Utf8 || recordValue instanceof Instant)) {
+                recordValue = recordValue.toString();
             }
 
-            if (col instanceof List) {
+            if (recordValue instanceof List) {
+                List<?> recordValueAsList  = (List<?>) recordValue;
 
-                var list = (List<?>) col;
-                if (list.size() == 0) {
-                    continue;
-                }
-
-                var firstElement = list.get(0);
-                if (firstElement instanceof GenericRecord) {
-                    var listRecord = (List<GenericRecord>) col;
-                    col = listRecord.stream().map(AvroToJsonConverter::recordAsMap).collect(Collectors.toList());
-                } else {
-
-                    col = list.stream().map(Object::toString).collect(Collectors.toList());
-                }
-
-
+                recordValue = recordValueAsList
+                        .stream()
+                        .map(value -> {
+                            if (value instanceof GenericRecord) {
+                                return recordAsMap((GenericRecord) value);
+                            } else {
+                                return value.toString();
+                            }
+                        })
+                        .collect(Collectors.toList());
             }
 
-            if (col instanceof Map) {
+            if (recordValue instanceof Map) {
+                Map<Object, Object> jsonMap = new HashMap<>();
+                Map<?, ?> recordValueAsMap  = (Map<?, ?>) recordValue;
 
-                var map = (Map<?, ?>) col;
-                if (map.size() == 0) {
-                    continue;
-                }
+                recordValueAsMap.forEach((key, value) -> {
+                    if (value instanceof GenericRecord) {
+                        jsonMap.put(key, recordAsMap((GenericRecord) value));
+                    } else {
+                        jsonMap.put(key, value.toString());
+                    }
+                });
 
-                var firstElement = map.values().toArray()[0];
-                if (firstElement instanceof GenericRecord) {
-                    var mapRecord = (Map<?, GenericRecord>) col;
-
-                    var newMap = new HashMap<Object, Map<String, Object>>();
-                    mapRecord.forEach((key, value) -> newMap.put(key, recordAsMap(value)));
-
-                    col = newMap;
-                } else {
-
-                    var newMap = new HashMap<Object, String>();
-                    map.forEach((key, value) -> newMap.put(key, value.toString()));
-
-                    col = newMap;
-                }
+                recordValue = jsonMap;
             }
 
-
-            record.put(field.name(), col);
+            recordMapping.put(field.name(), recordValue);
         }
 
-        return record;
+        return recordMapping;
     }
 }

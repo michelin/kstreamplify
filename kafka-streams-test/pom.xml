@@ -10,4 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kafka-streams-test</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.michelin.kafka</groupId>
+            <artifactId>kafka-streams-commons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

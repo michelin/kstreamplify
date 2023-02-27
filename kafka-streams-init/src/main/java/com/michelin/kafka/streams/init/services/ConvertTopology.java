@@ -1,9 +1,9 @@
-package com.michelin.kafka.streams.starter.services;
+package com.michelin.kafka.streams.init.services;
 
-import com.michelin.kafka.streams.starter.model.TopologyExposeJsonModel;
-import com.michelin.kafka.streams.starter.model.TopologyObject;
-import com.michelin.kafka.streams.starter.model.TopologyObjectType;
-import com.michelin.kafka.streams.starter.model.TopologyPart;
+import com.michelin.kafka.streams.init.model.TopologyPart;
+import com.michelin.kafka.streams.init.model.TopologyExposeJsonModel;
+import com.michelin.kafka.streams.init.model.TopologyObject;
+import com.michelin.kafka.streams.init.model.TopologyObjectType;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 

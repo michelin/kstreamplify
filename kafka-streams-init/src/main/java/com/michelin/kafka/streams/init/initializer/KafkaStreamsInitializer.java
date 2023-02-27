@@ -1,8 +1,9 @@
-package com.michelin.kafka.streams.starter.initializer;
+package com.michelin.kafka.streams.init.initializer;
 
-import com.michelin.kafka.streams.starter.model.TopologyExposeJsonModel;
-import com.michelin.kafka.streams.starter.properties.KafkaProperties;
-import com.michelin.kafka.streams.starter.services.ConvertTopology;
+import com.michelin.kafka.streams.init.model.TopologyExposeJsonModel;
+import com.michelin.kafka.streams.init.properties.KafkaProperties;
+import com.michelin.kafka.streams.init.services.ConvertTopology;
+import com.michelin.kafka.streams.starter.commons.context.KafkaStreamsExecutionContext;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;

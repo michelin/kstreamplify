@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.model;
+package com.michelin.kafka.streams.init.model;
 
 public enum TopologyObjectType {
     TOPIC_IN,

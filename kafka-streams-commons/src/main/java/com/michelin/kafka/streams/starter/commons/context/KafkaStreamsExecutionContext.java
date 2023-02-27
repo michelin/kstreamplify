@@ -35,6 +35,7 @@ public class KafkaStreamsExecutionContext {
         if (properties == null) {
             return;
         }
+
         String prefix = properties.getProperty(PREFIX,"");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,

@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.model;
+package com.michelin.kafka.streams.init.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

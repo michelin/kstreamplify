@@ -1,8 +1,7 @@
 package com.michelin.kafka.streams.starter.commons.error;
 
-import com.michelin.kafka.streams.starter.avro.GenericError;
-import com.michelin.kafka.streams.starter.initializer.KafkaStreamsExecutionContext;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import com.michelin.kafka.streams.starter.commons.context.KafkaStreamsExecutionContext;
+import com.michelin.kafka.streams.starter.commons.utils.SerdesUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.*;
@@ -10,115 +9,45 @@ import org.apache.kafka.streams.kstream.*;
 import java.util.Map;
 
 
-/**
- * 
- * 
- * Catch and redirect all exception into the context DLQ
- */
-
-/**
- * Helper for stream error management
- */
 public class ErrorHandler {
-
-    private static final String BRANCHING_NAME_ERROR = "branch-error";
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
-    private static SpecificAvroSerde<GenericError> getErrorSerde() {
-        SpecificAvroSerde<GenericError> serde = new SpecificAvroSerde<>();
-        serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), false);
-        return serde;
+    private ErrorHandler() { }
+
+    public static <K, V, V2>KStream<K,V> catchErrors(KStream<K, ProcessingResult<V, V2>> stream) {
+        return catchErrors(stream, false);
     }
 
-    /**
-     * 
-     * @Deprecated Must be replaced by #processResult method
-     * 
-     * @param inputStream the stream which need some error handling
-     * @param <K> stream key
-     * @param <V> stream initial value ( without exception)
-     * @return
-     */
-    public static <K, V>KStream<K,V> catchError(KStream<K, ?> inputStream) {
+    public static <K, V, V2> KStream<K,V> catchErrors(KStream<K, ProcessingResult<V, V2>> stream, boolean allowTombstone) {
+        Map<String, KStream<K,ProcessingResult<V, V2>>> branches;
 
-        String branchNamePrefix = inputStream.toString().split("@")[1];
-
-        Map<String, ? extends KStream<K, ?>> branches = inputStream.split(Named.as(branchNamePrefix))
-                .branch((key, value) -> value instanceof ProcessingException, Branched.as(BRANCHING_NAME_ERROR))
-                .branch((key, value) -> true, Branched.as(BRANCHING_NAME_NOMINAL))
-                .noDefaultBranch();
-
-        KStream<K, ProcessingException> errorOutput = branches.get(branchNamePrefix+BRANCHING_NAME_ERROR).mapValues(e -> (ProcessingException) e);
-        KStream<K, V> nominalOutput = branches.get(branchNamePrefix+BRANCHING_NAME_NOMINAL).mapValues(e -> (V) e);
-
-        errorOutput
-                .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), v))
-                .transformValues(GenericErrorTransformer::new)
-                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), getErrorSerde()));
-                        
-        return nominalOutput;
-    }
-
-    /**
-     * @param inputStream a stream of processing result
-     * @param <K> stream key
-     * @param <V> stream initial value (without exception)
-     * @return
-     */
-    public static <K, V, EV>KStream<K,V> processResult(KStream<K, ProcessingResult<V, EV>> inputStream) {
-        return processResult(inputStream, false);
-    }
-
-    /**
-     * This version 
-     * 
-     * @param inputStream a stream of processing result
-     * @param <K> stream key
-     * @param <V> stream initial value (without exception)
-     * @return
-     */
-    public static <K, V, EV>KStream<K,V> processResult(KStream<K, ProcessingResult<V, EV>> inputStream, boolean allowTombstone) {
-        Map<String, KStream<K,ProcessingResult<V, EV>>> branches;
-
-        String branchNamePrefix = inputStream.toString().split("@")[1];
-
-        if(!allowTombstone) {
-            branches = inputStream
+        String branchNamePrefix = stream.toString().split("@")[1];
+        if (!allowTombstone) {
+            branches = stream
                     .filter((k,v) -> v !=  null)
-                    .filterNot((k,v) -> v.getValue() == null && v.getException() == null)
+                    .filterNot((k,v) -> v.getValue() == null && v.getError() == null)
                     .split(Named.as(branchNamePrefix))
                     .branch((key, value) -> value.isValid(), Branched.as(BRANCHING_NAME_NOMINAL))
-                    .branch((key, value) -> true, Branched.as(BRANCHING_NAME_ERROR))
-                    .noDefaultBranch();
+                    .defaultBranch(Branched.withConsumer(ks -> ErrorHandler.handleErrors(ks
+                            .mapValues(ProcessingResult::getError))));
         } else {
-            branches = inputStream
+            branches = stream
                     .filter((k,v) -> v !=  null)
                     .split(Named.as(branchNamePrefix))
-                    .branch((key, value) -> value.getException() == null, Branched.as(BRANCHING_NAME_NOMINAL))
-                    .branch((key, value) -> true, Branched.as(BRANCHING_NAME_ERROR))
-                    .noDefaultBranch();;
+                    .branch((key, value) -> value.getError() == null, Branched.as(BRANCHING_NAME_NOMINAL))
+                    .defaultBranch(Branched.withConsumer(ks -> ErrorHandler.handleErrors(ks
+                            .mapValues(ProcessingResult::getError))));
         }
 
-
-        KStream<K, ProcessingException> errorOutput = branches.get(branchNamePrefix+BRANCHING_NAME_ERROR).mapValues(ProcessingResult::getException);
-        KStream<K, V> nominalOutput = branches.get(branchNamePrefix+BRANCHING_NAME_NOMINAL).mapValues(ProcessingResult::getValue);
-
-        errorOutput
-                .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), v))
-                .transformValues(GenericErrorTransformer::new)
-                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), getErrorSerde()));
-
-        return nominalOutput;
+        return branches
+                .get(branchNamePrefix + BRANCHING_NAME_NOMINAL)
+                .mapValues(ProcessingResult::getValue);
     }
 
-    /**
-     * @param inputStream a stream emitting processing exceptions
-     */
-    public static <K, V>void handleError(KStream<K, ProcessingException<V>> inputStream) {
-        
+    public static <K, V> void handleErrors(KStream<K, ProcessingError<V>> inputStream) {
         inputStream
-                .map( (k,v) -> new KeyValue<>(k == null ? "null": k.toString(), (ProcessingException)v))
-                .transformValues(GenericErrorTransformer::new)
-                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), getErrorSerde()));
+                .map((k,v) -> new KeyValue<>(k == null ? "null" : k.toString(), v))
+                .transformValues(GenericErrorTransformer<V>::new)
+                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
     }
 }
