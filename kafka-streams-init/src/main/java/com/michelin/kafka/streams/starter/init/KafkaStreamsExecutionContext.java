@@ -23,7 +23,7 @@ public class KafkaStreamsExecutionContext {
 
     @Getter
     private static Properties properties;
-
+    @Setter
     private static Integer numPartition = null;
 
     public static final String PREFIX = "prefix";
@@ -35,7 +35,6 @@ public class KafkaStreamsExecutionContext {
         if (properties == null) {
             return;
         }
-
         String prefix = properties.getProperty(PREFIX,"");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,

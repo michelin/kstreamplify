@@ -36,6 +36,9 @@
 		<kafka-streams.version>3.4.0</kafka-streams.version>
 		<kafka-streams-avro-serde.version>7.3.1</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.26</lombok.version>
+		<junit-jupiter.version>5.9.2</junit-jupiter.version>
+		<commons-io.version>2.11.0</commons-io.version>
+		<gson.version>2.10.1</gson.version>
 	</properties>
 
 	<dependencies>
@@ -52,6 +55,12 @@
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams</artifactId>
+			<version>${kafka-streams.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-streams-test-utils</artifactId>
 			<version>${kafka-streams.version}</version>
 		</dependency>
 
@@ -79,6 +88,25 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit-jupiter.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
