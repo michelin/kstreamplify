@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.test.error;
+package com.michelin.kafka.streams.starter.commons.error;
 
 import org.apache.kafka.streams.kstream.ValueTransformer;
 import org.apache.kafka.streams.processor.ProcessorContext;

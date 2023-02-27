@@ -1,5 +1,5 @@
-package com.michelin.kafka.streams.starter.test.utils;
-import com.michelin.kafka.streams.starter.init.KafkaStreamsExecutionContext;
+package com.michelin.kafka.streams.starter.commons.utils;
+import com.michelin.kafka.streams.starter.initializer.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.avro.specific.SpecificRecord;
 

@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.test.error;
+package com.michelin.kafka.streams.starter.commons.error;
 
 import com.michelin.kafka.streams.starter.test.converter.AvroToJsonConverter;
 import org.apache.avro.generic.GenericRecord;

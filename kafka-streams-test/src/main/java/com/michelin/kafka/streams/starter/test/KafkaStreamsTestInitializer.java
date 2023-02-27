@@ -1,8 +1,8 @@
 package com.michelin.kafka.streams.starter.test;
 
-import com.michelin.kafka.streams.starter.init.KafkaStreamsExecutionContext;
+import com.michelin.kafka.streams.starter.initializer.KafkaStreamsExecutionContext;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
-import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import org.apache.commons.io.FileUtils;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
@@ -16,15 +16,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Properties;
 
-import static com.michelin.kafka.streams.starter.init.KafkaStreamsExecutionContext.PREFIX;
+public abstract class KafkaStreamsTestInitializer {
+    protected static final String DLQ_TOPIC = "DLQ_TOPIC";
 
-public abstract class TopologyTestBase {
-
-    public final static String DLQ_TOPIC = "DLQ_TOPIC";
-    private static final String DIRECTORY = "C:/tmp/kafka-streams";
+    private static final String STATE_DIR = "/tmp/kafka-streams";
 
     protected TopologyTestDriver testDriver;
 
@@ -32,38 +29,29 @@ public abstract class TopologyTestBase {
 
     @BeforeEach
     void setUp() {
-
-        schemaRegistryScope = this.getClass().getName();
-        String mockSchemaRegistryUrl = "mock://" + schemaRegistryScope;
-        Map<String, String> serdeConfig = Collections.singletonMap(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, mockSchemaRegistryUrl);
-
-        StreamsBuilder builder = new StreamsBuilder();
         Properties properties = new Properties();
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        properties.put(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, mockSchemaRegistryUrl);
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
+        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR);
 
         Properties resetPrefixProperties = new Properties();
         resetPrefixProperties.setProperty(PREFIX, "");
         KafkaStreamsExecutionContext.registerProperties(resetPrefixProperties);
         KafkaStreamsExecutionContext.setDlqTopicName(DLQ_TOPIC);
-        KafkaStreamsExecutionContext.setSerdesConfig(serdeConfig);
+        KafkaStreamsExecutionContext.setSerdesConfig(Collections
+                .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getName()));
         KafkaStreamsExecutionContext.setNumPartition(1);
 
         applyProperties(properties);
-        applyTopology(builder);
-        var getInitialDriverDate = getDriverDate();
 
-        var topology = builder.build();
-        testDriver = new TopologyTestDriver(topology, properties, getInitialDriverDate);
+        StreamsBuilder builder = new StreamsBuilder();
+        applyTopology(builder);
+
+        testDriver = new TopologyTestDriver(builder.build(), properties, getDriverDate());
     }
 
-    /**
-     * Implement this method to inject the topology you want to use for your test (~MyTopology.addMyTopology(builder))
-     *
-     * @param builder
-     */
     protected abstract void applyTopology(StreamsBuilder builder);
+
 
     /**
      * Implement this method to override the default mocked date for streams events
@@ -99,5 +87,4 @@ public abstract class TopologyTestBase {
         }
         MockSchemaRegistry.dropScope(schemaRegistryScope);
     }
-
 }

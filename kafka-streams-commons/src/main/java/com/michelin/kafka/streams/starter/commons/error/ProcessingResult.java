@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.test.error;
+package com.michelin.kafka.streams.starter.commons.error;
 
 /**
  * @param <V> type of returned value in case of processing success

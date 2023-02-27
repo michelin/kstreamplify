@@ -1,7 +1,7 @@
-package com.michelin.kafka.streams.starter.test.error;
+package com.michelin.kafka.streams.starter.commons.error;
 
 import com.michelin.kafka.streams.starter.avro.GenericError;
-import com.michelin.kafka.streams.starter.init.KafkaStreamsExecutionContext;
+import com.michelin.kafka.streams.starter.initializer.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;

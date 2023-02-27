@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.test.converter;
+package com.michelin.kafka.streams.starter.commons.converter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

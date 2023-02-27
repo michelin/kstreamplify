@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class HandleErrorTest extends TopologyTestBase {
+public class HandleErrorTest extends KafkaStreamsTestInitializer {
 
     @Override
     protected void applyTopology(StreamsBuilder builder) {

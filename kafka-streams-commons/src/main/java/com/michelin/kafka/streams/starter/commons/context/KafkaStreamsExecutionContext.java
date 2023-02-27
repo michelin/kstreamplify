@@ -1,4 +1,4 @@
-package com.michelin.kafka.streams.starter.init;
+package com.michelin.kafka.streams.starter.commons.context;
 
 import io.micrometer.common.util.StringUtils;
 import lombok.Getter;

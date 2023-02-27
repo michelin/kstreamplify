@@ -28,7 +28,8 @@
 		<module>kafka-streams-init</module>
 		<module>kafka-streams-healthcheck</module>
 		<module>kafka-streams-test</module>
-	</modules>
+        <module>kafka-streams-commons</module>
+    </modules>
 
 	<properties>
 		<avro.version>1.11.1</avro.version>
