@@ -26,8 +26,7 @@ public class KafkaStreamsExecutionContext {
     @Setter
     private static Integer numPartition = null;
 
-    public static final String PREFIX = "prefix";
-
+    public static final String PREFIX_PROPERTY_NAME = "prefix";
 
     private KafkaStreamsExecutionContext() { }
 
@@ -36,14 +35,14 @@ public class KafkaStreamsExecutionContext {
             return;
         }
 
-        String prefix = properties.getProperty(PREFIX,"");
+        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME,"");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
         }
 
         KafkaStreamsExecutionContext.properties = properties;
-        log.info("Stream configuration: " + properties);
+        log.info("Kafka Stream configuration: " + properties);
     }
 
     public static Integer getNumberPartition() {

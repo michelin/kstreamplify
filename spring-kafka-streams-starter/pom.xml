@@ -11,9 +11,23 @@
 
     <artifactId>spring-kafka-streams-starter</artifactId>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.michelin.kafka</groupId>
+            <artifactId>spring-kafka-streams-init</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 
+        <dependency>
+            <groupId>com.michelin.kafka</groupId>
+            <artifactId>spring-kafka-streams-test</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.michelin.kafka</groupId>
+            <artifactId>spring-kafka-streams-healthcheck</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -47,7 +47,7 @@ public class ErrorHandler {
     public static <K, V> void handleErrors(KStream<K, ProcessingError<V>> inputStream) {
         inputStream
                 .map((k,v) -> new KeyValue<>(k == null ? "null" : k.toString(), v))
-                .transformValues(GenericErrorTransformer<V>::new)
+                .processValues(GenericErrorProcessor<V>::new)
                 .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
     }
 }

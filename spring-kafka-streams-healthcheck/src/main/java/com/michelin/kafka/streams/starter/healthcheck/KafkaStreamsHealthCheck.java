@@ -1,7 +1,9 @@
 package com.michelin.kafka.streams.starter.healthcheck;
 
+import com.michelin.kafka.streams.starter.commons.context.KafkaStreamsExecutionContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.internals.StreamThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +20,9 @@ public class KafkaStreamsHealthCheck {
     @GetMapping("ready")
     public ResponseEntity<String> readinessProbe() {
         if (kafkaStreams != null) {
-            log.debug("Kafka Stream current state: " + kafkaStreams.state().toString());
+            log.debug("Current state of the Kafka Stream {}: {}",
+                    KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
+                    kafkaStreams.state());
 
             if (kafkaStreams.state() == KafkaStreams.State.REBALANCING) {
                 long startingThreadCount = kafkaStreams.metadataForLocalThreads()
