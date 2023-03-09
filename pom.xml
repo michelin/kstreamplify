@@ -12,10 +12,10 @@
 	</parent>
 
 	<groupId>com.michelin.kafka</groupId>
-	<artifactId>kafka-streams-starter</artifactId>
+	<artifactId>spring-kafka-streams</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>kafka-streams-starter</name>
-	<description>Kafka Streams Utils</description>
+	<name>spring-kafka-streams</name>
+	<description>Spring Kafka Streams</description>
 
 	<repositories>
 		<repository>
@@ -25,11 +25,12 @@
 	</repositories>
 
 	<modules>
-		<module>kafka-streams-init</module>
-		<module>kafka-streams-healthcheck</module>
-		<module>kafka-streams-test</module>
-        <module>kafka-streams-commons</module>
-    </modules>
+		<module>spring-kafka-streams-init</module>
+		<module>spring-kafka-streams-healthcheck</module>
+		<module>spring-kafka-streams-test</module>
+        <module>spring-kafka-streams-commons</module>
+		<module>spring-kafka-streams-starter</module>
+	</modules>
 
 	<properties>
 		<avro.version>1.11.1</avro.version>
