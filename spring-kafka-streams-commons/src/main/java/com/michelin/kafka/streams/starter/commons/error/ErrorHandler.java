@@ -24,15 +24,15 @@ public class ErrorHandler {
         String branchNamePrefix = stream.toString().split("@")[1];
         if (!allowTombstone) {
             branches = stream
-                    .filter((k,v) -> v !=  null)
-                    .filterNot((k,v) -> v.getValue() == null && v.getError() == null)
+                    .filter((key, value) -> value != null)
+                    .filterNot((key, value) -> value.getValue() == null && value.getError() == null)
                     .split(Named.as(branchNamePrefix))
                     .branch((key, value) -> value.isValid(), Branched.as(BRANCHING_NAME_NOMINAL))
                     .defaultBranch(Branched.withConsumer(ks -> ErrorHandler.handleErrors(ks
                             .mapValues(ProcessingResult::getError))));
         } else {
             branches = stream
-                    .filter((k,v) -> v !=  null)
+                    .filter((key, value) -> value != null)
                     .split(Named.as(branchNamePrefix))
                     .branch((key, value) -> value.getError() == null, Branched.as(BRANCHING_NAME_NOMINAL))
                     .defaultBranch(Branched.withConsumer(ks -> ErrorHandler.handleErrors(ks
@@ -44,10 +44,11 @@ public class ErrorHandler {
                 .mapValues(ProcessingResult::getValue);
     }
 
-    public static <K, V> void handleErrors(KStream<K, ProcessingError<V>> inputStream) {
-        inputStream
-                .map((k,v) -> new KeyValue<>(k == null ? "null" : k.toString(), v))
+    public static <K, V> void handleErrors(KStream<K, ProcessingError<V>> errorsStream) {
+        errorsStream
+                .map((key, value) -> new KeyValue<>(key == null ? "null" : key.toString(), value))
                 .processValues(GenericErrorProcessor<V>::new)
-                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+                .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(),
+                        SerdesUtils.getSerdesForValue()));
     }
 }

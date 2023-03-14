@@ -9,9 +9,6 @@ import org.apache.kafka.streams.processor.api.RecordMetadata;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-/**
- * Transform an exception in the stream to message for DLQ
- */
 public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, GenericError> {
     private FixedKeyProcessorContext<String, GenericError> context;
 
@@ -38,7 +35,7 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
                 .setValue(fixedKeyRecord.value().getMessage())
                 .build();
 
-        fixedKeyRecord.withValue(error);
+        context.forward(fixedKeyRecord.withValue(error));
     }
 
     @Override

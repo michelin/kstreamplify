@@ -7,6 +7,7 @@ import com.michelin.kafka.streams.starter.avro.GenericError;
 import com.michelin.kafka.streams.starter.commons.error.ErrorHandler;
 import com.michelin.kafka.streams.starter.commons.error.ProcessingError;
 import com.michelin.kafka.streams.starter.commons.utils.SerdesUtils;
+import org.apache.avro.data.Json;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -21,29 +22,32 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class HandleErrorTest extends KafkaStreamsTestInitializer {
+class HandleErrorTest extends KafkaStreamsTestInitializer {
+    private final String AVRO_TOPIC = "AVRO_TOPIC";
+    private final String STRING_TOPIC = "STRING_TOPIC";
+
     @Override
     protected void applyTopology(StreamsBuilder builder) {
         // String case
-        KStream<String, ProcessingError<String>> stringMapped = builder
-                .stream("STRING", Consumed.with(Serdes.String(), Serdes.String()))
-                .mapValues(m -> new ProcessingError<>(new NullPointerException(), m));
+        KStream<String, ProcessingError<String>> stringStream = builder
+                .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
+                .mapValues(value -> new ProcessingError<>(new NullPointerException(), value));
 
-        ErrorHandler.handleErrors(stringMapped);
+        ErrorHandler.handleErrors(stringStream);
 
         // Avro case
         var initialStreamAvro = builder
-                .stream("AVRO", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+                .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
 
-        KStream<String, ProcessingError<SpecificRecord>> avroMapped = initialStreamAvro
-                .mapValues(m -> new ProcessingError<>(new NullPointerException(), m));
+        KStream<String, ProcessingError<SpecificRecord>> avroStream = initialStreamAvro
+                .mapValues(value -> new ProcessingError<>(new NullPointerException(), value));
 
-        ErrorHandler.handleErrors(avroMapped);
+        ErrorHandler.handleErrors(avroStream);
     }
 
     @Test
     void shouldSendExceptionToDLQForStringValues() {
-        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic("STRING",
+        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(STRING_TOPIC,
                 new StringSerializer(), new StringSerializer());
 
         TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
@@ -51,9 +55,9 @@ public class HandleErrorTest extends KafkaStreamsTestInitializer {
         
         inputTopic.pipeInput("any", "any message");
 
-        var result = dlqTopic.readValue();
+        GenericError result = dlqTopic.readValue();
 
-        assertEquals("STRING", result.getTopic());
+        assertEquals(STRING_TOPIC, result.getTopic());
         assertNull(result.getCause());
         assertEquals(0, result.getOffset());
         assertEquals(0, result.getPartition());
@@ -62,37 +66,36 @@ public class HandleErrorTest extends KafkaStreamsTestInitializer {
 
     @Test
     void shouldSendExceptionToDLQForAvroValues() {
-        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic("AVRO",
+        TestInputTopic<String, GenericError> inputTopic = testDriver.createInputTopic(AVRO_TOPIC,
                 new StringSerializer(), SerdesUtils.<GenericError>getSerdesForValue().serializer());
 
         TestOutputTopic<String, GenericError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
                 new StringDeserializer(), SerdesUtils.<GenericError>getSerdesForValue().deserializer());
 
-        var avroModel = GenericError.newBuilder()
-                .setTopic("TOPIC")
-                .setStack("STACK")
-                .setPartition(1)
-                .setOffset(2)
-                .setCause("CAUSE")
-                .setValue("A value")
+        GenericError avroModel = GenericError.newBuilder()
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value")
                 .build();
 
         inputTopic.pipeInput("any", avroModel);
 
-        var result = dlqTopic.readValue();
+        GenericError result = dlqTopic.readValue();
 
-        assertEquals("AVRO", result.getTopic());
+        assertEquals(AVRO_TOPIC, result.getTopic());
         assertNull(result.getCause());
         assertEquals(0, result.getOffset());
         assertEquals(0, result.getPartition());
 
-        // Test json value of avro original object
-        var jsonObject = new Gson().fromJson(result.getValue(), JsonObject.class);
-        assertEquals("STACK", jsonObject.get("stack").getAsString());
-        assertEquals("CAUSE", jsonObject.get("cause").getAsString());
-        assertEquals("TOPIC", jsonObject.get("topic").getAsString());
-        assertEquals("A value", jsonObject.get("value").getAsString());
-        assertEquals(1, jsonObject.get("partition").getAsInt());
-        assertEquals(2, jsonObject.get("offset").getAsInt());
+        JsonObject jsonObject = new Gson().fromJson(result.getValue(), JsonObject.class);
+        assertEquals("stack", jsonObject.get("stack").getAsString());
+        assertEquals("cause", jsonObject.get("cause").getAsString());
+        assertEquals("topic", jsonObject.get("topic").getAsString());
+        assertEquals("value", jsonObject.get("value").getAsString());
+        assertEquals(0, jsonObject.get("partition").getAsInt());
+        assertEquals(0, jsonObject.get("offset").getAsInt());
     }
 }
