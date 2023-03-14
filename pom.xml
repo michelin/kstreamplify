@@ -15,7 +15,21 @@
 	<artifactId>spring-kafka-streams</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-kafka-streams</name>
-	<description>Spring Kafka Streams</description>
+	<description>A Spring Boot library that brings topology error handling, readiness/liveness and topology test driver utils on top of Apache Kafka Streams</description>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<organization>Michelin</organization>
+			<organizationUrl>https://blogit.michelin.io/</organizationUrl>
+		</developer>
+	</developers>
 
 	<repositories>
 		<repository>
@@ -23,6 +37,12 @@
 			<url>https://packages.confluent.io/maven/</url>
 		</repository>
 	</repositories>
+
+	<scm>
+		<connection>scm:git:https://github.com/michelin/spring-kafka-streams.git</connection>
+		<url>scm:git:https://github.com/michelin/spring-kafka-streams.git</url>
+		<developerConnection>scm:git:https://github.com/michelin/spring-kafka-streams.git</developerConnection>
+	</scm>
 
 	<modules>
 		<module>spring-kafka-streams-init</module>
