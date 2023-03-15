@@ -11,6 +11,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.apache.kafka.streams.processor.internals.StreamThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -123,8 +124,39 @@ public class KafkaStreamsInitializer {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @Bean
-    public KafkaStreams kafkaStreams() {
-        return kafkaStreams;
+    @GetMapping("ready")
+    public ResponseEntity<String> readinessProbe() {
+        if (kafkaStreams != null) {
+            log.debug("Current state of the Kafka Stream {}: {}",
+                    KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
+                    kafkaStreams.state());
+
+            if (kafkaStreams.state() == KafkaStreams.State.REBALANCING) {
+                long startingThreadCount = kafkaStreams.metadataForLocalThreads()
+                        .stream()
+                        .filter(t -> StreamThread.State.STARTING.name().compareToIgnoreCase(t.threadState()) == 0 || StreamThread.State.CREATED.name().compareToIgnoreCase(t.threadState()) == 0)
+                        .count();
+
+                if (startingThreadCount == kafkaStreams.metadataForLocalThreads().size()) {
+                    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                }
+            }
+
+            return kafkaStreams.state().isRunningOrRebalancing() ?
+                    ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        return ResponseEntity.badRequest().build();
     }
+
+    @GetMapping("liveness")
+    public ResponseEntity<String> livenessProbe() {
+        if (kafkaStreams != null) {
+            return kafkaStreams.state() != KafkaStreams.State.NOT_RUNNING ? ResponseEntity.ok().build()
+                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
 }
