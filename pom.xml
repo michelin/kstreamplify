@@ -46,7 +46,6 @@
 
 	<modules>
 		<module>spring-kafka-streams-init</module>
-		<module>spring-kafka-streams-healthcheck</module>
 		<module>spring-kafka-streams-test</module>
         <module>spring-kafka-streams-commons</module>
 		<module>spring-kafka-streams-starter</module>
