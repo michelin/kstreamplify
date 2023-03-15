@@ -159,8 +159,4 @@ public class KafkaStreamsInitializer {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @Bean
-    public KafkaStreams kafkaStreams() {
-        return kafkaStreams;
-    }
 }
