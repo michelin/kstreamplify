@@ -1,6 +1,6 @@
 package com.michelin.kafka.streams.starter.commons.error;
 
-import com.michelin.kafka.streams.starter.avro.GenericError;
+import com.michelin.kafka.streams.starter.avro.KafkaError;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
@@ -9,11 +9,11 @@ import org.apache.kafka.streams.processor.api.RecordMetadata;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, GenericError> {
-    private FixedKeyProcessorContext<String, GenericError> context;
+public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, KafkaError> {
+    private FixedKeyProcessorContext<String, KafkaError> context;
 
     @Override
-    public void init(FixedKeyProcessorContext<String, GenericError> context) {
+    public void init(FixedKeyProcessorContext<String, KafkaError> context) {
         this.context = context;
     }
 
@@ -25,7 +25,7 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
 
         RecordMetadata recordMetadata = context.recordMetadata().orElse(null);
 
-        GenericError error = GenericError.newBuilder()
+        KafkaError error = KafkaError.newBuilder()
                 .setCause(fixedKeyRecord.value().getException().getMessage())
                 .setContextMessage(fixedKeyRecord.value().getContextMessage())
                 .setOffset(recordMetadata != null ? recordMetadata.offset() : -1)

@@ -1,7 +1,7 @@
 {
   "namespace": "com.michelin.kafka.streams.starter.avro",
   "type": "record",
-  "name": "GenericError",
+  "name": "KafkaError",
   "fields": [
     {
       "name": "cause",
@@ -24,13 +24,13 @@
     {
       "name": "value",
       "type": ["null", "string"],
-      "doc": "erroneous message in json format or string",
+      "doc": "Erroneous message in json format or string",
       "default": null
     },
     {
       "name": "byteValue",
       "type": [ "null", "bytes"],
-      "doc": "erroneous message in bytes[] when message is not deserializable",
+      "doc": "Erroneous message in bytes[] when message is not deserializable",
       "default": null
     },
     {

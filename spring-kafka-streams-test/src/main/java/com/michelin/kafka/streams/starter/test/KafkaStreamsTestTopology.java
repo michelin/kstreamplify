@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Properties;
 
-public abstract class KafkaStreamsTestInitializer {
+public abstract class KafkaStreamsTestTopology {
     protected static final String DLQ_TOPIC = "DLQ_TOPIC";
 
     private static final String STATE_DIR = "/tmp/kafka-streams";
@@ -26,7 +26,7 @@ public abstract class KafkaStreamsTestInitializer {
     protected String schemaRegistryScope;
 
     @BeforeEach
-    void setUp() {
+    void generalSetUp() {
         Properties properties = new Properties();
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
@@ -38,24 +38,24 @@ public abstract class KafkaStreamsTestInitializer {
                 .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getName()));
         KafkaStreamsExecutionContext.setNumPartition(1);
 
-        StreamsBuilder builder = new StreamsBuilder();
-        applyTopology(builder);
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+        buildTopology(streamsBuilder);
 
-        testDriver = new TopologyTestDriver(builder.build(), properties, getDriverDate());
+        testDriver = new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
     }
 
-    protected abstract void applyTopology(StreamsBuilder builder);
+    protected abstract void buildTopology(StreamsBuilder streamsBuilder);
 
     /**
      * Implement this method to override the default mocked date for streams events
      * Default value is Wednesday 1 January 2020 00:00:00 GMT
      */
-    protected Instant getDriverDate() {
+    protected Instant getInitialWallClockTime() {
         return Instant.ofEpochMilli(1577836800000L);
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    void generalTearDown() throws IOException {
         testDriver.close();
         Files.deleteIfExists(Paths.get(STATE_DIR));
         MockSchemaRegistry.dropScope(schemaRegistryScope);

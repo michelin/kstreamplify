@@ -1,9 +1,9 @@
 package com.michelin.kafka.streams.starter.commons.context;
 
-import io.micrometer.common.util.StringUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
@@ -11,6 +11,8 @@ import java.util.Properties;
 
 @Slf4j
 public class KafkaStreamsExecutionContext {
+    public static final String PREFIX_PROPERTY_NAME = "prefix";
+
     private static final Integer DEFAULT_PARTITION_NUMBER = 6;
 
     @Getter
@@ -23,10 +25,12 @@ public class KafkaStreamsExecutionContext {
 
     @Getter
     private static Properties properties;
+
+    @Getter
+    private static String prefix;
+
     @Setter
     private static Integer numPartition = null;
-
-    public static final String PREFIX_PROPERTY_NAME = "prefix";
 
     private KafkaStreamsExecutionContext() { }
 
@@ -35,7 +39,7 @@ public class KafkaStreamsExecutionContext {
             return;
         }
 
-        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME,"");
+        prefix = properties.getProperty(PREFIX_PROPERTY_NAME,"");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
@@ -43,18 +47,5 @@ public class KafkaStreamsExecutionContext {
 
         KafkaStreamsExecutionContext.properties = properties;
         log.info("Kafka Stream configuration: " + properties);
-    }
-
-    public static Integer getNumberPartition() {
-        return KafkaStreamsExecutionContext.numPartition == null ? DEFAULT_PARTITION_NUMBER : numPartition;
-    }
-
-    protected static void reset() {
-        log.warn("dlqTopicName reset to null");
-        dlqTopicName = null;
-        log.warn("properties reset to null");
-        properties = null;
-        log.warn("serdesConfig reset to null");
-        serdesConfig = null;
     }
 }

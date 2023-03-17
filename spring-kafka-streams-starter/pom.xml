@@ -23,6 +23,5 @@
             <artifactId>spring-kafka-streams-test</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
     </dependencies>
 </project>

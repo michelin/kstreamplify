@@ -18,7 +18,7 @@ public class KafkaProperties {
 
     public Properties asProperties() {
         Properties props = new Properties();
-        props.putAll(this.properties);
+        props.putAll(properties);
         return props;
     }
 }
