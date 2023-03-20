@@ -15,7 +15,10 @@
 	<artifactId>spring-kafka-streams</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-kafka-streams</name>
-	<description>A Spring Boot library that brings topology error handling, readiness/liveness and topology test driver utils on top of Apache Kafka Streams</description>
+	<description>Spring Kafka Streams is a Spring Boot library powered by Michelin that
+		simplifies and strengthens the implementation of Kafka Streams. It brings Kafka Streams startup automation,
+		topology error handling, readiness/liveness Kubernetes probes and topology test driver automation on top of Apache Kafka Streams.
+	</description>
 
 	<licenses>
 		<license>
@@ -45,10 +48,9 @@
 	</scm>
 
 	<modules>
-		<module>spring-kafka-streams-init</module>
-		<module>spring-kafka-streams-test</module>
         <module>spring-kafka-streams-commons</module>
 		<module>spring-kafka-streams-starter</module>
+		<module>spring-kafka-streams-starter-test</module>
 	</modules>
 
 	<properties>
@@ -106,12 +108,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons-io.version}</version>
@@ -133,6 +129,12 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang3.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
