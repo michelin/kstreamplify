@@ -15,6 +15,8 @@ public class ConvertTopology {
     private static final String SINK = "-SINK-";
     private static final String SOURCE = "-SOURCE-";
 
+    private ConvertTopology() { }
+
     public static TopologyExposeJsonModel convertTopologyForRest(String streamName, Topology topology) {
         var result = new TopologyExposeJsonModel();
         result.setStreamName(streamName);

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Import(KafkaProperties.class)
+@Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class KafkaStreamsInitializer implements ApplicationRunner {
     @Autowired
@@ -37,6 +38,9 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
     private KafkaStreams kafkaStreams;
 
     @Getter
+    private Topology topology;
+
+    @Getter
     private HostInfo hostInfo;
 
     @Value("${server.port:8080}")
@@ -48,7 +52,7 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         kafkaStreamsStarter.topology(streamsBuilder);
-        Topology topology = streamsBuilder.build();
+        topology = streamsBuilder.build();
 
         log.info("Description of the topology:\n {}", topology.describe());
 
@@ -88,20 +92,10 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
 
         hostInfo = new HostInfo(host, serverPort);
 
-        log.info("The Kafka Streams {} is running on {}", KafkaStreamsExecutionContext.getProperties()
-                .getProperty(StreamsConfig.APPLICATION_ID_CONFIG), hostInfo);
+        log.info("The Kafka Streams \"{}\" is running on {}:{}", KafkaStreamsExecutionContext.getProperties()
+                .getProperty(StreamsConfig.APPLICATION_ID_CONFIG), hostInfo.host(), hostInfo.port());
 
         KafkaStreamsExecutionContext.getProperties().put(StreamsConfig.APPLICATION_SERVER_CONFIG,
                 String.format("%s:%s", hostInfo.host(), hostInfo.port()));
-    }
-
-    @Bean
-    public KafkaStreams kafkaStreams() {
-        return kafkaStreams;
-    }
-
-    @Bean
-    public HostInfo hostInfo() {
-        return hostInfo;
     }
 }

@@ -11,6 +11,7 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.processor.internals.StreamThread;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,38 +21,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
+@ConditionalOnBean(KafkaStreamsStarter.class)
 public class KafkaStreamsHealthCheck {
     @Autowired
     protected ConfigurableApplicationContext applicationContext;
 
     @Autowired
-    private KafkaStreams kafkaStreams;
-
-    @Autowired
     protected KafkaProperties kafkaProperties;
 
     @Autowired
-    protected Topology topology;
+    private KafkaStreamsInitializer kafkaStreamsInitializer;
 
     @GetMapping("ready")
     public ResponseEntity<String> readinessProbe() {
-        if (kafkaStreams != null) {
-            log.debug("Current state of the Kafka Stream {}: {}",
+        if (kafkaStreamsInitializer.getKafkaStreams() != null) {
+            log.debug("Current state of the Kafka Stream \"{}\": {}",
                     KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
-                    kafkaStreams.state());
+                    kafkaStreamsInitializer.getKafkaStreams().state());
 
-            if (kafkaStreams.state() == KafkaStreams.State.REBALANCING) {
-                long startingThreadCount = kafkaStreams.metadataForLocalThreads()
+            if (kafkaStreamsInitializer.getKafkaStreams().state() == KafkaStreams.State.REBALANCING) {
+                long startingThreadCount = kafkaStreamsInitializer.getKafkaStreams().metadataForLocalThreads()
                         .stream()
                         .filter(t -> StreamThread.State.STARTING.name().compareToIgnoreCase(t.threadState()) == 0 || StreamThread.State.CREATED.name().compareToIgnoreCase(t.threadState()) == 0)
                         .count();
 
-                if (startingThreadCount == kafkaStreams.metadataForLocalThreads().size()) {
+                if (startingThreadCount == kafkaStreamsInitializer.getKafkaStreams().metadataForLocalThreads().size()) {
                     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
                 }
             }
 
-            return kafkaStreams.state().isRunningOrRebalancing() ?
+            return kafkaStreamsInitializer.getKafkaStreams().state().isRunningOrRebalancing() ?
                     ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }
 
@@ -60,8 +59,8 @@ public class KafkaStreamsHealthCheck {
 
     @GetMapping("liveness")
     public ResponseEntity<String> livenessProbe() {
-        if (kafkaStreams != null) {
-            return kafkaStreams.state() != KafkaStreams.State.NOT_RUNNING ? ResponseEntity.ok().build()
+        if (kafkaStreamsInitializer.getKafkaStreams() != null) {
+            return kafkaStreamsInitializer.getKafkaStreams().state() != KafkaStreams.State.NOT_RUNNING ? ResponseEntity.ok().build()
                     : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -70,9 +69,11 @@ public class KafkaStreamsHealthCheck {
 
     @GetMapping("expose-topology")
     public ResponseEntity<TopologyExposeJsonModel> exposeTopology() {
-        if (topology != null) {
-            return ResponseEntity.ok(ConvertTopology.convertTopologyForRest(kafkaProperties.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG), topology));
+        if (kafkaStreamsInitializer.getTopology() != null) {
+            return ResponseEntity.ok(ConvertTopology.convertTopologyForRest(kafkaProperties.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG),
+                    kafkaStreamsInitializer.getTopology()));
         }
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -84,11 +85,11 @@ public class KafkaStreamsHealthCheck {
             debounce = Long.parseLong(debounceParam);
         }
 
-        if (kafkaStreams != null) {
+        if (kafkaStreamsInitializer.getKafkaStreams() != null) {
             log.info("Clean up and close in {}s", debounce);
-            kafkaStreams.close();
+            kafkaStreamsInitializer.getKafkaStreams().close();
             try {
-                kafkaStreams.cleanUp();
+                kafkaStreamsInitializer.getKafkaStreams().cleanUp();
             } catch (IllegalStateException ex) {
                 log.warn("Error on state dir clean up", ex);
             }
