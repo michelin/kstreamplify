@@ -7,7 +7,7 @@
 
 Spring Kafka Streams is a Spring Boot library that simplifies the implementation of Kafka Streams by providing new features.
 
-# Table of Contents
+## Table of Contents
 
 * [Features](#features)
 * [Dependencies](#dependencies)
@@ -19,8 +19,9 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
     * [Production and Deserialization](#topology)
   * [REST Endpoints](#rest-endpoints)
   * [Testing](#testing)
-  
-# Features
+* [Contribution](#contribution)
+
+## Features
 
 - **Topology First**: Kafka Streams instances creation and running are handled for you, allowing you to focus on topology implementation.
 
@@ -34,7 +35,7 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
 
 - **Testing**: The library eases the use of Topology Test Driver, making it easier to write your tests.
 
-# Dependencies
+## Dependencies
 
 Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spring-kafka-streams-test`:
 
@@ -55,7 +56,7 @@ Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spri
 
 The first one is the main dependency, while the second one is used for testing purposes only.
 
-# Getting Started
+## Getting Started
 
 To get started with Spring Kafka Streams, you need to create a class that implements the `KafkaStreamsStarter` interface and override the `topology` method. Additionally, annotate your class with `@Component` so that Spring can manage it as a bean.
 
@@ -69,7 +70,7 @@ public class MyKafkaStreams implements KafkaStreamsStarter {
 
 You can now start writing your topology by defining your processing logic inside the `streamsBuilder`.
 
-## Properties Injection
+### Properties Injection
 
 You can define all your Kafka Streams properties directly from the `application.yml` file as follows:
 
@@ -88,7 +89,7 @@ kafka:
 
 Note that all the properties have been moved under `kafka.properties`.
 
-## Avro Schema Serializer and Deserializer
+### Avro Schema Serializer and Deserializer
 
 Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdesUtils` class as follows:
 
@@ -114,7 +115,7 @@ public void topology(StreamsBuilder streamsBuilder) {
 }
 ```
 
-## Error Handling
+### Error Handling
 
 The library provides the ability to handle errors that may occur in your topology as well as during the production or deserialization of records and route them to a dead-letter queue (DLQ) topic.
 
@@ -133,7 +134,7 @@ public class MyKafkaStreams implements KafkaStreamsStarter {
 }
 ```
 
-### Topology 
+#### Topology 
 
 Spring Kafka Streams provides utilities to handle all the unexpected errors that can occur in your topologies and route them to a dead-letter queue (DLQ) topic automatically.
 
@@ -196,7 +197,7 @@ stream into two branches:
 multiple useful information such as the topic, the partition, the offsets, the exception, and the custom error message of the failed record.
 - The second branch will only contain the successful records and will be returned to continue the processing.
 
-### Production and Deserialization
+#### Production and Deserialization
 
 The library provides handlers for production and deserialization errors, which can be used to route these errors to the configured DLQ topic.
 
@@ -211,7 +212,7 @@ kafka:
     ...
 ```
 
-## REST endpoints
+### REST endpoints
 
 The Spring Kafka Streams library provides several REST endpoints, which are listed below:
 
@@ -219,7 +220,7 @@ The Spring Kafka Streams library provides several REST endpoints, which are list
 - `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
 - `GET /topology`: This endpoint returns the Kafka Streams topology as JSON.
 
-## Testing
+### Testing
 
 For testing, you can create a test class that implements `KafkaStreamsStarterTest` and override the `topology` method. Then, apply the topology of your Kafka Streams on the given `streamsBuilders`.
 
@@ -233,3 +234,7 @@ public class MyKafkaStreamsTest implements KafkaStreamsStarterTest {
     }
 }
 ```
+
+## Contribution
+
+We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/spring-kafka-streams/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Spring Kafka Streams a better library for everyone.
