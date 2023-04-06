@@ -41,13 +41,13 @@ Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spri
 
 ```xml
 <dependency>
-    <groupId>com.michelin.kafka</groupId>
+    <groupId>io.github.michelin</groupId>
     <artifactId>spring-kafka-streams</artifactId>
     <version>${spring-kafka-streams.version}</version>
 </dependency>
 
 <dependency>
-    <groupId>com.michelin.kafka</groupId>
+    <groupId>io.github.michelin</groupId>
     <artifactId>spring-kafka-streams-test</artifactId>
     <version>${spring-kafka-streams-test.version}</version>
     <scope>test</scope>

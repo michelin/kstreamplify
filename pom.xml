@@ -11,7 +11,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
-	<groupId>com.michelin.kafka</groupId>
+	<groupId>io.github.michelin</groupId>
 	<artifactId>spring-kafka-streams-dist</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>spring-kafka-streams-dist</name>
