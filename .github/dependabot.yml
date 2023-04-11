@@ -19,19 +19,3 @@ updates:
       day: "monday"
     labels:
       - "dependencies"
-  - package-ecosystem: "maven"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    target-branch: "2.7.x"
-    labels:
-      - "dependencies"
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    target-branch: "2.7.x"
-    labels:
-      - "dependencies"
