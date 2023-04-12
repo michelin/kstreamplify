@@ -38,20 +38,8 @@ jobs:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
       - name: Deploy
-        run: mvn -B deploy -Psign
+        run: mvn -B deploy -DskipTests -Psign
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: spring-kafka-streams
-          path: ${{ github.workspace }}/spring-kafka-streams/target/spring-kafka-streams-*.jar
-
-      - name: Upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: spring-kafka-streams-test
-          path: ${{ github.workspace }}/spring-kafka-streams-test/target/spring-kafka-streams-test-*.jar
