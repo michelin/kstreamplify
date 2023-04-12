@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class WindowStateStoreUtils {
+    private WindowStateStoreUtils() { }
 
     /**
      * Put the key/value into the state store

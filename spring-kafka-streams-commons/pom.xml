@@ -5,7 +5,7 @@
     <parent>
         <artifactId>spring-kafka-streams-dist</artifactId>
         <groupId>io.github.michelin</groupId>
-        <version>3.0.5-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,13 +15,13 @@
         <dependency>
             <groupId>io.github.michelin</groupId>
             <artifactId>avro-error</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.michelin</groupId>
             <artifactId>avro-testing</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
