@@ -2,6 +2,7 @@ package com.michelin.kafka.streams.init.properties;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,6 +20,7 @@ public class KafkaProperties {
     public Properties asProperties() {
         Properties props = new Properties();
         props.putAll(properties);
+        props.put(StreamsConfig.ROCKSDB_CONFIG_SETTER_CLASS_CONFIG, RocksDBConfig.class);
         return props;
     }
 }
