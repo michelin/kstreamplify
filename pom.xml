@@ -37,8 +37,14 @@
 
 	<developers>
 		<developer>
-			<organization>Michelin</organization>
-			<organizationUrl>https://blogit.michelin.io/</organizationUrl>
+			<id>loicgreffier</id>
+			<name>Loïc Greffier</name>
+			<url>https://github.com/loicgreffier</url>
+		</developer>
+		<developer>
+			<id>adriencalime</id>
+			<name>Adrien Calime</name>
+			<url>https://github.com/adriencalime</url>
 		</developer>
 	</developers>
 
