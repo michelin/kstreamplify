@@ -21,7 +21,7 @@ jobs:
           cache: maven
 
       - name: Build
-        run: mvn clean package -DskipTests
+        run: mvn clean compile
 
       - name: Test
         run: mvn test
