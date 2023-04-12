@@ -20,7 +20,6 @@ public class KafkaProperties {
     public Properties asProperties() {
         Properties props = new Properties();
         props.putAll(properties);
-        props.put(StreamsConfig.ROCKSDB_CONFIG_SETTER_CLASS_CONFIG, RocksDBConfig.class);
         return props;
     }
 }
