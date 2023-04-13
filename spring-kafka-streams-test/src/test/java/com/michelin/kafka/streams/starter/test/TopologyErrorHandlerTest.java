@@ -20,7 +20,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TopologyErrorHandlerTest extends KafkaStreamsTestStarter {
+class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     private final String AVRO_TOPIC = "avroTopic";
     private final String STRING_TOPIC = "stringTopic";
     private final String OUTPUT_AVRO_TOPIC = "outputAvroTopic";
