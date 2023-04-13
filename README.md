@@ -208,8 +208,8 @@ Here's how to use them:
 kafka:
   properties:
     ...
-    default.production.exception.handler: com.michelin.kafka.streams.starter.commons.error.DlqProductionExceptionHandler
-    default.deserialization.exception.handler: com.michelin.kafka.streams.starter.commons.error.DlqDeserializationExceptionHandler
+    default.production.exception.handler: DlqProductionExceptionHandler
+    default.deserialization.exception.handler: DlqDeserializationExceptionHandler
     ...
 ```
 

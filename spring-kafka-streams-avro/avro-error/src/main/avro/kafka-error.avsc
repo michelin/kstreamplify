@@ -1,5 +1,5 @@
 {
-  "namespace": "com.michelin.kafka.streams.starter.avro",
+  "namespace": "io.github.michelin.spring.kafka.streams.avro",
   "type": "record",
   "name": "KafkaError",
   "fields": [
