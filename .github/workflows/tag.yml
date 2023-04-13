@@ -35,7 +35,9 @@ jobs:
         run: |
           mvn versions:set -DnewVersion=${{ github.event.inputs.release_version }}
           git add pom.xml
-          git commit -s -m "Prepare release v${{ github.event.inputs.release_version }}"
+          git add **/pom.xml
+          git add **/**/pom.xml
+          git commit -s -m "Prepare release v${{ github.event.inputs.release_version }} [skip ci]"
           git push
           git tag v${{ github.event.inputs.release_version }} -s -m ''
           git push origin v${{ github.event.inputs.release_version }}
