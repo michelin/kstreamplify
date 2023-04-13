@@ -12,11 +12,12 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
 * [Features](#features)
 * [Dependencies](#dependencies)
 * [Getting Started](#getting-started)
-  * [Properties Injection](#avro-schema-serializer-and-deserializer)
+  * [Properties Injection](#properties-injection)
   * [Avro Schema Serializer and Deserializer](#avro-schema-serializer-and-deserializer)
   * [Error Handling](#error-handling)
     * [Topology](#topology)
-    * [Production and Deserialization](#topology)
+    * [Production and Deserialization](#production-and-deserialization)
+    * [Avro Schema](#avro-schema)
   * [REST Endpoints](#rest-endpoints)
   * [Testing](#testing)
 * [Contribution](#contribution)
@@ -211,6 +212,10 @@ kafka:
     default.deserialization.exception.handler: com.michelin.kafka.streams.starter.commons.error.DlqDeserializationExceptionHandler
     ...
 ```
+
+#### Avro Schema
+
+An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is available [here](https://github.com/michelin/spring-kafka-streams/blob/main/spring-kafka-streams-avro/avro-error/src/main/avro/kafka-error.avsc).
 
 ### REST endpoints
 
