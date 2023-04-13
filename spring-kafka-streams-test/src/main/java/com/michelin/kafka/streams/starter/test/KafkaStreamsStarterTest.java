@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Properties;
 
-public abstract class KafkaStreamsTestStarter {
+public abstract class KafkaStreamsStarterTest {
     protected static final String DLQ_TOPIC = "DLQ_TOPIC";
 
     private static final String STATE_DIR = "/tmp/kafka-streams";
