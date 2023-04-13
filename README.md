@@ -227,7 +227,7 @@ For testing, you can create a test class that implements `KafkaStreamsStarterTes
 Here is an example:
 
 ```java
-public class MyKafkaStreamsTest implements KafkaStreamsStarterTest {
+public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     @Override
     public void topology(StreamsBuilder streamsBuilder) { 
         new MyKafkaStreams().topology(streamsBuilder);
