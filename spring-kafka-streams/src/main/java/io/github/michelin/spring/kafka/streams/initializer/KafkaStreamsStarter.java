@@ -8,4 +8,6 @@ public interface KafkaStreamsStarter {
     void topology(StreamsBuilder streamsBuilder);
 
     default String dlqTopic() { return EMPTY; }
+
+    default void onStart() { }
 }
