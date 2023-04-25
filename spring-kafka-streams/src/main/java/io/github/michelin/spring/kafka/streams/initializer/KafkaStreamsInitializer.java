@@ -56,6 +56,7 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
         log.info("Description of the topology:\n {}", topology.describe());
 
         kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
+        kafkaStreamsStarter.onStart();
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
