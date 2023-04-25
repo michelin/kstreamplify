@@ -76,8 +76,8 @@ public class KafkaStreamsRest {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @GetMapping("dropthemic/{debounceParam}")
-    public ResponseEntity<String> dropTheMic(@PathVariable() String debounceParam) {
+    @GetMapping("cleanup/{debounceParam}")
+    public ResponseEntity<String> cleanUp(@PathVariable String debounceParam) {
         long debounce = 1L;
 
         if (!StringUtils.isBlank(debounceParam)) {
@@ -96,7 +96,7 @@ public class KafkaStreamsRest {
             long shutdownDebounce = debounce * 1000L;
             var springClose = new Thread(() -> {
                 try {
-                    log.info("Shutdown scheduled in {}",shutdownDebounce);
+                    log.info("Shutdown scheduled in {}", shutdownDebounce);
                     Thread.sleep(shutdownDebounce);
                 } catch (InterruptedException e) {
                     log.warn("Error while waiting for stop", e);
@@ -111,7 +111,6 @@ public class KafkaStreamsRest {
             });
 
             springClose.start();
-            return new ResponseEntity<>("See you space cowboy", HttpStatus.I_AM_A_TEAPOT);
         }
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
