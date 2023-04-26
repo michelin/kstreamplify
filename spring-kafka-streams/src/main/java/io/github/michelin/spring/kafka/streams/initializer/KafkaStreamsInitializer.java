@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Import(KafkaProperties.class)
@@ -80,14 +81,14 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
     }
 
     private void initStreamExecutionContext() {
-        KafkaStreamsExecutionContext.setDlqTopicName(kafkaStreamsStarter.dlqTopic());
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties.asProperties());
+        KafkaStreamsExecutionContext.setDlqTopicName(kafkaStreamsStarter.dlqTopic());
         KafkaStreamsExecutionContext.setSerdesConfig(kafkaProperties.getProperties());
         initHostInfo();
     }
 
     private void initHostInfo() {
-        String host = org.springframework.util.StringUtils.hasText(System.getenv("MY_POD_IP")) ?
+        String host = StringUtils.hasText(System.getenv("MY_POD_IP")) ?
                 System.getenv("MY_POD_IP") : "localhost";
 
         hostInfo = new HostInfo(host, serverPort);
