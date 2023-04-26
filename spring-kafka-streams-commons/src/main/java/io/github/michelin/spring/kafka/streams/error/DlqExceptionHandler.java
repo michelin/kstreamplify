@@ -20,14 +20,14 @@ public abstract class DlqExceptionHandler {
 
     protected void createProducer(Map<String, ?> configs) {
         Properties properties = new Properties();
+        properties.putAll(configs);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
-        properties.setProperty(ProducerConfig.CLIENT_ID_CONFIG, this.getClass().getSimpleName());
-        properties.putAll(configs);
+        properties.setProperty(ProducerConfig.CLIENT_ID_CONFIG, getClass().getSimpleName());
         producer = new KafkaProducer<>(properties);
     }
 
-    protected void handleException(String key, String value, String topic, Exception e, Exception se){
+    protected void handleException(String key, String value, String topic, Exception e, Exception se) {
         log.error("Cannot write the production exception into DLQ", e);
         log.error("Source exception: ", se);
         log.error("Key: {}", key);
