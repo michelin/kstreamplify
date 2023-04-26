@@ -35,7 +35,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
             return ProductionExceptionHandlerResponse.CONTINUE;
         }
 
-        return null;
+        return ProductionExceptionHandlerResponse.FAIL;
     }
 
     @Override
