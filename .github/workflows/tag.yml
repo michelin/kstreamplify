@@ -37,7 +37,7 @@ jobs:
           git add pom.xml
           git add **/pom.xml
           git add **/**/pom.xml
-          git commit -s -m "Prepare release v${{ github.event.inputs.release_version }} [skip ci]"
+          git commit -s -m "Prepare release v${{ github.event.inputs.release_version }}"
           git push
           git tag v${{ github.event.inputs.release_version }} -s -m "Create tag v${{ github.event.inputs.release_version }}"
           git push origin v${{ github.event.inputs.release_version }}
