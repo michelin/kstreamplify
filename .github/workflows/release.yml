@@ -25,7 +25,10 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Deploy
-        run: mvn -B clean deploy -DskipTests -Psign
+        run: |
+          mvn clean
+          mvn source:jar
+          mvn -B deploy -DskipTests -Psign
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
