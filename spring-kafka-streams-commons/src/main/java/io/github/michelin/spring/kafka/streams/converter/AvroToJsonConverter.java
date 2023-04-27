@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The class to convert Avro to Json
+ */
 public class AvroToJsonConverter {
     private AvroToJsonConverter() { }
 
@@ -36,10 +39,20 @@ public class AvroToJsonConverter {
             .setPrettyPrinting()
             .create();
 
+    /**
+     * Convert the record from avro format to json format
+     * @param inputRecord the record in avro format
+     * @return the record in json format
+     */
     public static String convertRecord(GenericRecord inputRecord) {
         return gson.toJson(recordAsMap(inputRecord));
     }
 
+    /**
+     * convert avro to a map for json format
+     * @param inputRecord record in avro
+     * @return map for json format
+     */
     private static Map<String, Object> recordAsMap(GenericRecord inputRecord) {
         Map<String, Object> recordMapping = new HashMap<>();
 

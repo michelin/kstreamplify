@@ -9,14 +9,26 @@ import org.apache.kafka.streams.processor.api.RecordMetadata;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * The class to process error
+ * @param <V>
+ */
 public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, KafkaError> {
     private FixedKeyProcessorContext<String, KafkaError> context;
 
+    /**
+     * init context
+     * @param context the context to init
+     */
     @Override
     public void init(FixedKeyProcessorContext<String, KafkaError> context) {
         this.context = context;
     }
 
+    /**
+     * process the error
+     * @param fixedKeyRecord the record to process an error
+     */
     @Override
     public void process(FixedKeyRecord<String, ProcessingError<V>> fixedKeyRecord) {
         StringWriter sw = new StringWriter();
@@ -38,6 +50,9 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
         context.forward(fixedKeyRecord.withValue(error));
     }
 
+    /**
+     * close everything correctly on close
+     */
     @Override
     public void close() {
         // may close resource opened in init

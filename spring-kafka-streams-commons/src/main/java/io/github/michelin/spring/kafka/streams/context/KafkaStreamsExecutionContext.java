@@ -9,6 +9,9 @@ import org.apache.kafka.streams.StreamsConfig;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * The class to represent the context of the KStream
+ */
 @Slf4j
 public class KafkaStreamsExecutionContext {
     public static final String PREFIX_PROPERTY_NAME = "prefix";
@@ -29,6 +32,10 @@ public class KafkaStreamsExecutionContext {
 
     private KafkaStreamsExecutionContext() { }
 
+    /**
+     * Register KStream properties
+     * @param properties
+     */
     public static void registerProperties(Properties properties) {
         if (properties == null) {
             return;

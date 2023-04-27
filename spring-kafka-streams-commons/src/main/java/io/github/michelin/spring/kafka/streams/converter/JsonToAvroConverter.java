@@ -18,14 +18,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+
+/**
+ * The class to convert Json to Avro
+ */
 public class JsonToAvroConverter {
 
     private static final String JSON_VALUE = "value";
-    
+
+    /**
+     * convert a file in json to avro
+     * @param file the file in json
+     * @param schema the avro schema to use
+     * @return the record in avro
+     */
     public static SpecificRecordBase jsonToAvro(String file, Schema schema) {
         return jsonToAvro((JsonObject) new JsonParser().parse(file), schema);
     }
 
+    /**
+     * convert json to avro
+     * @param jsonEvent the json record
+     * @param schema the avro schema to use
+     * @return the record in avro
+     */
     public static SpecificRecordBase jsonToAvro(JsonObject jsonEvent, Schema schema) {
         try {
             SpecificRecordBase record = baseClass(schema.getNamespace(), schema.getName()).getDeclaredConstructor().newInstance();
@@ -36,6 +52,11 @@ public class JsonToAvroConverter {
         }
     }
 
+    /**
+     * populate avro records from json
+     * @param jsonObject json data to provide to the avro record
+     * @param record the avro record to populate
+     */
     private static void populateGenericRecordFromJson(JsonObject jsonObject, SpecificRecordBase record) {
         
             // Iterate over object attributes
@@ -132,6 +153,12 @@ public class JsonToAvroConverter {
             );
     }
 
+    /**
+     * populate field with corresponding type
+     * @param jsonElement the json element to convert
+     * @param type the type of the element
+     * @return the element converted with the corresponding type
+     */
     private static Object populateFieldWithCorrespondingType(JsonElement jsonElement, Schema.Type type){
         switch (type) {
             case INT:
@@ -149,6 +176,12 @@ public class JsonToAvroConverter {
         }
     }
 
+    /**
+     * populate field in record with corresponding type
+     * @param jsonObject data to provide to the avro record
+     * @param fieldName the name to populate
+     * @param result the avro record populated
+     */
     private static void populateFieldInRecordWithCorrespondingType(JsonObject jsonObject, String fieldName, GenericRecord result) {
         Schema fieldSchema = result.getSchema().getField(fieldName).schema();
         Schema fieldType =
@@ -200,6 +233,12 @@ public class JsonToAvroConverter {
 
     }
 
+    /**
+     * get base class
+     * @param baseNamespace the namespace of the class
+     * @param typeName the class type
+     * @return the base class
+     */
     @SuppressWarnings("unchecked")
     private static Class<SpecificRecordBase> baseClass(String baseNamespace, String typeName) {
         try {

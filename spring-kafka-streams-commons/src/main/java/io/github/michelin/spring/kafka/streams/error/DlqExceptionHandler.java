@@ -14,10 +14,17 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * The class to ma,age DLQ exception
+ */
 @Slf4j
 public abstract class DlqExceptionHandler {
     protected KafkaProducer<byte[], KafkaError> producer;
 
+    /**
+     * create the producer
+     * @param configs configuration for producer
+     */
     protected void createProducer(Map<String, ?> configs) {
         Properties properties = new Properties();
         properties.putAll(configs);
@@ -27,6 +34,14 @@ public abstract class DlqExceptionHandler {
         producer = new KafkaProducer<>(properties);
     }
 
+    /**
+     * manage exception
+     * @param key the record key
+     * @param value the record value
+     * @param topic the topic name
+     * @param e the production exception
+     * @param se the source exception
+     */
     protected void handleException(String key, String value, String topic, Exception e, Exception se) {
         log.error("Cannot write the production exception into DLQ", e);
         log.error("Source exception: ", se);
@@ -35,6 +50,14 @@ public abstract class DlqExceptionHandler {
         log.error("Target topic: {}", topic);
     }
 
+    /**
+     * enrich with exception
+     * @param builder the error builder
+     * @param exception the exception to add
+     * @param key the record key
+     * @param value the record value
+     * @return the error enriched by the exception
+     */
     protected KafkaError.Builder enrichWithException(KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);

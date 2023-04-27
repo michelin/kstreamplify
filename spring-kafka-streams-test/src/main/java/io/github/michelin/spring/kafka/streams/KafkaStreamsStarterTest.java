@@ -16,6 +16,9 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Properties;
 
+/**
+ * The main test class to extend to execute unit tests on topology
+ */
 public abstract class KafkaStreamsStarterTest {
     protected static final String DLQ_TOPIC = "DLQ_TOPIC";
 
@@ -25,6 +28,9 @@ public abstract class KafkaStreamsStarterTest {
 
     protected String schemaRegistryScope;
 
+    /**
+     * Method to setup test streams properties to test the topology
+     */
     @BeforeEach
     void generalSetUp() {
         Properties properties = new Properties();
@@ -43,16 +49,23 @@ public abstract class KafkaStreamsStarterTest {
         testDriver = new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
     }
 
+    /**
+     * Method to create the topology to test
+     * @param streamsBuilder to build the topology of the stream
+     */
     protected abstract void topology(StreamsBuilder streamsBuilder);
 
     /**
      * Implement this method to override the default mocked date for streams events
-     * Default value is Wednesday 1 January 2020 00:00:00 GMT
      */
     protected Instant getInitialWallClockTime() {
         return Instant.ofEpochMilli(1577836800000L);
     }
 
+    /**
+     * Method to close everything properly at the end of the test
+     * @throws IOException
+     */
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();

@@ -8,9 +8,18 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 
 import java.util.Map;
 
+/**
+ * The class to manage DLQ production exception
+ */
 public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
     private static final Object GUARD = new Object();
 
+    /**
+     * manage production exception
+     * @param producerRecord the record to produce
+     * @param productionException the exception on producing
+     * @return FAIL or CONTINU
+     */
     @Override
     public ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> producerRecord, Exception productionException) {
         boolean retryable = productionException instanceof RetriableException;
@@ -38,6 +47,10 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
         return ProductionExceptionHandlerResponse.FAIL;
     }
 
+    /**
+     * configure the producer
+     * @param configs the configuration
+     */
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {

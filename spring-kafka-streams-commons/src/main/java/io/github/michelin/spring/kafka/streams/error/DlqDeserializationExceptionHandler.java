@@ -9,9 +9,19 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 
 import java.util.Map;
 
+/**
+ * The class to manage deserialization exception
+ */
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
 
+    /**
+     * manage deserialization exception
+     * @param processorContext the processor context
+     * @param consumerRecord the record to deserialize
+     * @param consumptionException the exception for the deserialization
+     * @return FAIL or CONTINUE
+     */
     @Override
     public DeserializationHandlerResponse handle(ProcessorContext processorContext, ConsumerRecord<byte[], byte[]> consumerRecord, Exception consumptionException) {
         try {
@@ -32,6 +42,10 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         return DeserializationHandlerResponse.CONTINUE;
     }
 
+    /**
+     * configure the producer
+     * @param configs the configuration
+     */
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {
