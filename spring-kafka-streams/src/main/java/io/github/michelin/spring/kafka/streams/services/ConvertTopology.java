@@ -11,12 +11,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The convert topology class
+ */
 public class ConvertTopology {
     private static final String SINK = "-SINK-";
     private static final String SOURCE = "-SOURCE-";
 
     private ConvertTopology() { }
 
+    /**
+     * Convert the Kafka Streams topology as REST JSON response
+     * @param streamName The Kafka Streams name
+     * @param topology The Kafka Streams topology
+     * @return The Kafka Streams topology as REST JSON response
+     */
     public static TopologyExposeJsonModel convertTopologyForRest(String streamName, Topology topology) {
         var result = new TopologyExposeJsonModel();
         result.setStreamName(streamName);

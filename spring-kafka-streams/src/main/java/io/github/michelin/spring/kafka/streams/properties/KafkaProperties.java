@@ -10,13 +10,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * The Kafka properties class
+ */
 @Getter
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProperties {
+    /**
+     * The Kafka properties
+     */
     private final Map<String, String> properties = new HashMap<>();
 
+    /**
+     * Return the Kafka properties as {@link java.util.Properties}
+     * @return The Kafka properties
+     */
     public Properties asProperties() {
         Properties props = new Properties();
         props.putAll(properties);

@@ -8,25 +8,86 @@ import org.rocksdb.Options;
 
 import java.util.Map;
 
-
+/**
+ * The RockDB configuration class
+ */
 public class RocksDBConfig implements RocksDBConfigSetter {
-    public final static String ROCKSDB_CACHE_SIZE_CONFIG = "rocksdb.config.cache.size";
-    public final static String ROCKSDB_WRITE_BUFFER_SIZE_CONFIG = "rocksdb.config.write.buffer.size";
-    public final static String ROCKSDB_BLOCK_SIZE_CONFIG = "rocksdb.config.block.size";
-    public final static String ROCKSDB_MAX_WRITE_BUFFER_CONFIG = "rocksdb.config.max.write.buffer";
-    public final static String ROCKSDB_COMPRESSION_TYPE_CONFIG = "rocksdb.config.compression.type";
-    public final static String ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_CONFIG = "rocksdb.config.cache.index.block.enabled";
+    /**
+     * The RocksDB cache size config key
+     */
+    public static final String ROCKSDB_CACHE_SIZE_CONFIG = "rocksdb.config.cache.size";
+
+    /**
+     * The RocksDB write buffer size config key
+     */
+    public static final String ROCKSDB_WRITE_BUFFER_SIZE_CONFIG = "rocksdb.config.write.buffer.size";
+
+    /**
+     * The RocksDB block size config key
+     */
+    public static final String ROCKSDB_BLOCK_SIZE_CONFIG = "rocksdb.config.block.size";
+
+    /**
+     * The RocksDB max write buffer config
+     */
+    public static final String ROCKSDB_MAX_WRITE_BUFFER_CONFIG = "rocksdb.config.max.write.buffer";
+
+    /**
+     * The RocksDB compression type config key
+     */
+    public static final String ROCKSDB_COMPRESSION_TYPE_CONFIG = "rocksdb.config.compression.type";
+
+    /**
+     * The RocksDB cache index block enabled config
+     */
+    public static final String ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_CONFIG = "rocksdb.config.cache.index.block.enabled";
+
+    /**
+     * One KB in B
+     */
     private static final long ONE_KB = 1024L;
 
-    public final static Long ROCKSDB_CACHE_SIZE_DEFAULT = 16 * ONE_KB * ONE_KB;
-    public final static Long ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT = 4 * ONE_KB * ONE_KB;
-    public final static Long ROCKSDB_BLOCK_SIZE_DEFAULT = 4 * ONE_KB;
-    public final static Integer ROCKSDB_MAX_WRITE_BUFFER_DEFAULT = 2;
-    public final static String ROCKSDB_COMPRESSION_TYPE_DEFAULT = "";
-    public final static Boolean ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_DEFAULT = true;
+    /**
+     * The RocksDB default cache size
+     */
+    public static final Long ROCKSDB_CACHE_SIZE_DEFAULT = 16 * ONE_KB * ONE_KB;
 
+    /**
+     * The RocksDB default write buffer size
+     */
+    public static final Long ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT = 4 * ONE_KB * ONE_KB;
+
+    /**
+     * The RocksDB default block size
+     */
+    public static final Long ROCKSDB_BLOCK_SIZE_DEFAULT = 4 * ONE_KB;
+
+    /**
+     * The RocksDB default max write buffer
+     */
+    public static final Integer ROCKSDB_MAX_WRITE_BUFFER_DEFAULT = 2;
+
+    /**
+     * The RocksDB default compression type
+     */
+    public static final String ROCKSDB_COMPRESSION_TYPE_DEFAULT = "";
+
+    /**
+     * The RocksDB default cache index block enabled
+     */
+    public static final Boolean ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_DEFAULT = true;
+
+    /**
+     * The RocksDB cache
+     */
     private org.rocksdb.Cache cache = null;
 
+    /**
+     * Set the RocksDB configuration
+     * @param storeName The store name
+     * @param options The options
+     * @param configs The configs
+     */
     @Override
     public void setConfig(final String storeName, final Options options, final Map<String, Object> configs) {
         long blockCacheSize = KafkaStreamsExecutionContext.getProperties().containsKey(ROCKSDB_CACHE_SIZE_CONFIG) ?

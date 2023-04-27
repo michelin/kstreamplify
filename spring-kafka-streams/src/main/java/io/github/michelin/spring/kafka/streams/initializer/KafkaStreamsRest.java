@@ -18,19 +18,35 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * The Kafka Streams endpoints class
+ */
 @Slf4j
 @RestController
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class KafkaStreamsRest {
+    /**
+     * The application context
+     */
     @Autowired
     protected ConfigurableApplicationContext applicationContext;
 
+    /**
+     * The Kafka properties
+     */
     @Autowired
     protected KafkaProperties kafkaProperties;
 
+    /**
+     * The Kafka Streams initializer
+     */
     @Autowired
     private KafkaStreamsInitializer kafkaStreamsInitializer;
 
+    /**
+     * The Kubernetes readiness probe endpoint
+     * @return An HTTP response based on the Kafka Streams state
+     */
     @GetMapping("ready")
     public ResponseEntity<String> readinessProbe() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
@@ -56,6 +72,10 @@ public class KafkaStreamsRest {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * The Kubernetes liveness probe endpoint
+     * @return An HTTP response based on the Kafka Streams state
+     */
     @GetMapping("liveness")
     public ResponseEntity<String> livenessProbe() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
@@ -66,6 +86,10 @@ public class KafkaStreamsRest {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    /**
+     * The topology endpoint
+     * @return The Kafka Streams topology as JSON
+     */
     @GetMapping("topology")
     public ResponseEntity<TopologyExposeJsonModel> exposeTopology() {
         if (kafkaStreamsInitializer.getTopology() != null) {
@@ -76,8 +100,13 @@ public class KafkaStreamsRest {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @GetMapping("cleanup/{debounceParam}")
-    public ResponseEntity<String> cleanUp(@PathVariable String debounceParam) {
+    /**
+     * The state store clean up endpoint
+     * @param debounceParam The delay in seconds
+     * @return An HTTP response
+     */
+    @GetMapping("shutdown/{debounceParam}")
+    public ResponseEntity<String> shutdown(@PathVariable String debounceParam) {
         long debounce = 1L;
 
         if (!StringUtils.isBlank(debounceParam)) {

@@ -20,32 +20,60 @@ import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+/**
+ * The Kafka Streams initializer class
+ */
 @Slf4j
 @Import(KafkaProperties.class)
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class KafkaStreamsInitializer implements ApplicationRunner {
+    /**
+     * The application context
+     */
     @Autowired
     private ConfigurableApplicationContext applicationContext;
 
+    /**
+     * The Kafka Streams starter
+     */
     @Autowired
     private KafkaStreamsStarter kafkaStreamsStarter;
 
+    /**
+     * The Kafka properties
+     */
     @Autowired
     private KafkaProperties kafkaProperties;
 
+    /**
+     * The Kafka Streams instance
+     */
     @Getter
     private KafkaStreams kafkaStreams;
 
+    /**
+     * The topology
+     */
     @Getter
     private Topology topology;
 
+    /**
+     * The host info
+     */
     @Getter
     private HostInfo hostInfo;
 
+    /**
+     * The server port
+     */
     @Value("${server.port:8080}")
     private int serverPort;
 
+    /**
+     * The run method
+     * @param args the program arguments
+     */
     @Override
     public void run(ApplicationArguments args) {
         initStreamExecutionContext();
@@ -80,6 +108,9 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
         kafkaStreams.start();
     }
 
+    /**
+     * Init the Kafka Streams execution context
+     */
     private void initStreamExecutionContext() {
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties.asProperties());
         KafkaStreamsExecutionContext.setDlqTopicName(kafkaStreamsStarter.dlqTopic());
@@ -87,6 +118,9 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
         initHostInfo();
     }
 
+    /**
+     * Init the host information
+     */
     private void initHostInfo() {
         String host = StringUtils.hasText(System.getenv("MY_POD_IP")) ?
                 System.getenv("MY_POD_IP") : "localhost";

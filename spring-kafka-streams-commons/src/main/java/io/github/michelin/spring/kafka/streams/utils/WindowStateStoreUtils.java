@@ -5,6 +5,9 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * The window state store utils
+ */
 public class WindowStateStoreUtils {
     private WindowStateStoreUtils() { }
 
@@ -21,14 +24,13 @@ public class WindowStateStoreUtils {
     }
 
     /**
-     * Get the value by the key from the stateStore
-     *
+     * Get the value by the key from the state store
      * @param stateStore    The stateStore
      * @param key           The key
      * @param retentionDays The delay of retention
      * @param <K>           The template for the key
      * @param <V>           The template for the value
-     * @return The last value inserted in the stateStore for the key
+     * @return The last value inserted in the state store for the key
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, int retentionDays) {
         var resultIterator = stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)), Instant.now());
