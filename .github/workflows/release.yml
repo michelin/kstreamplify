@@ -28,6 +28,7 @@ jobs:
         run: |
           mvn clean
           mvn source:jar
+          mvn javadoc:jar
           mvn -B deploy -DskipTests -Psign
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
