@@ -75,7 +75,7 @@
 		<kafka.version>3.4.0</kafka.version>
 		<kafka-streams-avro-serde.version>7.3.3</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.26</lombok.version>
-		<junit-jupiter.version>5.9.2</junit-jupiter.version>
+		<junit-jupiter.version>5.9.3</junit-jupiter.version>
 		<commons-io.version>2.11.0</commons-io.version>
 		<gson.version>2.10.1</gson.version>
 	</properties>
