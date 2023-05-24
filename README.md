@@ -5,7 +5,10 @@
 [![GitHub Watch](https://img.shields.io/github/watchers/michelin/spring-kafka-streams?logo=github&style=for-the-badge)](https://github.com/michelin/spring-kafka-streams)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
+<h3 align="center"> 📢 A beta version of Spring Kafka Streams is available. Classes, methods and implementation are subject to change. </h3>
+
 Spring Kafka Streams is a Spring Boot library that simplifies the implementation of Kafka Streams by providing new features.
+
 
 ## Table of Contents
 
