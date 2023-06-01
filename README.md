@@ -53,7 +53,7 @@ Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spri
 <dependency>
     <groupId>io.github.michelin</groupId>
     <artifactId>spring-kafka-streams-test</artifactId>
-    <version>${spring-kafka-streams-test.version}</version>
+    <version>${spring-kafka-streams.version}</version>
     <scope>test</scope>
 </dependency>
 ```
