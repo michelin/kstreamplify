@@ -8,6 +8,7 @@ import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * The class to represent the context of the KStream
@@ -34,7 +35,7 @@ public class KafkaStreamsExecutionContext {
 
     /**
      * Register KStream properties
-     * @param properties
+     * @param properties The Kafka Streams properties
      */
     public static void registerProperties(Properties properties) {
         if (properties == null) {
@@ -48,6 +49,8 @@ public class KafkaStreamsExecutionContext {
         }
 
         KafkaStreamsExecutionContext.properties = properties;
-        log.info("Kafka Stream configuration: " + properties);
+        StringBuilder stringBuilderProperties = new StringBuilder("Kafka Stream properties:\n");
+        properties.forEach((key, value) -> stringBuilderProperties.append("\t").append(key).append(" = ").append(value).append("\n"));
+        log.info(stringBuilderProperties.toString());
     }
 }

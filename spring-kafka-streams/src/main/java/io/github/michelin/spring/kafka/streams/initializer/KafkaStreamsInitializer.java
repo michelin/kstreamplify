@@ -90,7 +90,7 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
         kafkaStreams.setUncaughtExceptionHandler(exception -> {
-            log.error("A not covered exception occurred in {} Kafka Streams. Shutting down...",
+            log.error("Kafka Streams \"{}\" caught a not covered exception. Shutting down...",
                     kafkaProperties.asProperties().get(StreamsConfig.APPLICATION_ID_CONFIG), exception);
             applicationContext.close();
             return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
@@ -98,7 +98,7 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
 
         kafkaStreams.setStateListener((newState, oldState) -> {
             if (newState.equals(KafkaStreams.State.ERROR)) {
-                log.error("The {} Kafka Streams is in error state...",
+                log.error("Kafka Streams \"{}\" is in error state...",
                         kafkaProperties.asProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
 
                 applicationContext.close();
@@ -127,7 +127,7 @@ public class KafkaStreamsInitializer implements ApplicationRunner {
 
         hostInfo = new HostInfo(host, serverPort);
 
-        log.info("The Kafka Streams \"{}\" is running on {}:{}", KafkaStreamsExecutionContext.getProperties()
+        log.info("Kafka Streams \"{}\" started on {}:{}", KafkaStreamsExecutionContext.getProperties()
                 .getProperty(StreamsConfig.APPLICATION_ID_CONFIG), hostInfo.host(), hostInfo.port());
 
         KafkaStreamsExecutionContext.getProperties().put(StreamsConfig.APPLICATION_SERVER_CONFIG,

@@ -4,18 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>pom</packaging>
 
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-
 	<groupId>io.github.michelin</groupId>
 	<artifactId>spring-kafka-streams-dist</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
 	<name>spring-kafka-streams-dist</name>
-	<description>Spring Kafka Streams is a Spring Boot library that brings new features to simplify the implementation of Kafka Streams.</description>
+	<description>Spring Kafka Streams is a Spring Boot library that brings new features to improve the implementation of Kafka Streams.</description>
+	<url>https://github.com/michelin/spring-kafka-streams</url>
 
 	<licenses>
 		<license>
@@ -39,12 +33,22 @@
 		<developer>
 			<id>loicgreffier</id>
 			<name>Loïc Greffier</name>
+			<email>dif-hap-dev@michelin.com</email>
 			<url>https://github.com/loicgreffier</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
 		</developer>
 		<developer>
 			<id>adriencalime</id>
 			<name>Adrien Calime</name>
+			<email>dif-hap-dev@michelin.com</email>
 			<url>https://github.com/adriencalime</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
 		</developer>
 	</developers>
 
@@ -70,25 +74,30 @@
 
 	<properties>
 		<avro.version>1.11.1</avro.version>
+		<commons-io.version>2.12.0</commons-io.version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<gson.version>2.10.1</gson.version>
 		<java.version>17</java.version>
+		<junit-jupiter.version>5.9.3</junit-jupiter.version>
 		<kafka.version>3.4.0</kafka.version>
 		<kafka-streams-avro-serde.version>7.4.0</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.28</lombok.version>
-		<junit-jupiter.version>5.9.3</junit-jupiter.version>
-		<commons-io.version>2.12.0</commons-io.version>
-		<gson.version>2.10.1</gson.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<spring-boot.version>3.1.0</spring-boot.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
+			<version>${spring-boot.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<version>${spring-boot.version}</version>
 		</dependency>
 
 		<dependency>
@@ -149,6 +158,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<version>${spring-boot.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
