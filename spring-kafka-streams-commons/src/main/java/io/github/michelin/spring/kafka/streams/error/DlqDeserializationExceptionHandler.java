@@ -2,6 +2,7 @@ package io.github.michelin.spring.kafka.streams.error;
 
 import io.github.michelin.spring.kafka.streams.avro.KafkaError;
 import io.github.michelin.spring.kafka.streams.context.KafkaStreamsExecutionContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
@@ -10,13 +11,14 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import java.util.Map;
 
 /**
- * The class to manage deserialization exception
+ * The class managing deserialization exceptions
  */
+@Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
 
     /**
-     * manage deserialization exception
+     * Manage deserialization exceptions
      * @param processorContext the processor context
      * @param consumerRecord the record to deserialize
      * @param consumptionException the exception for the deserialization
@@ -34,8 +36,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
 
             producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
         } catch (Exception e) {
-            handleException(new String(consumerRecord.key()), new String(consumerRecord.value()),
-                    consumerRecord.topic(), e, consumptionException);
+            log.error("Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
+                    consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
             return DeserializationHandlerResponse.FAIL;
         }
 
@@ -43,14 +45,13 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
     }
 
     /**
-     * configure the producer
-     * @param configs the configuration
+     * {@inheritDoc}
      */
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {
             if (producer == null) {
-                createProducer(configs);
+                instantiateProducer(DlqDeserializationExceptionHandler.class.getName(), configs);
             }
         }
     }

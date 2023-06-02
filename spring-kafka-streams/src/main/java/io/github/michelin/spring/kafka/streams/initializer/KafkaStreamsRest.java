@@ -50,7 +50,7 @@ public class KafkaStreamsRest {
     @GetMapping("ready")
     public ResponseEntity<String> readinessProbe() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
-            log.debug("Current state of the Kafka Stream \"{}\": {}",
+            log.debug("Kafka Stream \"{}\" state: {}",
                     KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
                     kafkaStreamsInitializer.getKafkaStreams().state());
 

@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class KafkaStreamsExecutionContext {
+    /**
+     * The prefix property name
+     */
     public static final String PREFIX_PROPERTY_NAME = "prefix";
 
     @Getter

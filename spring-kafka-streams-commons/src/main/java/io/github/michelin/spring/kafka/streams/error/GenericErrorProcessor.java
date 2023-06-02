@@ -10,8 +10,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * The class to process error
- * @param <V>
+ * Generic error processor
+ * @param <V> The type of the failed record
  */
 public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, KafkaError> {
     private FixedKeyProcessorContext<String, KafkaError> context;
@@ -51,7 +51,7 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
     }
 
     /**
-     * close everything correctly on close
+     * {@inheritDoc}
      */
     @Override
     public void close() {

@@ -20,16 +20,20 @@ import java.util.Properties;
  * The main test class to extend to execute unit tests on topology
  */
 public abstract class KafkaStreamsStarterTest {
-    protected static final String DLQ_TOPIC = "DLQ_TOPIC";
-
     private static final String STATE_DIR = "/tmp/kafka-streams";
 
-    protected TopologyTestDriver testDriver;
-
-    protected String schemaRegistryScope;
+    /**
+     * The default DLQ topic name used for testing
+     */
+    protected static final String DLQ_TOPIC = "DLQ_TOPIC";
 
     /**
-     * Method to setup test streams properties to test the topology
+     * The topology test driver
+     */
+    protected TopologyTestDriver testDriver;
+
+    /**
+     * Set up topology test driver
      */
     @BeforeEach
     void generalSetUp() {
@@ -56,7 +60,8 @@ public abstract class KafkaStreamsStarterTest {
     protected abstract void topology(StreamsBuilder streamsBuilder);
 
     /**
-     * Implement this method to override the default mocked date for streams events
+     * Default base wall clock time for topology test driver
+     * @return The default wall clock time as instant
      */
     protected Instant getInitialWallClockTime() {
         return Instant.ofEpochMilli(1577836800000L);
@@ -64,12 +69,11 @@ public abstract class KafkaStreamsStarterTest {
 
     /**
      * Method to close everything properly at the end of the test
-     * @throws IOException
      */
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
         Files.deleteIfExists(Paths.get(STATE_DIR));
-        MockSchemaRegistry.dropScope(schemaRegistryScope);
+        MockSchemaRegistry.dropScope("mock://" + getClass().getName());
     }
 }

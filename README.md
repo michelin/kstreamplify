@@ -16,7 +16,7 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
 * [Dependencies](#dependencies)
 * [Getting Started](#getting-started)
   * [Properties Injection](#properties-injection)
-  * [Avro Schema Serializer and Deserializer](#avro-schema-serializer-and-deserializer)
+  * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
   * [Error Handling](#error-handling)
     * [Topology](#topology)
     * [Production and Deserialization](#production-and-deserialization)
@@ -62,17 +62,28 @@ The first one is the main dependency, while the second one is used for testing p
 
 ## Getting Started
 
-To get started with Spring Kafka Streams, you need to create a class that implements the `KafkaStreamsStarter` interface and override the `topology` method. Additionally, annotate your class with `@Component` so that Spring can manage it as a bean.
+To begin using Spring Kafka Streams, you simply need to set up a `KafkaStreamsStarter` bean within you Spring Boot context, overriding the `topology` method. 
+
+For instance, you can start by creating a class annotated with `@Component`:
 
 ```java
 @Component
 public class MyKafkaStreams implements KafkaStreamsStarter {
     @Override
-    public void topology(StreamsBuilder streamsBuilder) { }
+    public void topology(StreamsBuilder streamsBuilder) { 
+        // Your topology here
+    }
 }
 ```
 
-You can now start writing your topology by defining your processing logic inside the `streamsBuilder`.
+Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
+
+```java
+@Bean
+public KafkaStreamsStarter kafkaStreamsStarter() {
+    return streamsBuilder -> streamsBuilder.map(...).to(...); // Your topology here
+}
+```
 
 ### Properties Injection
 
@@ -93,7 +104,7 @@ kafka:
 
 Note that all the properties have been moved under `kafka.properties`.
 
-### Avro Schema Serializer and Deserializer
+### Avro Serializer and Deserializer
 
 Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdesUtils` class as follows:
 

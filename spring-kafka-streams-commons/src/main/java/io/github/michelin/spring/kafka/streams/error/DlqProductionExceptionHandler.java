@@ -2,6 +2,7 @@ package io.github.michelin.spring.kafka.streams.error;
 
 import io.github.michelin.spring.kafka.streams.avro.KafkaError;
 import io.github.michelin.spring.kafka.streams.context.KafkaStreamsExecutionContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
@@ -9,16 +10,17 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import java.util.Map;
 
 /**
- * The class to manage DLQ production exception
+ * The class managing DLQ production exceptions
  */
+@Slf4j
 public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
     private static final Object GUARD = new Object();
 
     /**
-     * manage production exception
+     * Manage production exceptions
      * @param producerRecord the record to produce
      * @param productionException the exception on producing
-     * @return FAIL or CONTINU
+     * @return FAIL or CONTINUE
      */
     @Override
     public ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> producerRecord, Exception productionException) {
@@ -33,11 +35,10 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                         .setPartition(producerRecord.partition() == null ? -1 : producerRecord.partition())
                         .setTopic(producerRecord.topic());
 
-                producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(),
-                        builder.build())).get();
+                producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(), builder.build())).get();
             } catch (Exception e) {
-                handleException(new String(producerRecord.key()), new String(producerRecord.value()),
-                        producerRecord.topic(), e, productionException);
+                log.error("Cannot send the production exception {} for key {}, value {} and topic {} to DLQ topic {}", productionException,
+                        producerRecord.key(), producerRecord.value(), producerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
                 return ProductionExceptionHandlerResponse.CONTINUE;
             }
 
@@ -48,14 +49,13 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     }
 
     /**
-     * configure the producer
-     * @param configs the configuration
+     * {@inheritDoc}
      */
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {
             if (producer == null) {
-                createProducer(configs);
+                instantiateProducer(DlqProductionExceptionHandler.class.getName(), configs);
             }
         }
     }

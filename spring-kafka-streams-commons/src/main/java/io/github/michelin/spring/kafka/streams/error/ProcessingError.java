@@ -35,8 +35,8 @@ public class ProcessingError<V> {
         this.exception = e;
         this.contextMessage = contextMessage;
 
-        if (messageValue instanceof GenericRecord) {
-            this.message = AvroToJsonConverter.convertRecord((GenericRecord) messageValue);
+        if (messageValue instanceof GenericRecord genericRecord) {
+            this.message = AvroToJsonConverter.convertRecord(genericRecord);
         } else {
             this.message = String.valueOf(messageValue);
         }
