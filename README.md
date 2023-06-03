@@ -23,6 +23,7 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
     * [Avro Schema](#avro-schema)
   * [REST Endpoints](#rest-endpoints)
   * [Testing](#testing)
+* [Motivation](#motivation)
 * [Contribution](#contribution)
 
 ## Features
@@ -57,6 +58,10 @@ Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spri
 ```
 
 The first one is the main dependency, while the second one is used for testing purposes only.
+
+There are two Beta versions available:
+- `2.x.x-beta`: This version is compatible with Spring Boot 3.
+- `1.x.x-beta`: This version is compatible with Spring Boot 2.
 
 ## Getting Started
 
@@ -180,7 +185,7 @@ public class MyKafkaStreams implements KafkaStreamsStarter {
             value.setValue(value.getValue().toUpperCase());
             return ProcessingResult.success(value);
         } catch (Exception ex) {
-            return ProcessingResult.fail(new ProcessingError<>(ex, "An error occurred during the upper case map values process", value));
+            return ProcessingResult.fail(ex, value, "An error occurred during the upper case map values process");
         }
     }
 }
@@ -199,10 +204,10 @@ return ProcessingResult.success(value);
 Or the following in a catch clause to mark the result as failed:
 
 ```java
-return ProcessingResult.fail(new ProcessingError<>(ex, "An error occurred during the upper case map values process", value));
+return ProcessingResult.fail(ex, value, "An error occurred during the upper case map values process");
 ```
 
-The `ProcessingResult.fail()` method takes a `ProcessingError` parameter that contains the exception, a custom error message, and the record that failed.
+The `ProcessingResult.fail()` method takes the exception, the record that failed and a custom error message.
 
 The second step is sending the new stream of `ProcessingResult<V, V2>` to the `TopologyErrorHandler.catchErrors()` method, which will split the
 stream into two branches:
@@ -251,6 +256,12 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     }
 }
 ```
+
+## Motivation
+
+Developing applications with Kafka Streams can be challenging and often raises many questions for developers. It involves considerations such as efficient bootstrapping of Kafka Streams applications, handling unexpected business issues, and integrating Kubernetes probes, among others.
+
+To assist developers in overcoming these challenges, we have built this library. Our aim is to provide a comprehensive solution that simplifies the development process and addresses common pain points encountered while working with Kafka Streams.
 
 ## Contribution
 
