@@ -23,5 +23,5 @@
   ],
   "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
   "pr_template": "- ${{TITLE}} by @${{AUTHOR}} in #${{NUMBER}}",
-  "base_branches": ["2.7.x"]
+  "base_branches": ["main"]
 }
