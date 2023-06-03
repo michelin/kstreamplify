@@ -27,9 +27,7 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
 
 ## Features
 
-- **Topology First**: Kafka Streams instances creation and running are handled for you, allowing you to focus on topology implementation.
-
-- **Properties Injection**: Define your properties from your `application.yml`.
+- **Easy bootstrapping*: Kafka Streams application bootstrapping is handled for you, allowing you to focus on topology implementation.
 
 - **Avro Schema Serializer and Deserializer**: Common serializers and deserializers for all your Avro specific records.
 
