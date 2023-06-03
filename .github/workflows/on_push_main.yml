@@ -26,7 +26,10 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - name: Build
-        run: mvn clean compile
+        id: build
+        run: |
+          mvn clean compile
+          echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
 
       - name: Test
         run: mvn test
@@ -38,6 +41,7 @@ jobs:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
       - name: Deploy
+        if: endsWith(steps.build.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
