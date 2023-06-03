@@ -40,13 +40,27 @@ public class ProcessingResult<V, V2> {
 
     /**
      * Create a failed processing result
-     * @param error A processing error containing the failed record
+     * @param e The exception
+     * @param kafkaRecord The failed Kafka record
+     * @param contextMessage The context message
      * @return A processing result containing the failed record
      * @param <V> The type of the successful record
      * @param <V2> The type of the failed record
      */
-    public static <V, V2> ProcessingResult<V, V2> fail(ProcessingError<V2> error) {
-        return new ProcessingResult<>(error);
+    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 kafkaRecord, String contextMessage) {
+        return new ProcessingResult<>(new ProcessingError<>(e, contextMessage, kafkaRecord));
+    }
+
+    /**
+     * Create a failed processing result
+     * @param e The exception
+     * @param kafkaRecord The failed Kafka record
+     * @return A processing result containing the failed record
+     * @param <V> The type of the successful record
+     * @param <V2> The type of the failed record
+     */
+    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 kafkaRecord) {
+        return new ProcessingResult<>(new ProcessingError<>(e, kafkaRecord));
     }
 
     /**

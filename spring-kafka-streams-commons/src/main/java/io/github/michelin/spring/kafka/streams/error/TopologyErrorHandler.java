@@ -2,6 +2,8 @@ package io.github.michelin.spring.kafka.streams.error;
 
 import io.github.michelin.spring.kafka.streams.context.KafkaStreamsExecutionContext;
 import io.github.michelin.spring.kafka.streams.utils.SerdesUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.*;
@@ -11,6 +13,7 @@ import java.util.Map;
 /**
  * The topology error handler class
  */
+@Slf4j
 public class TopologyErrorHandler {
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
@@ -69,7 +72,11 @@ public class TopologyErrorHandler {
      * @param <K> The key type
      * @param <V> The value type
      */
-    public static <K, V> void handleErrors(KStream<K, ProcessingError<V>> errorsStream) {
+    private static <K, V> void handleErrors(KStream<K, ProcessingError<V>> errorsStream) {
+        if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
+            log.warn("Failed to route topology error to the designated DLQ (Dead Letter Queue) topic. Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
+            return;
+        }
         errorsStream
                 .map((key, value) -> new KeyValue<>(key == null ? "null" : key.toString(), value))
                 .processValues(GenericErrorProcessor<V>::new)

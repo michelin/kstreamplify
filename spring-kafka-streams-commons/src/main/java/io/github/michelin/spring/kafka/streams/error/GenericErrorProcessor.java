@@ -44,7 +44,7 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
                 .setPartition(recordMetadata != null ? recordMetadata.partition() : -1)
                 .setStack(sw.toString())
                 .setTopic(recordMetadata != null && recordMetadata.topic() != null ? recordMetadata.topic() : "Outside topic context")
-                .setValue(fixedKeyRecord.value().getMessage())
+                .setValue(fixedKeyRecord.value().getKafkaRecord())
                 .build();
 
         context.forward(fixedKeyRecord.withValue(error));

@@ -3,8 +3,10 @@ package io.github.michelin.spring.kafka.streams.error;
 import io.github.michelin.spring.kafka.streams.avro.KafkaError;
 import io.github.michelin.spring.kafka.streams.context.KafkaStreamsExecutionContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
+import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 
 import java.util.Map;
@@ -24,6 +26,11 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
      */
     @Override
     public ProductionExceptionHandlerResponse handle(ProducerRecord<byte[], byte[]> producerRecord, Exception productionException) {
+        if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
+            log.warn("Failed to route production error to the designated DLQ (Dead Letter Queue) topic. Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
+            return ProductionExceptionHandlerResponse.FAIL;
+        }
+
         boolean retryable = productionException instanceof RetriableException;
 
         if (!retryable) {

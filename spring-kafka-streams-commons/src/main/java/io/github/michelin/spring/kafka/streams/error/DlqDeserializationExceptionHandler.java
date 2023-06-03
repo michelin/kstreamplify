@@ -3,6 +3,7 @@ package io.github.michelin.spring.kafka.streams.error;
 import io.github.michelin.spring.kafka.streams.avro.KafkaError;
 import io.github.michelin.spring.kafka.streams.context.KafkaStreamsExecutionContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
@@ -26,6 +27,11 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
      */
     @Override
     public DeserializationHandlerResponse handle(ProcessorContext processorContext, ConsumerRecord<byte[], byte[]> consumerRecord, Exception consumptionException) {
+        if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
+            log.warn("Failed to route deserialization error to the designated DLQ (Dead Letter Queue) topic. Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
+            return DeserializationHandlerResponse.FAIL;
+        }
+
         try {
             var builder = KafkaError.newBuilder();
             enrichWithException(builder, consumptionException, consumerRecord.key(), consumerRecord.value())

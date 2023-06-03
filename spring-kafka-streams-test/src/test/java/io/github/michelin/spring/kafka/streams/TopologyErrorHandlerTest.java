@@ -31,8 +31,7 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder
                 .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
                 .mapValues(value -> "error".equals(value) ?
-                        ProcessingResult.fail(new ProcessingError<>(new NullPointerException(), value))
-                        : ProcessingResult.success(value));
+                        ProcessingResult.fail(new NullPointerException(), value) : ProcessingResult.success(value));
 
         TopologyErrorHandler.catchErrors(stringStream)
                 .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
@@ -40,8 +39,7 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream = streamsBuilder
                 .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getSerdesForValue()))
                 .mapValues(value -> value == null ?
-                        ProcessingResult.fail(new ProcessingError<>(new NullPointerException(), null))
-                        : ProcessingResult.success(value));
+                        ProcessingResult.fail(new NullPointerException(), null) : ProcessingResult.success(value));
 
         TopologyErrorHandler.catchErrors(avroStream)
                 .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(),SerdesUtils.getSerdesForValue()));

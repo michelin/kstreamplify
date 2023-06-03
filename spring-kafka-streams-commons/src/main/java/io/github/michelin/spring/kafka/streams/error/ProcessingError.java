@@ -18,7 +18,7 @@ public class ProcessingError<V> {
     /**
      * The failed Kafka record
      */
-    private final String message;
+    private final String kafkaRecord;
 
     /**
      * A context message defined when the error is caught
@@ -29,25 +29,25 @@ public class ProcessingError<V> {
      * Constructor
      * @param e The exception
      * @param contextMessage The context message
-     * @param messageValue The failed Kafka record
+     * @param kafkaRecord The failed Kafka record
      */
-    public ProcessingError(Exception e, String contextMessage, V messageValue) {
+    public ProcessingError(Exception e, String contextMessage, V kafkaRecord) {
         this.exception = e;
         this.contextMessage = contextMessage;
 
-        if (messageValue instanceof GenericRecord genericRecord) {
-            this.message = AvroToJsonConverter.convertRecord(genericRecord);
+        if (kafkaRecord instanceof GenericRecord genericRecord) {
+            this.kafkaRecord = AvroToJsonConverter.convertRecord(genericRecord);
         } else {
-            this.message = String.valueOf(messageValue);
+            this.kafkaRecord = String.valueOf(kafkaRecord);
         }
     }
 
     /**
      * Constructor
      * @param exception The exception
-     * @param messageValue The failed Kafka record
+     * @param kafkaRecord The failed Kafka record
      */
-    public ProcessingError(Exception exception, V messageValue) {
-        this(exception,(exception != null ? exception.getMessage() : null), messageValue);
+    public ProcessingError(Exception exception, V kafkaRecord) {
+        this(exception, "No context message", kafkaRecord);
     }
 }
