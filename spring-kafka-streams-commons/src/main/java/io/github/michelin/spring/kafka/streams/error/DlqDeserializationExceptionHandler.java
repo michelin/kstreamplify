@@ -20,8 +20,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
 
     /**
      * Manage deserialization exceptions
-     * @param processorContext the processor context
-     * @param consumerRecord the record to deserialize
+     *
+     * @param processorContext     the processor context
+     * @param consumerRecord       the record to deserialize
      * @param consumptionException the exception for the deserialization
      * @return FAIL or CONTINUE
      */

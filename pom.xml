@@ -31,6 +31,46 @@
 
 	<developers>
 		<developer>
+			<id>sebastienviale</id>
+			<name>Sebastien Viale</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/sebastienviale</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>clvacher</id>
+			<name>Clement Vacher</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/clvacher</url>
+			<organization>CGI</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>alexbosch3000</id>
+			<name>Alexandre Bosch</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/alexbosch3000</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>clvacher</id>
+			<name>Clement Vacher</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/clvacher</url>
+			<organization>CGI</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
 			<id>loicgreffier</id>
 			<name>Loïc Greffier</name>
 			<email>dif-hap-dev@michelin.com</email>
@@ -84,10 +124,10 @@
 		<lombok.version>1.18.28</lombok.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
+		<spring-boot.version>3.1.0</spring-boot.version>
 	</properties>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams</artifactId>
@@ -142,7 +182,6 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang3.version}</version>
 		</dependency>
-
 
 	</dependencies>
 
