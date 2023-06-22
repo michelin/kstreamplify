@@ -68,7 +68,7 @@ There are two Beta versions available:
 
 ## Getting Started
 
-To begin using Spring Kafka Streams, you simply need to set up a `KafkaStreamsStarter` bean within you Spring Boot context, overriding the `topology` method. 
+To begin using Kstreamplify, you simply need to set up a `KafkaStreamsStarter` bean within you Spring Boot context, overriding the `topology` method. 
 
 For instance, you can start by creating a class annotated with `@Component`:
 
@@ -157,7 +157,7 @@ public class MyKafkaStreams implements KafkaStreamsStarter {
 
 #### Topology 
 
-Spring Kafka Streams provides utilities to handle all the unexpected errors that can occur in your topologies and route them to a dead-letter queue (DLQ) topic automatically.
+Kstreamplify provides utilities to handle all the unexpected errors that can occur in your topologies and route them to a dead-letter queue (DLQ) topic automatically.
 
 The principle is simple: whenever you perform transformations on stream values, you can encapsulate the result as either success or failure. Failed records will be routed to your DLQ topic, while successful records will still be up for further processing.
 
@@ -239,7 +239,7 @@ An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic
 
 ### REST endpoints
 
-The Spring Kafka Streams library provides several REST endpoints, which are listed below:
+The Kstreamplify library provides several REST endpoints, which are listed below:
 
 - `GET /ready`: This endpoint is used as a readiness probe for Kubernetes deployment.
 - `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
@@ -268,4 +268,4 @@ To assist developers in overcoming these challenges, we have built this library.
 
 ## Contribution
 
-We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/spring-kafka-streams/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Spring Kafka Streams a better library for everyone.
+We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/spring-kafka-streams/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Kstreamplify a better library for everyone.
