@@ -10,15 +10,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static io.github.michelin.spring.kafka.streams.constants.TopicConstants.PREFIX_PROPERTY_NAME;
+
 /**
  * The class to represent the context of the KStream
  */
 @Slf4j
 public class KafkaStreamsExecutionContext {
-    /**
-     * The prefix property name
-     */
-    public static final String PREFIX_PROPERTY_NAME = "prefix";
 
     @Getter
     @Setter

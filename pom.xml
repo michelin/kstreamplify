@@ -31,6 +31,46 @@
 
 	<developers>
 		<developer>
+			<id>sebastienviale</id>
+			<name>Sebastien Viale</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/sebastienviale</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>clvacher</id>
+			<name>Clement Vacher</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/clvacher</url>
+			<organization>CGI</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>alexbosch3000</id>
+			<name>Alexandre Bosch</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/alexbosch3000</url>
+			<organization>Michelin</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>clvacher</id>
+			<name>Clement Vacher</name>
+			<email>dif-hap-dev@michelin.com</email>
+			<url>https://github.com/clvacher</url>
+			<organization>CGI</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
 			<id>loicgreffier</id>
 			<name>Loïc Greffier</name>
 			<email>dif-hap-dev@michelin.com</email>
@@ -89,18 +129,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-			<version>${spring-boot.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<version>${spring-boot.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams</artifactId>
 			<version>${kafka.version}</version>
@@ -155,12 +183,6 @@
 			<version>${commons-lang3.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<version>${spring-boot.version}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
