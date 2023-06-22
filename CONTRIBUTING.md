@@ -1,4 +1,4 @@
-# Contributing to Spring Kafka Streams
+# Contributing to Kstreamplify
 
 Welcome to our contribution guide! We're thrilled that you're interested in contributing to our project. This guide will help you understand the process and expectations for contributing, so that we can work together effectively and efficiently.
 
