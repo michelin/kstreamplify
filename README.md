@@ -1,4 +1,4 @@
-# Spring Kafka Streams
+# Kstreamplify
 
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/spring-kafka-streams/on_push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/spring-kafka-streams/on_push_main.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/michelin/spring-kafka-streams?logo=github&style=for-the-badge)](https://github.com/michelin/spring-kafka-streams)
@@ -40,19 +40,25 @@ Spring Kafka Streams is a Spring Boot library that simplifies the implementation
 
 ## Dependencies
 
-Spring Kafka Streams provides two dependencies, `spring-kafka-streams` and `spring-kafka-streams-test`:
+Kstreamplify provides three dependencies, `kstreamplify-spring-boot`, `kstreamplify-core` and `kstreamplify-core-test`:
 
 ```xml
 <dependency>
     <groupId>io.github.michelin</groupId>
-    <artifactId>spring-kafka-streams</artifactId>
-    <version>${spring-kafka-streams.version}</version>
+    <artifactId>kstreamplify-spring-boot</artifactId>
+    <version>${kstreamplify.version}</version>
+</dependency>
+
+<dependency>
+  <groupId>io.github.michelin</groupId>
+  <artifactId>kstreamplify-core</artifactId>
+  <version>${kstreamplify.version}</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.michelin</groupId>
-    <artifactId>spring-kafka-streams-test</artifactId>
-    <version>${spring-kafka-streams.version}</version>
+    <artifactId>kstreamplify-core-test</artifactId>
+    <version>${kstreamplify.version}</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -225,8 +231,8 @@ Here's how to use them:
 kafka:
   properties:
     ...
-    default.production.exception.handler: io.github.michelin.spring.kafka.streams.error.DlqProductionExceptionHandler
-    default.deserialization.exception.handler: io.github.michelin.spring.kafka.streams.error.DlqDeserializationExceptionHandler
+    default.production.exception.handler: error.io.github.michelin.kstreamplify.DlqProductionExceptionHandler
+    default.deserialization.exception.handler: error.io.github.michelin.kstreamplify.DlqDeserializationExceptionHandler
     ...
 ```
 
