@@ -5,11 +5,11 @@
 	<packaging>pom</packaging>
 
 	<groupId>io.github.michelin</groupId>
-	<artifactId>spring-kafka-streams-dist</artifactId>
+	<artifactId>kstreamplify-dist</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
-	<name>spring-kafka-streams-dist</name>
-	<description>Spring Kafka Streams is a Spring Boot library that brings new features to improve the implementation of Kafka Streams.</description>
-	<url>https://github.com/michelin/spring-kafka-streams</url>
+	<name>kstreamplify-dist</name>
+	<description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
+	<url>https://github.com/michelin/kstreamplify</url>
 
 	<licenses>
 		<license>
@@ -100,16 +100,16 @@
 	</repositories>
 
 	<scm>
-		<connection>scm:git:https://github.com/michelin/spring-kafka-streams.git</connection>
-		<url>scm:git:https://github.com/michelin/spring-kafka-streams.git</url>
-		<developerConnection>scm:git:https://github.com/michelin/spring-kafka-streams.git</developerConnection>
+		<connection>scm:git:https://github.com/michelin/kstreamplify.git</connection>
+		<url>scm:git:https://github.com/michelin/kstreamplify.git</url>
+		<developerConnection>scm:git:https://github.com/michelin/kstreamplify.git</developerConnection>
 	</scm>
 
 	<modules>
-		<module>spring-kafka-streams-avro</module>
-        <module>spring-kafka-streams-commons</module>
-		<module>spring-kafka-streams</module>
-		<module>spring-kafka-streams-test</module>
+		<module>kstreamplify-avro</module>
+        <module>kstreamplify-core</module>
+		<module>kstreamplify-spring-boot</module>
+		<module>kstreamplify-core-test</module>
 	</modules>
 
 	<properties>
