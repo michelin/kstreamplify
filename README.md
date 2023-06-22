@@ -1,4 +1,4 @@
-# Kstreamplify
+<h1 align="center"> Kstreamplify </h1>
 
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/spring-kafka-streams/on_push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/spring-kafka-streams/on_push_main.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/michelin/spring-kafka-streams?logo=github&style=for-the-badge)](https://github.com/michelin/spring-kafka-streams)
