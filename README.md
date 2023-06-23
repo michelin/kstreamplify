@@ -37,15 +37,13 @@ Kstreamplify is a Java library that brings new features on top of Kafka Streams.
 
 ## Dependencies
 
-Kstreamplify provides three dependencies, `kstreamplify-spring-boot`, `kstreamplify-core` and `kstreamplify-core-test`:
+Kstreamplify provides three dependencies.
+
+### Java SE
+
+These dependencies are compatible with Java Standard Edition (SE).
 
 ```xml
-<dependency>
-    <groupId>io.github.michelin</groupId>
-    <artifactId>kstreamplify-spring-boot</artifactId>
-    <version>${kstreamplify.version}</version>
-</dependency>
-
 <dependency>
   <groupId>io.github.michelin</groupId>
   <artifactId>kstreamplify-core</artifactId>
@@ -60,11 +58,21 @@ Kstreamplify provides three dependencies, `kstreamplify-spring-boot`, `kstreampl
 </dependency>
 ```
 
-The first one is the main dependency, while the second one is used for testing purposes only.
+### Spring Boot
 
-There are two Beta versions available:
-- `2.x.x-beta`: This version is compatible with Spring Boot 3.
-- `1.x.x-beta`: This version is compatible with Spring Boot 2.
+If you are using Spring Boot, you can use the following dependency to integrate Kstreamplify with your Spring Boot application:
+
+```xml
+<dependency>
+    <groupId>io.github.michelin</groupId>
+    <artifactId>kstreamplify-spring-boot</artifactId>
+    <version>${kstreamplify.version}</version>
+</dependency>
+```
+
+There are two versions available:
+- `2.x.x`: This version is compatible with Spring Boot 3.
+- `1.x.x`: This version is compatible with Spring Boot 2.
 
 ## Getting Started
 
