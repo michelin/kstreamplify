@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify.constants;
 
-public abstract class DefaultProbeHttpServerConstants {
+public final class DefaultProbeHttpServerConstants {
 
     public static final String READINESS_PROPERTY = "readiness_path";
     public static final String LIVENESS_PROPERTY = "liveness_path";

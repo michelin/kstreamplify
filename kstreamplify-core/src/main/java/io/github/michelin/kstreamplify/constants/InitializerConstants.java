@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify.constants;
 
-public abstract class InitializerConstants {
+public final class InitializerConstants {
     
     public static final String SERVER_PORT_PROPERTY = "server.port";
 

@@ -1,1 +1,3 @@
 io.github.michelin.kstreamplify.initializer.SpringKafkaStreamsInitializer
+io.github.michelin.kstreamplify.rest.SpringProbeController
+io.github.michelin.kstreamplify.properties.KafkaProperties
