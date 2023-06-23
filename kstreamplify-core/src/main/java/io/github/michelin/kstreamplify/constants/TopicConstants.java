@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify.constants;
 
-public abstract class TopicConstants {
+public final class TopicConstants {
     /**
      * The prefix property name
      */

@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static io.github.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
+
 /**
  * The Kafka Streams initializer class
  */
@@ -126,7 +128,7 @@ public class KafkaStreamsInitializer {
 
         properties = PropertiesUtils.loadProperties();
 
-        this.serverPort = Integer.parseInt(properties.getProperty("server.port"));
+        this.serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);;
 
         // DefaultBehavior load from file
         this.kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);

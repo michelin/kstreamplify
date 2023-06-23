@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static io.github.michelin.kstreamplify.properties.PropertiesUtils.loadKafkaProperties;
+
 /**
  * The Kafka Streams initializer class
  */
@@ -56,6 +58,8 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
 
     @Override
     protected void initProperties() {
+        properties = springProperties.asProperties();
+        kafkaProperties = loadKafkaProperties(properties);
     }
 
     @Override

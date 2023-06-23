@@ -27,7 +27,7 @@ public class SpringProbeController {
         return convertToResponseEntity(ProbeService.livenessProbe(kafkaStreamsInitializer));
     }
 
-    @GetMapping("/${topology_path:topology}")
+    @GetMapping("/${expose_topology_path:topology}")
     public ResponseEntity<String> exposeTopology() {
         return convertToResponseEntity(ProbeService.exposeTopology(kafkaStreamsInitializer));
     }
