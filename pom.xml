@@ -106,7 +106,6 @@
 	</scm>
 
 	<modules>
-		<module>kstreamplify-avro</module>
         <module>kstreamplify-core</module>
 		<module>kstreamplify-spring-boot</module>
 		<module>kstreamplify-core-test</module>

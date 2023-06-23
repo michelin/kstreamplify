@@ -11,18 +11,12 @@
 
     <artifactId>kstreamplify-core</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.github.michelin</groupId>
-            <artifactId>avro-error</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.michelin</groupId>
-            <artifactId>avro-testing</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
