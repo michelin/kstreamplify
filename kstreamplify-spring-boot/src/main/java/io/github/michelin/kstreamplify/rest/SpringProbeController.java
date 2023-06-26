@@ -1,9 +1,9 @@
 package io.github.michelin.kstreamplify.rest;
 
 import io.github.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import io.github.michelin.kstreamplify.initializer.SpringKafkaStreamsInitializer;
 import io.github.michelin.kstreamplify.model.RestServiceResponse;
 import io.github.michelin.kstreamplify.services.ProbeService;
-import io.github.michelin.kstreamplify.initializer.SpringKafkaStreamsInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;

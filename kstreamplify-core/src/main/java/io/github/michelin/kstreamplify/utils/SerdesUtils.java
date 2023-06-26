@@ -1,7 +1,7 @@
 package io.github.michelin.kstreamplify.utils;
 
-import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import org.apache.avro.specific.SpecificRecord;
 
 /**

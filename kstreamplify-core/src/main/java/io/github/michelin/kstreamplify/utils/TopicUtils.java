@@ -2,8 +2,6 @@ package io.github.michelin.kstreamplify.utils;
 
 import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 
-import java.util.Properties;
-
 /**
  * The topic utils class
  */
