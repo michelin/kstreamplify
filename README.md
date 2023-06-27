@@ -243,7 +243,7 @@ kafka:
 
 #### Avro Schema
 
-An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is available [here](https://github.com/michelin/spring-kafka-streams/blob/main/spring-kafka-streams-avro/avro-error/src/main/avro/kafka-error.avsc).
+An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
 
 ### REST endpoints
 
@@ -276,4 +276,4 @@ To assist developers in overcoming these challenges, we have built this library.
 
 ## Contribution
 
-We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/spring-kafka-streams/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Kstreamplify a better library for everyone.
+We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/kstreamplify/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Kstreamplify a better library for everyone.
