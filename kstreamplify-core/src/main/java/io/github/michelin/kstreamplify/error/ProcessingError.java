@@ -27,12 +27,12 @@ public class ProcessingError<V> {
 
     /**
      * Constructor
-     * @param e The exception
+     * @param exception The exception
      * @param contextMessage The context message
      * @param kafkaRecord The failed Kafka record
      */
-    public ProcessingError(Exception e, String contextMessage, V kafkaRecord) {
-        this.exception = e;
+    public ProcessingError(Exception exception, String contextMessage, V kafkaRecord) {
+        this.exception = exception;
         this.contextMessage = contextMessage;
 
         if (kafkaRecord instanceof GenericRecord genericRecord) {

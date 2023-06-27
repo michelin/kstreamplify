@@ -1,8 +1,8 @@
 package io.github.michelin.kstreamplify;
 
-import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TopologyTestDriver;

@@ -1,7 +1,7 @@
 package io.github.michelin.kstreamplify.services;
 
-import io.github.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import io.github.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import io.github.michelin.kstreamplify.model.RestServiceResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;

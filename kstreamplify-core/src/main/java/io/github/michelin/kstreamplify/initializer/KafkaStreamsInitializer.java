@@ -51,33 +51,34 @@ public class KafkaStreamsInitializer {
 
     protected int serverPort;
 
-    public void init(KafkaStreamsStarter kafkaStreamsStarter) {
-        this.kafkaStreamsStarter = kafkaStreamsStarter;
+    public void init(KafkaStreamsStarter kStreamsStarter) {
 
-        this.dlq = this.kafkaStreamsStarter.dlqTopic();
+        kafkaStreamsStarter = kStreamsStarter;
 
-        this.initProperties();
+        dlq = kafkaStreamsStarter.dlqTopic();
 
-        this.initStreamExecutionContext();
+        initProperties();
+
+        initStreamExecutionContext();
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
 
-        this.kafkaStreamsStarter.topology(streamsBuilder);
+        kafkaStreamsStarter.topology(streamsBuilder);
 
-        this.topology = streamsBuilder.build();
+        topology = streamsBuilder.build();
         log.info("TOPOLOGY :" + topology.describe());
 
-        this.kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
+        kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
 
-        this.kafkaStreamsStarter.onStart();
+        kafkaStreamsStarter.onStart();
         // On JVm shutdown, shutdown stream
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
-        this.kafkaStreams.setUncaughtExceptionHandler(this::onStreamsUncaughtException);
+        kafkaStreams.setUncaughtExceptionHandler(this::onStreamsUncaughtException);
 
-        this.kafkaStreams.setStateListener(this::onStateChange);
+        kafkaStreams.setStateListener(this::onStateChange);
 
-        this.kafkaStreams.start();
+        kafkaStreams.start();
         initHttpServer();
     }
 
@@ -128,10 +129,10 @@ public class KafkaStreamsInitializer {
 
         properties = PropertiesUtils.loadProperties();
 
-        this.serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);;
+        serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);;
 
         // DefaultBehavior load from file
-        this.kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
+        kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
     }
 
 

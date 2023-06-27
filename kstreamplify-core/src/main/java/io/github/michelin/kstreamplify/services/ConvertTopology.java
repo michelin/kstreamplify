@@ -1,9 +1,9 @@
 package io.github.michelin.kstreamplify.services;
 
-import io.github.michelin.kstreamplify.model.TopologyPart;
 import io.github.michelin.kstreamplify.model.TopologyExposeJsonModel;
 import io.github.michelin.kstreamplify.model.TopologyObject;
 import io.github.michelin.kstreamplify.model.TopologyObjectType;
+import io.github.michelin.kstreamplify.model.TopologyPart;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 

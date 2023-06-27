@@ -2,7 +2,6 @@ package io.github.michelin.kstreamplify.properties;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

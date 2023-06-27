@@ -38,13 +38,13 @@ public abstract class TopicWithSerde<K,V> {
 
     /**
      * Public constructor
-     * @param name Name of the topic
+     * @param topicName Name of the topic
      * @param appName Owner application of the topic. Must be used in pair with springboot configuration topic.prefix.[appName]
      * @param keySerde Key serde for the topic
      * @param valueSerde Value serde for the topic
      */
-    public TopicWithSerde(String name, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
-        this.topicName= name;
+    public TopicWithSerde(String topicName, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
+        this.topicName= topicName;
         this.appName = appName;
         this.keySerde = keySerde;
         this.valueSerde = valueSerde;
