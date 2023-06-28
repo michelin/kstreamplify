@@ -11,7 +11,9 @@ import org.apache.kafka.streams.processor.internals.StreamThread;
 import java.net.HttpURLConnection;
 
 @Slf4j
-public abstract class ProbeService {
+public final class ProbeService {
+    private ProbeService() {
+    }
 
     /**
      * The Kubernetes readiness probe endpoint

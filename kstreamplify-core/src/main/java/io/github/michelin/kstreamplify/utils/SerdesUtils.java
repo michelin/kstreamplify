@@ -7,7 +7,7 @@ import org.apache.avro.specific.SpecificRecord;
 /**
  * The Serdes utils class
  */
-public class SerdesUtils {
+public final class SerdesUtils {
     private SerdesUtils() { }
 
     /**

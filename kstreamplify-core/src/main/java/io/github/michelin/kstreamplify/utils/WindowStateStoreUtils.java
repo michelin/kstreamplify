@@ -8,7 +8,7 @@ import java.time.Instant;
 /**
  * The window state store utils
  */
-public class WindowStateStoreUtils {
+public final class WindowStateStoreUtils {
     private WindowStateStoreUtils() { }
 
     /**
