@@ -12,6 +12,9 @@ import static io.github.michelin.kstreamplify.constants.PropertyConstants.*;
 
 public final class PropertiesUtils {
 
+    private PropertiesUtils() {
+    }
+
     public static Properties loadProperties() {
         Yaml yaml = new Yaml();
 

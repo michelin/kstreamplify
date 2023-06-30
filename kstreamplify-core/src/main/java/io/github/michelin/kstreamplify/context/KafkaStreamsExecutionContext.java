@@ -1,6 +1,5 @@
 package io.github.michelin.kstreamplify.context;
 
-import io.github.michelin.kstreamplify.constants.TopicConstants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +8,8 @@ import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Map;
 import java.util.Properties;
+
+import static io.github.michelin.kstreamplify.constants.PropertyConstants.PREFIX_PROPERTY_NAME;
 
 /**
  * The class to represent the context of the KStream
@@ -30,10 +31,12 @@ public class KafkaStreamsExecutionContext {
     @Getter
     private static String prefix;
 
-    private KafkaStreamsExecutionContext() { }
+    private KafkaStreamsExecutionContext() {
+    }
 
     /**
      * Register KStream properties
+     *
      * @param properties The Kafka Streams properties
      */
     public static void registerProperties(Properties properties) {
@@ -41,7 +44,7 @@ public class KafkaStreamsExecutionContext {
             return;
         }
 
-        prefix = properties.getProperty(TopicConstants.PREFIX_PROPERTY_NAME,"");
+        prefix = properties.getProperty(PREFIX_PROPERTY_NAME, "");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
