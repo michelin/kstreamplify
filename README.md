@@ -6,7 +6,13 @@
 [![SonarCloud Coverage](https://img.shields.io/sonar/coverage/michelin_kstreamplify?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/component_measures?id=michelin_kstreamplify&metric=coverage&view=list)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-Kstreamplify is a Java library that brings new features on top of Kafka Streams.
+So here you are, sitting on your chair  in that open space, scratching your head thinking "I really wish Kafka Streams was easier to implement... 
+If only there was someone out there who made a lib, somewhere, that would guarantee that my app doesn't crash loop in production because I forgot to null-safe that map node..." Well, guess what - Kstreamplify is THAT lib.
+Yes. You're welcome!
+
+Oh, and also, you'll have access to a bunch of advanced utility classes providing simplified topic declarations, idempotence, topic prefixing and dynamic remaping... 
+Making it wayyy easier to code Kstreams applications at lightning speed.
+
 
 ## Table of Contents
 
