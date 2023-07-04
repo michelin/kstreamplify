@@ -35,6 +35,12 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v3
         with:
+          name: kstreamplify-core
+          path: ${{ github.workspace }}/kstreamplify-spring-boot/target/kstreamplify-core-*.jar
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
           name: kstreamplify-spring-boot
           path: ${{ github.workspace }}/kstreamplify-spring-boot/target/kstreamplify-spring-boot-*.jar
 
