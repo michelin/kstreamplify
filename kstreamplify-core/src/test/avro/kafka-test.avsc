@@ -1,5 +1,5 @@
 {
-  "namespace": "io.github.michelin.kstreamplify.avro",
+  "namespace": "com.michelin.kstreamplify.avro",
   "type": "record",
   "name": "KafkaTest",
   "fields": [

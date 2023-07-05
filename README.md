@@ -45,13 +45,13 @@ These dependencies are compatible with Java Standard Edition (SE).
 
 ```xml
 <dependency>
-  <groupId>io.github.michelin</groupId>
+  <groupId>com.michelin</groupId>
   <artifactId>kstreamplify-core</artifactId>
   <version>${kstreamplify.version}</version>
 </dependency>
 
 <dependency>
-    <groupId>io.github.michelin</groupId>
+    <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core-test</artifactId>
     <version>${kstreamplify.version}</version>
     <scope>test</scope>
@@ -64,7 +64,7 @@ If you are using Spring Boot, you can use the following dependency to integrate 
 
 ```xml
 <dependency>
-    <groupId>io.github.michelin</groupId>
+    <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-spring-boot</artifactId>
     <version>${kstreamplify.version}</version>
 </dependency>
@@ -236,8 +236,8 @@ Here's how to use them:
 kafka:
   properties:
     ...
-    default.production.exception.handler: error.io.github.michelin.kstreamplify.DlqProductionExceptionHandler
-    default.deserialization.exception.handler: error.io.github.michelin.kstreamplify.DlqDeserializationExceptionHandler
+    default.production.exception.handler: error.com.michelin.kstreamplify.DlqProductionExceptionHandler
+    default.deserialization.exception.handler: error.com.michelin.kstreamplify.DlqDeserializationExceptionHandler
     ...
 ```
 
