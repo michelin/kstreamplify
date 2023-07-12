@@ -1,7 +1,7 @@
 package io.github.michelin.kstreamplify.error;
 
+import com.michelin.kstreamplify.avro.KafkaError;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import io.github.michelin.kstreamplify.avro.KafkaError;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

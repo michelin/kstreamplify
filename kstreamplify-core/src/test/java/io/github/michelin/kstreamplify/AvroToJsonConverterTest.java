@@ -2,10 +2,10 @@ package io.github.michelin.kstreamplify;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import io.github.michelin.kstreamplify.avro.KafkaTest;
-import io.github.michelin.kstreamplify.avro.MapElement;
-import io.github.michelin.kstreamplify.avro.SubKafkaTest;
-import io.github.michelin.kstreamplify.avro.SubSubKafkaTest;
+import com.michelin.kstreamplify.avro.KafkaTest;
+import com.michelin.kstreamplify.avro.MapElement;
+import com.michelin.kstreamplify.avro.SubKafkaTest;
+import com.michelin.kstreamplify.avro.SubSubKafkaTest;
 import io.github.michelin.kstreamplify.converter.AvroToJsonConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

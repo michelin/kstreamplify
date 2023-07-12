@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify.error;
 
-import io.github.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.avro.KafkaError;
 import io.github.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify.error;
 
-import io.github.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.avro.KafkaError;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;

@@ -1,6 +1,6 @@
 package io.github.michelin.kstreamplify;
 
-import io.github.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.avro.KafkaError;
 import io.github.michelin.kstreamplify.error.ProcessingResult;
 import io.github.michelin.kstreamplify.error.TopologyErrorHandler;
 import io.github.michelin.kstreamplify.utils.SerdesUtils;
