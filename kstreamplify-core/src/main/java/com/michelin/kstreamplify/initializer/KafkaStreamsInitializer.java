@@ -54,12 +54,14 @@ public class KafkaStreamsInitializer {
     public void init(KafkaStreamsStarter kStreamsStarter) {
 
         kafkaStreamsStarter = kStreamsStarter;
-
-        dlq = kafkaStreamsStarter.dlqTopic();
-
+        
         initProperties();
+        
+        initSerdesConfig();
 
-        initStreamExecutionContext();
+        initDLQ();
+
+        initHostInfo();
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
 
@@ -86,10 +88,7 @@ public class KafkaStreamsInitializer {
     /**
      * Init the Kafka Streams execution context
      */
-    private void initStreamExecutionContext() {
-        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
-        KafkaStreamsExecutionContext.setDlqTopicName(dlq);
-
+    private void initSerdesConfig() {
         KafkaStreamsExecutionContext.setSerdesConfig(
                 kafkaProperties.entrySet().stream().collect(
                         Collectors.toMap(
@@ -98,7 +97,14 @@ public class KafkaStreamsInitializer {
                                 (prev, next) -> next, HashMap::new
                         ))
         );
-        initHostInfo();
+    }
+    
+    /**
+     * Init the Kafka Streams default DLQ
+     */
+    private void initDLQ() {
+        dlq = kafkaStreamsStarter.dlqTopic();
+        KafkaStreamsExecutionContext.setDlqTopicName(dlq);
     }
 
     /**
@@ -133,6 +139,8 @@ public class KafkaStreamsInitializer {
 
         // DefaultBehavior load from file
         kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
+
+        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
 
 
