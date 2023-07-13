@@ -40,12 +40,22 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
      */
     private final Duration retentionWindowDuration;
 
-    private Function<V, String> dedupFunction;
+    /**
+     *
+     */
+    private final Function<V, String> deduplicationKeyExtractor;
 
-    public DedupWithPredicateProcessor(String dedupStoreName, Duration retentionWindowHours, Function<V, String> dedupFunction) {
+    /**
+     * Constructor method
+     *
+     * @param dedupStoreName            Name of the deduplication state store
+     * @param retentionWindowDuration   Retention window duration
+     * @param deduplicationKeyExtractor Deduplication function
+     */
+    public DedupWithPredicateProcessor(String dedupStoreName, Duration retentionWindowDuration, Function<V, String> deduplicationKeyExtractor) {
         this.dedupStoreName = dedupStoreName;
-        this.retentionWindowDuration = retentionWindowHours;
-        this.dedupFunction = dedupFunction;
+        this.retentionWindowDuration = retentionWindowDuration;
+        this.deduplicationKeyExtractor = deduplicationKeyExtractor;
     }
 
     @Override
@@ -70,7 +80,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
     public void process(Record<K, V> record) {
         try {
 
-            String identifier = dedupFunction.apply(record.value());
+            String identifier = deduplicationKeyExtractor.apply(record.value());
             // Retrieve the matching identifier in the statestore and return null if found it (signaling a duplicate)
             if (dedupTimestampedStore.get(identifier) == null) {
                 // First time we see this record, store entry in the windowstore and forward the record to the output

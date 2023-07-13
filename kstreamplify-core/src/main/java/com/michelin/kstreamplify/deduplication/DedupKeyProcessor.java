@@ -37,6 +37,12 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
      */
     private final Duration retentionWindowDuration;
 
+    /**
+     * Constructor
+     *
+     * @param dedupStoreName          The name of the constructor
+     * @param retentionWindowDuration The retentionWindow Duration
+     */
     public DedupKeyProcessor(String dedupStoreName, Duration retentionWindowDuration) {
         this.dedupStoreName = dedupStoreName;
         this.retentionWindowDuration = retentionWindowDuration;

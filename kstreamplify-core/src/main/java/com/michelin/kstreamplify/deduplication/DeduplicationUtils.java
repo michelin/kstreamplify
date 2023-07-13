@@ -15,7 +15,14 @@ import org.apache.kafka.streams.state.WindowStore;
 import java.time.Duration;
 import java.util.function.Function;
 
-public class DeduplicationUtils {
+/**
+ * Deduplication utility class. Only streams with String keys are supported.
+ */
+public final class DeduplicationUtils {
+
+    private DeduplicationUtils() {
+
+    }
 
     /**
      * Default values for the topic names. It should be noted that if used multiple times, this dedup will not work
@@ -25,8 +32,8 @@ public class DeduplicationUtils {
     private static final String DEFAULT_REPARTITION = "Repartition";
 
     /**
-     * Deduplicate the input stream on the input key using a window store for the given period of time.
-     * This constructor should not be used if using the deduplicator multiple times in the same topology
+     * <p>Deduplicate the input stream on the input key using a window store for the given period of time.</p>
+     * <p>This constructor should not be used if using the deduplicator multiple times in the same topology</p>
      *
      * @param streamsBuilder Stream builder instance for topology editing
      * @param initialStream  Stream containing the events that should be deduplicated
@@ -47,6 +54,7 @@ public class DeduplicationUtils {
      * @param storeName       Statestore name
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
+     * @param <V>             Generic Type of the Stream value. Key type is not implemented because using anything other than a String as the key is retarded. You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName, String repartitionName, Duration windowDuration) {
@@ -61,9 +69,8 @@ public class DeduplicationUtils {
     }
 
     /**
-     * Deduplicate the input stream on the input key & value using a window store for the given period of time.
-     * <p/>
-     * This constructor should not be used if using the deduplicator multiple times in the same topology
+     * <p>Deduplicate the input stream on the input key and value using a window store for the given period of time.</p>
+     * <p>This constructor should not be used if using the deduplicator multiple times in the same topology</p>
      *
      * @param streamsBuilder Stream builder instance for topology editing
      * @param initialStream  Stream containing the events that should be deduplicated
@@ -77,15 +84,15 @@ public class DeduplicationUtils {
     }
 
     /**
-     * Deduplicate the input stream on the input key and Value using a window store for the given period of time.
-     * <p/>
-     * The input stream should have a String key
+     * <p>Deduplicate the input stream on the input key and Value using a window store for the given period of time.</p>
+     * <p>The input stream should have a String key</p>
      *
      * @param streamsBuilder  Stream builder instance for topology editing
      * @param initialStream   Stream containing the events that should be deduplicated
      * @param storeName       Statestore name
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
+     * @param <V>             Generic Type of the Stream value. Key type is not implemented because using anything other than a String as the key is retarded. You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName, String repartitionName, Duration windowDuration) {
@@ -99,20 +106,16 @@ public class DeduplicationUtils {
     }
 
     /**
-     * Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record to generate a unique signature for the record.
-     * <p/>
-     * Uses a window store for the given period of time.
-     * <p/>
-     * The input stream should have a String key.
-     * <p/>
-     * ⚠ This constructor should not be used if using the deduplicator multiple times in the same topology. Use {@link DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName, String repartitionName, Duration, Function)} in this scenario.
-     * <p/>
+     * <p>Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record to generate a unique signature for the record.</p>
+     * <p>Uses a window store for the given period of time.</p>
+     * <p>The input stream should have a String key.</p>
+     * <p>⚠ This constructor should not be used if using the deduplicator multiple times in the same topology. Use {@link DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName, String repartitionName, Duration, Function)} in this scenario.</p>
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
      * @param windowDuration            Window of time to keep in the window store
      * @param deduplicationKeyExtractor Function that should extract a deduplication key in String format. This key acts like a comparison vector. A recommended approach is to concatenate all necessary fields in String format to provide a unique identifier for comparison between records.
-     * @param <V>                       The Record value type
+     * @param <V>                       Generic Type of the Stream value. Key type is not implemented because using anything other than a String as the key is retarded. You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration, Function<V, String> deduplicationKeyExtractor) {
@@ -120,12 +123,9 @@ public class DeduplicationUtils {
     }
 
     /**
-     * Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record to generate a unique signature for the record.
-     * <p/>
-     * Uses a window store for the given period of time.
-     * <p/>
-     * The input stream should have a String key.
-     * <p/>
+     * <p>Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record to generate a unique signature for the record.</p>
+     * <p>Uses a window store for the given period of time.</p>
+     * <p>The input stream should have a String key.</p>
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
@@ -133,7 +133,7 @@ public class DeduplicationUtils {
      * @param repartitionName           Repartition topic name
      * @param windowDuration            Window of time to keep in the window store
      * @param deduplicationKeyExtractor Function that should extract a deduplication key in String format. This key acts like a comparison vector. A recommended approach is to concatenate all necessary fields in String format to provide a unique identifier for comparison between records.
-     * @param <V>                       The Record value type
+     * @param <V>                       Generic Type of the Stream value. Key type is not implemented because using anything other than a String as the key is retarded. You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName, String repartitionName, Duration windowDuration, Function<V, String> deduplicationKeyExtractor) {

@@ -36,6 +36,12 @@ public class DedupKeyValueProcessor<V extends SpecificRecord> implements Process
      */
     private final Duration retentionWindowDuration;
 
+    /**
+     * Constructor method
+     *
+     * @param windowStoreName      The window store name
+     * @param retentionWindowHours The retention window duration
+     */
     public DedupKeyValueProcessor(String windowStoreName, Duration retentionWindowHours) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowHours;
