@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.initializer;
 
+import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.properties.KafkaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
@@ -25,13 +26,19 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
      * The application context
      */
     @Autowired
-    private ConfigurableApplicationContext springAppplicationContext;
+    private ConfigurableApplicationContext applicationContext;
 
+    /**
+     * The server port
+     */
     @Value("${server.port:8080}")
-    protected int serverPort; //todo check if this works otherwise add additional spring field then assign to parent field in init method
+    private int springBootServerPort;
 
+    /**
+     * The Kafka properties
+     */
     @Autowired
-    KafkaProperties springProperties;
+    private KafkaProperties springBootKafkaProperties;
 
     /**
      * The Kafka Streams starter
@@ -39,44 +46,60 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
     @Autowired
     private KafkaStreamsStarter kafkaStreamsStarter;
 
-
     /**
-     * The run method
-     *
+     * Run method
      * @param args the program arguments
      */
     @Override
-    public void run(ApplicationArguments args) throws IOException {
+    public void run(ApplicationArguments args) {
         init(kafkaStreamsStarter);
     }
 
+    /**
+     * ${@inheritDoc}
+     */
     @Override
     protected void initHttpServer() {
+        // Nothing to do here, Spring Boot is running its own HTTP server
     }
 
+    /**
+     * ${@inheritDoc}
+     */
     @Override
     protected void initProperties() {
-        kafkaProperties = springProperties.asProperties();
+        serverPort = springBootServerPort;
+        kafkaProperties = springBootKafkaProperties.asProperties();
+        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
 
+    /**
+     * ${@inheritDoc}
+     */
     @Override
     protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(Throwable exception) {
-        closeSpringContextIfSet();
+        closeApplicationContext();
         return super.onStreamsUncaughtException(exception);
     }
 
+    /**
+     * ${@inheritDoc}
+     */
     @Override
     protected void onStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
         if (newState.equals(KafkaStreams.State.ERROR)) {
-            closeSpringContextIfSet();
+            closeApplicationContext();
         }
     }
 
-    private void closeSpringContextIfSet() {
-        if (springAppplicationContext != null) {
-            springAppplicationContext.close();
+    /**
+     * Close the application context
+     */
+    private void closeApplicationContext() {
+        if (applicationContext != null) {
+            applicationContext.close();
         } else {
-            log.warn("No Spring Context set");
+            log.warn("No Spring context set");
         }
     }
 }
