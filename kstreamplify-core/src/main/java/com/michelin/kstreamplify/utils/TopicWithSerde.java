@@ -1,6 +1,7 @@
 package com.michelin.kstreamplify.utils;
 
 
+import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -14,7 +15,6 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <V> The model used as the value avro of the topic.
  */
 public abstract class TopicWithSerde<K, V> {
-
     /**
      * Name of the topic
      */
@@ -28,23 +28,17 @@ public abstract class TopicWithSerde<K, V> {
     /**
      * Key serde
      */
+    @Getter
     private final Serde<K> keySerde;
-
-    public Serde<K> getKeySerde() {
-        return keySerde;
-    }
 
     /**
      * Value serde
      */
+    @Getter
     private final Serde<V> valueSerde;
 
-    public Serde<V> getValueSerde() {
-        return valueSerde;
-    }
-
     /**
-     * Public constructor
+     * Constructor
      *
      * @param topicName  Name of the topic
      * @param appName    Owner application of the topic. Must be used in pair with springboot configuration topic.prefix.[appName]
@@ -80,8 +74,8 @@ public abstract class TopicWithSerde<K, V> {
     /**
      * Wrapper for the .stream method of KafkaStreams. Allows simple usage of a topic with type inference
      *
-     * @param sb
-     * @return
+     * @param sb The streamsBuilder
+     * @return a Kstream from the given topic
      */
     public KStream<K, V> stream(StreamsBuilder sb) {
         return sb.stream(this.toString(), Consumed.with(keySerde, valueSerde));
