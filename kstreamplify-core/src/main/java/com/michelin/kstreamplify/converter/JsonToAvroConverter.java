@@ -23,7 +23,6 @@ import java.util.Optional;
  * The class to convert Json to Avro
  */
 public class JsonToAvroConverter {
-
     private static final String JSON_VALUE = "value";
 
     /**
