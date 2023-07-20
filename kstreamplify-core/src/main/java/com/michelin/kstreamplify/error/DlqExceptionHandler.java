@@ -22,14 +22,14 @@ public abstract class DlqExceptionHandler {
     /**
      * The DLQ producer
      */
-    protected static KafkaProducer<byte[], KafkaError> producer;
+    private static KafkaProducer<byte[], KafkaError> producer;
 
     /**
      * Create a producer
      * @param clientId The producer client id
      * @param configs The producer configs
      */
-    protected static void instantiateProducer(String clientId, Map<String, ?> configs) {
+    public static void instantiateProducer(String clientId, Map<String, ?> configs) {
         Properties properties = new Properties();
         properties.putAll(configs);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
@@ -46,7 +46,7 @@ public abstract class DlqExceptionHandler {
      * @param value the record value
      * @return the error enriched by the exception
      */
-    protected KafkaError.Builder enrichWithException(KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {
+    public KafkaError.Builder enrichWithException(KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
@@ -58,5 +58,13 @@ public abstract class DlqExceptionHandler {
                 .setValue(tooLarge ? "The record is too large to be set as value (" + value.length + " bytes). The key will be used instead" : null)
                 .setStack(sw.toString())
                 .setByteValue(tooLarge ? ByteBuffer.wrap(key) : ByteBuffer.wrap(value));
+    }
+
+    public KafkaProducer<byte[], KafkaError> getProducer() {
+        return producer;
+    }
+
+    public static void setProducer(KafkaProducer<byte[], KafkaError> producer) {
+        DlqExceptionHandler.producer = producer;
     }
 }

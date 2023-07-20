@@ -41,7 +41,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setPartition(processorContext.partition())
                     .setTopic(processorContext.topic());
 
-            producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
+            getProducer().send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
         } catch (Exception e) {
             log.error("Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
@@ -57,7 +57,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {
-            if (producer == null) {
+            if (getProducer() == null) {
                 instantiateProducer(DlqDeserializationExceptionHandler.class.getName(), configs);
             }
         }

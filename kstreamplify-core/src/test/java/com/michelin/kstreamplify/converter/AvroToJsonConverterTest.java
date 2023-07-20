@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify;
+package com.michelin.kstreamplify.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

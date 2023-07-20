@@ -41,7 +41,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                         .setPartition(producerRecord.partition() == null ? -1 : producerRecord.partition())
                         .setTopic(producerRecord.topic());
 
-                producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(), builder.build())).get();
+                getProducer().send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(), builder.build())).get();
             } catch (Exception e) {
                 log.error("Cannot send the production exception {} for key {}, value {} and topic {} to DLQ topic {}", productionException,
                         producerRecord.key(), producerRecord.value(), producerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
@@ -60,7 +60,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     @Override
     public void configure(Map<String, ?> configs) {
         synchronized (GUARD) {
-            if (producer == null) {
+            if (getProducer() == null) {
                 instantiateProducer(DlqProductionExceptionHandler.class.getName(), configs);
             }
         }
