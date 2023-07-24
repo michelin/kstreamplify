@@ -123,7 +123,7 @@
 		<lombok.version>1.18.28</lombok.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<spring-boot.version>3.1.1</spring-boot.version>
+		<spring-boot.version>3.1.2</spring-boot.version>
 	</properties>
 
 	<dependencies>
