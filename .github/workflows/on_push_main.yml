@@ -40,6 +40,12 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
+      - name: Sonar
+        run: mvn verify sonar:sonar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Deploy
         if: endsWith(steps.build.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign

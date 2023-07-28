@@ -124,6 +124,9 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<spring-boot.version>3.1.2</spring-boot.version>
+		<sonar.organization>michelin</sonar.organization>
+		<sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>

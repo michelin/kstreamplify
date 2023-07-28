@@ -49,3 +49,9 @@ jobs:
         with:
           name: kstreamplify-core-test
           path: ${{ github.workspace }}/kstreamplify-core-test/target/kstreamplify-core-test-*.jar
+
+      - name: Sonar
+        run: mvn verify sonar:sonar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
