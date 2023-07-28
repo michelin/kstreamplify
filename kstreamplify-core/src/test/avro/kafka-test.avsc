@@ -1,7 +1,7 @@
 {
   "namespace": "com.michelin.kstreamplify.avro",
   "type": "record",
-  "name": "KafkaTest",
+  "name": "KafkaTestAvro",
   "fields": [
     {"name": "stringField", "type" : ["null","string"], "default": null},
     {"name": "booleanField","type" : "boolean", "default": false},
@@ -44,7 +44,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "SubKafkaTest",
+          "name": "SubKafkaTestAvro",
           "fields": [
             {"name": "subField", "type" : ["null","string"], "default": null},
             {
@@ -53,7 +53,7 @@
                 "type": "array",
                 "items": {
                   "type": "record",
-                  "name": "SubSubKafkaTest",
+                  "name": "SubSubKafkaTestAvro",
                   "fields": [
                     {"name": "subSubDateField", "type" : ["null",{"type": "long", "logicalType": "timestamp-millis"}], "default": null},
                     {"name": "subSubField", "type" : ["null","string"], "default": null},
