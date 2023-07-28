@@ -23,8 +23,6 @@ import java.util.Optional;
  * The class to convert Json to Avro
  */
 public class JsonToAvroConverter {
-    private static final String JSON_VALUE = "value";
-
     /**
      * convert a file in json to avro
      * @param file the file in json
@@ -64,7 +62,7 @@ public class JsonToAvroConverter {
                             var currentValue = jsonObject.get(currentKey);
 
                         // If this is an object, add to prefix and call method again
-                        if (currentValue instanceof JsonObject) {
+                        if (currentValue instanceof JsonObject currentValueJsonObject) {
                             Schema currentSchema = record.getSchema().getField(currentKey).schema();
 
                             // If the current value is a UNION
@@ -80,39 +78,34 @@ public class JsonToAvroConverter {
                             }
 
                             switch (currentSchema.getType()) {
-                                case RECORD:
+                                case RECORD -> {
                                     SpecificRecordBase currentRecord = baseClass(record.getSchema().getNamespace(), currentSchema.getName()).getDeclaredConstructor().newInstance();
-                                    populateGenericRecordFromJson((JsonObject) currentValue, currentRecord);
+                                    populateGenericRecordFromJson(currentValueJsonObject, currentRecord);
                                     record.put(currentKey, currentRecord);
-
-                                    break;
-                                case MAP:
+                                }
+                                case MAP -> {
                                     Map<String, Object> map = new HashMap<>();
-
                                     if (!currentSchema.getValueType().getType().equals(Schema.Type.RECORD)) {
-                                        for (String key : ((JsonObject) currentValue).keySet()) {
-                                            Object value = populateFieldWithCorrespondingType(((JsonObject) currentValue).get(key), currentSchema.getValueType().getType());
+                                        for (String key : currentValueJsonObject.keySet()) {
+                                            Object value = populateFieldWithCorrespondingType(currentValueJsonObject.get(key), currentSchema.getValueType().getType());
                                             map.put(key, value);
                                         }
                                     } else {
-                                        for (String key : ((JsonObject) currentValue).keySet()) {
+                                        for (String key : currentValueJsonObject.keySet()) {
                                             SpecificRecordBase mapValueRecord = baseClass(record.getSchema().getNamespace(), currentSchema.getValueType().getName()).getDeclaredConstructor().newInstance();
-                                            populateGenericRecordFromJson(((JsonObject) currentValue).get(key).getAsJsonObject(), mapValueRecord);
+                                            populateGenericRecordFromJson(currentValueJsonObject.get(key).getAsJsonObject(), mapValueRecord);
                                             map.put(key, mapValueRecord);
                                         }
                                     }
-
                                     record.put(currentKey, map);
-
-                                    break;
-                                default:
-                                    record.put(currentKey,
-                                            populateFieldWithCorrespondingType(currentValue, currentSchema.getType()));
+                                }
+                                default -> record.put(currentKey,
+                                        populateFieldWithCorrespondingType(currentValue, currentSchema.getType()));
                             }
                         }
 
                         // If this is an Array, call method for each one of them
-                        else if (currentValue instanceof JsonArray) {
+                        else if (currentValue instanceof JsonArray jsonArray) {
                             var arraySchema = record.getSchema().getField(currentKey).schema();
                             Schema arrayType = arraySchema.getType() != Schema.Type.UNION ?
                                     arraySchema :
@@ -123,9 +116,9 @@ public class JsonToAvroConverter {
 
                             if (elementType != null && Schema.Type.RECORD.equals(elementType.getType())) {
                                 ArrayList<GenericRecord> recordArray = new ArrayList<>();
-                                for (int i = 0; i < ((JsonArray) currentValue).size(); i++) {
+                                for (int i = 0; i < jsonArray.size(); i++) {
                                     SpecificRecordBase currentRecord = baseClass(record.getSchema().getNamespace(), elementType.getName()).getDeclaredConstructor().newInstance();
-                                    populateGenericRecordFromJson((JsonObject) ((JsonArray) currentValue).get(i), currentRecord);
+                                    populateGenericRecordFromJson((JsonObject) jsonArray.get(i), currentRecord);
                                     recordArray.add(currentRecord);
                                 }
                                 record.put(currentKey, recordArray);
@@ -158,20 +151,14 @@ public class JsonToAvroConverter {
      * @return the element converted with the corresponding type
      */
     private static Object populateFieldWithCorrespondingType(JsonElement jsonElement, Schema.Type type){
-        switch (type) {
-            case INT:
-                return jsonElement.getAsInt();
-            case LONG:
-                return jsonElement.getAsLong();
-            case FLOAT:
-                return jsonElement.getAsFloat();
-            case DOUBLE:
-                return jsonElement.getAsDouble();
-            case BOOLEAN:
-                return jsonElement.getAsBoolean();
-            default:
-                return jsonElement.getAsString();
-        }
+        return switch (type) {
+            case INT -> jsonElement.getAsInt();
+            case LONG -> jsonElement.getAsLong();
+            case FLOAT -> jsonElement.getAsFloat();
+            case DOUBLE -> jsonElement.getAsDouble();
+            case BOOLEAN -> jsonElement.getAsBoolean();
+            default -> jsonElement.getAsString();
+        };
     }
 
     /**
