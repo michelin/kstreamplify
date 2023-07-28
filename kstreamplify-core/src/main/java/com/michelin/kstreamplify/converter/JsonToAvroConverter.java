@@ -57,7 +57,6 @@ public class JsonToAvroConverter {
      * @param record the avro record to populate
      */
     private static void populateGenericRecordFromJson(JsonObject jsonObject, SpecificRecordBase record) {
-        
             // Iterate over object attributes
             jsonObject.keySet().forEach(
                     currentKey -> {
@@ -183,53 +182,42 @@ public class JsonToAvroConverter {
      */
     private static void populateFieldInRecordWithCorrespondingType(JsonObject jsonObject, String fieldName, GenericRecord result) {
         Schema fieldSchema = result.getSchema().getField(fieldName).schema();
-        Schema fieldType =
-                fieldSchema.getType() != Schema.Type.UNION ?
-                        fieldSchema :
-                        fieldSchema.getTypes().stream()
-                                .filter(s -> s.getType() != Schema.Type.NULL)
-                                .findFirst().get();
+        Optional<Schema> optionalFieldType = fieldSchema.getType() != Schema.Type.UNION ? Optional.of(fieldSchema) :
+                fieldSchema.getTypes()
+                        .stream()
+                        .filter(s -> s.getType() != Schema.Type.NULL)
+                        .findFirst();
 
-        switch (fieldType.getType()) {
-            case INT:
-                result.put(fieldName, jsonObject.get(fieldName).getAsInt());
-                break;
-            case LONG:
-                if (fieldType.getLogicalType() != null && fieldType.getLogicalType().getName().equals("timestamp-millis")) {
-                    result.put(
-                            fieldName,
-                            Instant.ofEpochSecond(jsonObject.get(fieldName).getAsLong())
-                    );
-                } else {
-                    result.put(fieldName, jsonObject.get(fieldName).getAsLong());
+        if (optionalFieldType.isPresent()) {
+            Schema fieldType = optionalFieldType.get();
+            switch (fieldType.getType()) {
+                case INT -> result.put(fieldName, jsonObject.get(fieldName).getAsInt());
+                case LONG -> {
+                    if (fieldType.getLogicalType() != null && fieldType.getLogicalType().getName().equals("timestamp-millis")) {
+                        result.put(fieldName, Instant.ofEpochSecond(jsonObject.get(fieldName).getAsLong()));
+                    } else {
+                        result.put(fieldName, jsonObject.get(fieldName).getAsLong());
+                    }
                 }
-                break;
-            case FLOAT:
-                result.put(fieldName, jsonObject.get(fieldName).getAsFloat());
-                break;
-            case DOUBLE:
-                result.put(fieldName, jsonObject.get(fieldName).getAsDouble());
-                break;
-            case BOOLEAN:
-                result.put(fieldName, jsonObject.get(fieldName).getAsBoolean());
-                break;
-            case BYTES:
-                if (fieldType.getLogicalType() != null && fieldType.getLogicalType().getName().equals("decimal")) {
-                    result.put(
-                            fieldName,
-                            new BigDecimal(jsonObject.get(fieldName).getAsString())
-                                    .setScale(((LogicalTypes.Decimal) fieldType.getLogicalType()).getScale(), RoundingMode.HALF_UP)
-                                    .round(new MathContext(((LogicalTypes.Decimal) fieldType.getLogicalType()).getPrecision()))
-                    );
-                } else {
-                    // This is not supposed to happen, that would mean that the given field is in Byte format
-                    result.put(fieldName, jsonObject.get(fieldName).getAsByte());
+                case FLOAT -> result.put(fieldName, jsonObject.get(fieldName).getAsFloat());
+                case DOUBLE -> result.put(fieldName, jsonObject.get(fieldName).getAsDouble());
+                case BOOLEAN -> result.put(fieldName, jsonObject.get(fieldName).getAsBoolean());
+                case BYTES -> {
+                    if (fieldType.getLogicalType() != null && fieldType.getLogicalType().getName().equals("decimal")) {
+                        result.put(
+                                fieldName,
+                                new BigDecimal(jsonObject.get(fieldName).getAsString())
+                                        .setScale(((LogicalTypes.Decimal) fieldType.getLogicalType()).getScale(), RoundingMode.HALF_UP)
+                                        .round(new MathContext(((LogicalTypes.Decimal) fieldType.getLogicalType()).getPrecision()))
+                        );
+                    } else {
+                        // This is not supposed to happen, that would mean that the given field is in Byte format
+                        result.put(fieldName, jsonObject.get(fieldName).getAsByte());
+                    }
                 }
-                break;
-            default:
-                result.put(fieldName, jsonObject.get(fieldName).getAsString());
+                default -> result.put(fieldName, jsonObject.get(fieldName).getAsString());
+            }
         }
-
     }
 
     /**
