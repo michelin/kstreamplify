@@ -16,17 +16,29 @@ import java.util.Properties;
 @Slf4j
 public class KafkaStreamsExecutionContext {
 
+    /**
+     * the DLQ topic name
+     */
     @Getter
     @Setter
     private static String dlqTopicName;
 
+    /**
+     * the Serdes config Map
+     */
     @Getter
     @Setter
     private static Map<String, String> serdesConfig;
 
+    /**
+     * the properties of the stream execution context
+     */
     @Getter
     private static Properties properties;
 
+    /**
+     * the prefix property
+     */
     @Getter
     private static String prefix;
 
