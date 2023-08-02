@@ -10,6 +10,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import java.util.Map;
 import java.util.Properties;
 
+import static com.michelin.kstreamplify.constants.PropertyConstants.*;
+
 /**
  * The class to represent the context of the KStream
  */
@@ -27,6 +29,17 @@ public class KafkaStreamsExecutionContext {
     @Getter
     private static Properties properties;
 
+    /**
+     * <p>The prefix that will be applied to the application.id if provided.</p>
+     * <p>it needs to be defined like this:</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       self: "myNamespacePrefix."
+     * }</pre>
+     *
+     */
     @Getter
     private static String prefix;
 
@@ -43,7 +56,7 @@ public class KafkaStreamsExecutionContext {
             return;
         }
 
-        prefix = properties.getProperty(PropertyConstants.PREFIX_PROPERTY_NAME, "");
+        prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));

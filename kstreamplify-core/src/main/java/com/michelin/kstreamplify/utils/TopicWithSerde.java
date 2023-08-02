@@ -1,12 +1,21 @@
 package com.michelin.kstreamplify.utils;
 
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.GlobalKTable;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueStore;
+
+import static com.michelin.kstreamplify.constants.PropertyConstants.SELF;
 
 /**
  * Wrapper class for simplifying topics interactions and their behaviors
@@ -14,6 +23,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <K> The model used as the key avro of the topic. Can be String (Recommended)
  * @param <V> The model used as the value avro of the topic.
  */
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class TopicWithSerde<K, V> {
     /**
      * Name of the topic
@@ -21,33 +31,50 @@ public abstract class TopicWithSerde<K, V> {
     private final String topicName;
 
     /**
-     * Owner application of the topic
+     * <p>Name of the property key defined under kafka.properties.prefix. Used to prefix the topicName dynamically at runtime.</p>
+     * <p>For instance, with the given following configuration :</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       nsKey: "myNamespacePrefix."
+     * }</pre>
+     * <p>If the topic name is {@code myTopic} , at stream initialization the topic name wil resolve to {@code myNamespacePrefix.myTopic}</p>
      */
-    private final String appName;
+    private final String prefixPropertyKey;
 
     /**
-     * Key serde
+     * Key serde for the topic
      */
     @Getter
     private final Serde<K> keySerde;
 
     /**
-     * Value serde
+     * Value serde for the topic
      */
     @Getter
     private final Serde<V> valueSerde;
 
+
     /**
-     * Constructor
+     * <p>Additional constructor which uses default parameter "self" for prefixPropertyKey</p>
+     *
+     * <p>For instance, with the given following configuration :</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       self: "myNamespacePrefix."
+     * }</pre>
+     * <p>If the topic name is {@code myTopic} , at stream initialization the topic name wil resolve to {@code myNamespacePrefix.myTopic}</p>
      *
      * @param topicName  Name of the topic
-     * @param appName    Owner application of the topic. Must be used in pair with springboot configuration topic.prefix.[appName]
      * @param keySerde   Key serde for the topic
      * @param valueSerde Value serde for the topic
      */
-    protected TopicWithSerde(String topicName, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
+    protected TopicWithSerde(String topicName, Serde<K> keySerde, Serde<V> valueSerde) {
         this.topicName = topicName;
-        this.appName = appName;
+        this.prefixPropertyKey = SELF;
         this.keySerde = keySerde;
         this.valueSerde = valueSerde;
     }
@@ -68,7 +95,7 @@ public abstract class TopicWithSerde<K, V> {
      */
     @Override
     public String toString() {
-        return TopicUtils.prefixAndDynamicRemap(topicName, appName);
+        return TopicUtils.prefixAndDynamicRemap(topicName, prefixPropertyKey);
     }
 
     /**
