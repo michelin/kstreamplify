@@ -54,7 +54,7 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
 
         dedupTimestampedStore = this.processorContext.getStateStore(dedupStoreName);
 
-        processorContext.schedule(Duration.ofHours(1), PunctuationType.WALL_CLOCK_TIME, (currentTimestamp) -> {
+        processorContext.schedule(Duration.ofHours(1), PunctuationType.WALL_CLOCK_TIME, currentTimestamp -> {
             try (var iterator = dedupTimestampedStore.all()) {
                 while (iterator.hasNext()) {
                     var currentRecord = iterator.next();

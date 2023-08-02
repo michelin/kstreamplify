@@ -42,6 +42,10 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setTopic(processorContext.topic());
 
             producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
+        } catch (InterruptedException ie) {
+            log.error("Interruption while sending the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
+                    consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), ie);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             log.error("Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);

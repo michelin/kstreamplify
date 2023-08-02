@@ -3,6 +3,7 @@
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify)
 [![GitHub Watch](https://img.shields.io/github/watchers/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify)
+[![SonarCloud Coverage](https://img.shields.io/sonar/coverage/michelin_kstreamplify?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/component_measures?id=michelin_kstreamplify&metric=coverage&view=list)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
 Kstreamplify is a Java library that brings new features on top of Kafka Streams.
@@ -70,9 +71,7 @@ If you are using Spring Boot, you can use the following dependency to integrate 
 </dependency>
 ```
 
-There are two versions available:
-- `2.x.x`: This version is compatible with Spring Boot 3.
-- `1.x.x`: This version is compatible with Spring Boot 2.
+The dependency is compatible with Spring Boot 3.
 
 ## Getting Started
 
@@ -236,8 +235,8 @@ Here's how to use them:
 kafka:
   properties:
     ...
-    default.production.exception.handler: error.com.michelin.kstreamplify.DlqProductionExceptionHandler
-    default.deserialization.exception.handler: error.com.michelin.kstreamplify.DlqDeserializationExceptionHandler
+    default.production.exception.handler: com.michelin.kstreamplify.error.DlqProductionExceptionHandler
+    default.deserialization.exception.handler: com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler
     ...
 ```
 

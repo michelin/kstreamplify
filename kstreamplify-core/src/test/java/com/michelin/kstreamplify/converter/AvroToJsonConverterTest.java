@@ -1,12 +1,11 @@
-package com.michelin.kstreamplify;
+package com.michelin.kstreamplify.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.michelin.kstreamplify.avro.KafkaTest;
+import com.michelin.kstreamplify.avro.KafkaTestAvro;
 import com.michelin.kstreamplify.avro.MapElement;
-import com.michelin.kstreamplify.avro.SubKafkaTest;
-import com.michelin.kstreamplify.avro.SubSubKafkaTest;
-import com.michelin.kstreamplify.converter.AvroToJsonConverter;
+import com.michelin.kstreamplify.avro.SubKafkaTestAvro;
+import com.michelin.kstreamplify.avro.SubSubKafkaTestAvro;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AvroToJsonConverterTest {
     @Test
     void shouldConvertAvroToJson() {
-        KafkaTest avro = getKafkaTest();
+        KafkaTestAvro avro = getKafkaTest();
 
         String jsonString = AvroToJsonConverter.convertRecord(avro);
 
@@ -42,8 +41,8 @@ class AvroToJsonConverterTest {
         log.info(jsonString);
     }
 
-    private KafkaTest getKafkaTest() {
-        return KafkaTest.newBuilder()
+    private KafkaTestAvro getKafkaTest() {
+        return KafkaTestAvro.newBuilder()
                 .setStringField("test")
                 .setDateField(Instant.ofEpochMilli(1))
                 .setQuantityField(BigDecimal.TEN)
@@ -54,10 +53,10 @@ class AvroToJsonConverterTest {
                 .setMembersString(Map.of("key1","val1"))
                 .setListString(List.of("val1","val2"))
                 .setSplit(List.of(
-                        SubKafkaTest.newBuilder()
+                        SubKafkaTestAvro.newBuilder()
                                 .setSubField("subTest")
                                 .setSubSplit(List.of(
-                                        SubSubKafkaTest.newBuilder()
+                                        SubSubKafkaTestAvro.newBuilder()
                                                 .setSubSubField("subSubTest")
                                                 .setSubSubDateField(Instant.ofEpochMilli(2))
                                                 .setSubSubIntField(8)

@@ -42,6 +42,10 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                         .setTopic(producerRecord.topic());
 
                 producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(), builder.build())).get();
+            } catch (InterruptedException ie) {
+                log.error("Interruption while sending the production exception {} for key {}, value {} and topic {} to DLQ topic {}", productionException,
+                        producerRecord.key(), producerRecord.value(), producerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), ie);
+                Thread.currentThread().interrupt();
             } catch (Exception e) {
                 log.error("Cannot send the production exception {} for key {}, value {} and topic {} to DLQ topic {}", productionException,
                         producerRecord.key(), producerRecord.value(), producerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
