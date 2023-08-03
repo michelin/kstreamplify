@@ -12,16 +12,32 @@ public final class TopicUtils {
     }
 
     /**
-     * Prefix the given topic name with the configured prefix and applies the dynamic remap.<br/>
-     * Prefix can be inferred from kafka.properties.topic.prefix.[appName]<br/>
-     * If not provided, prefixing will occur with the kafka.properties.prefix property.<br/><br/>
-     * If you are using {@link TopicWithSerde}, the appName provided in the property file needs to match the one provided in the topic-defining static method
+     * <p>Prefix the given topic name with the configured prefix and applies the dynamic remap.</p>
+     * <p>Prefix is retrieved at runtime from kafka.properties.prefix.[prefixPropertyKey]</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       self: "myNamespacePrefix."
+     * }</pre>
+     * <p>This allows interactions with multiple topics from different owners/namespaces</p>
+     * <p>If not provided, prefixing will not occur.</p>
+     * <br/>
+     * <p>Dynamic remap is retrieved from the configuration like so:</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       topic:
+     *          myInitialTopicName: "myRemappedTopicName"
+     * }</pre>
+     * <p>It can be applied to both input and output topics</p>
      *
-     * @param topicName The topicName that needs to be prefixed and remapped
-     * @param appName The appName matching the one matching the configuration file
+     * @param topicName         The topicName that needs to be prefixed and remapped
+     * @param prefixPropertyKey The prefixPropertyKey matching the configuration file
      * @return The prefixed and/or remapped topic.
      */
-    public static String prefixAndDynamicRemap(String topicName, String appName) {
+    public static String prefixAndDynamicRemap(String topicName, String prefixPropertyKey) {
         var properties = KafkaStreamsExecutionContext.getProperties();
 
         // Check for dynamic remap in properties
@@ -34,11 +50,7 @@ public final class TopicUtils {
                 topicName);
 
         // check if topic prefix property exists
-        String prefix = properties.getProperty(TOPIC_PROPERTY_NAME + PROPERTY_SEPARATOR + PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + appName);
-        // If it doesn't, use the prefix defined at the root of kafka.properties
-        if (prefix == null) {
-            prefix = properties.getProperty(TOPIC_PROPERTY_NAME + PROPERTY_SEPARATOR + PREFIX_PROPERTY_NAME, "");
-        }
+        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixPropertyKey, "");
         return prefix.concat(resultTopicName);
     }
 

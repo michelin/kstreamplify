@@ -37,4 +37,9 @@ public final class PropertyConstants {
      * Remap property name
      */
     public static final String REMAP_PROPERTY_NAME = "remap";
+
+    /**
+     * Default prefix property name
+     */
+    public static final String SELF = "self";
 }
