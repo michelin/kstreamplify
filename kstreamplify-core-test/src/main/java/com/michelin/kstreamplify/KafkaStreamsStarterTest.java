@@ -1,10 +1,14 @@
 package com.michelin.kstreamplify;
 
+import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import com.michelin.kstreamplify.utils.SerdesUtils;
 import com.michelin.kstreamplify.utils.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +21,8 @@ import java.util.Collections;
 import java.util.Properties;
 
 /**
- * The main test class to extend to execute unit tests on topology
+ * <p>The main test class to extend to execute unit tests on topology</p>
+ * <p>It provides a {@link TopologyTestDriver} and a {@link TestOutputTopic} for the DLQ</p>
  */
 public abstract class KafkaStreamsStarterTest {
     private static final String STATE_DIR = "/tmp/kafka-streams";
@@ -26,6 +31,11 @@ public abstract class KafkaStreamsStarterTest {
      * The topology test driver
      */
     protected TopologyTestDriver testDriver;
+
+    /**
+     * The dlq topic, initialized in {@link #generalSetUp()}
+     */
+    protected TestOutputTopic<String, KafkaError> dlqTopic;
 
     /**
      * Set up topology test driver
@@ -49,6 +59,8 @@ public abstract class KafkaStreamsStarterTest {
         starter.topology(streamsBuilder);
 
         testDriver = new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
+
+        dlqTopic = testDriver.createOutputTopic(KafkaStreamsExecutionContext.getDlqTopicName(), new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
     }
 
     /**
