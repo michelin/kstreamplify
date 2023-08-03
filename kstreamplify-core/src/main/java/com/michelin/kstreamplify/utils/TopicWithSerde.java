@@ -23,8 +23,8 @@ import static com.michelin.kstreamplify.constants.PropertyConstants.SELF;
  * @param <K> The model used as the key avro of the topic. Can be String (Recommended)
  * @param <V> The model used as the value avro of the topic.
  */
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class TopicWithSerde<K, V> {
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
+public final class TopicWithSerde<K, V> {
     /**
      * Name of the topic
      */
@@ -72,7 +72,7 @@ public abstract class TopicWithSerde<K, V> {
      * @param keySerde   Key serde for the topic
      * @param valueSerde Value serde for the topic
      */
-    protected TopicWithSerde(String topicName, Serde<K> keySerde, Serde<V> valueSerde) {
+    public TopicWithSerde(String topicName, Serde<K> keySerde, Serde<V> valueSerde) {
         this.topicName = topicName;
         this.prefixPropertyKey = SELF;
         this.keySerde = keySerde;
