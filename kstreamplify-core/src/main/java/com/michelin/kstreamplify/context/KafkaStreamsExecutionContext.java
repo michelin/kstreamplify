@@ -37,7 +37,15 @@ public class KafkaStreamsExecutionContext {
     private static Properties properties;
 
     /**
-     * the prefix property
+     * <p>The prefix that will be applied to the application.id if provided.</p>
+     * <p>it needs to be defined like this:</p>
+     * <pre>{@code
+     * kafka:
+     *   properties:
+     *     prefix:
+     *       self: "myNamespacePrefix."
+     * }</pre>
+     *
      */
     @Getter
     private static String prefix;

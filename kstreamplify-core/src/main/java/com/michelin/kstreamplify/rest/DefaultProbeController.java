@@ -42,9 +42,6 @@ public class DefaultProbeController {
 
     /**
      * Kubernetes' readiness probe
-     */
-    /**
-     * Kubernetes' readiness probe
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @param readinessPath The readiness path
      */
