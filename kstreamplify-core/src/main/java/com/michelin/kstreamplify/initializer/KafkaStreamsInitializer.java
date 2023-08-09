@@ -90,7 +90,7 @@ public class KafkaStreamsInitializer {
 
         kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
 
-        kafkaStreamsStarter.onStart();
+        kafkaStreamsStarter.onStart(kafkaStreams);
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 

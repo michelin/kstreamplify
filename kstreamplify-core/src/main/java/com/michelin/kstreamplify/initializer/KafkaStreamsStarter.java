@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.initializer;
 
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -24,6 +25,7 @@ public interface KafkaStreamsStarter {
 
     /**
      * Define runnable code after the Kafka Streams startup
+     * @param kafkaStreams The Kafka Streams instance
      */
-    default void onStart() { }
+    default void onStart(KafkaStreams kafkaStreams) { }
 }
