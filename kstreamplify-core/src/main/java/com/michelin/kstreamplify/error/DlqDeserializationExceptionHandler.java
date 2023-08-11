@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.common.KafkaException;
 
 import java.util.Map;
 
@@ -41,11 +42,11 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setPartition(consumerRecord.partition())
                     .setTopic(consumerRecord.topic());
 
-            boolean isCausedByKafka = sourceException.getCause() instanceof KafkaException;
+            boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
             //If the cause of this exception is a KafkaException and if getCause == sourceException (see Throwable.getCause - including SerializationException)
             //use to handle poison pill => sent message into dlq and continue our life.
-            if(isCausedByKafka || sourceException.getCause() == null) {
-                producer.send(new ProducerRecord<>(StreamExecutionContext.getDlqTopicName(), record.key(), builder.build())).get();
+            if(isCausedByKafka || consumptionException.getCause() == null) {
+                producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
                 return DeserializationHandlerResponse.CONTINUE;
             }
         } catch (InterruptedException ie) {
