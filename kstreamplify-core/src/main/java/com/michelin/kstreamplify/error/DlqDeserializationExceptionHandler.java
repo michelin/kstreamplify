@@ -41,7 +41,13 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setPartition(consumerRecord.partition())
                     .setTopic(consumerRecord.topic());
 
-            producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
+            boolean isCausedByKafka = sourceException.getCause() instanceof KafkaException;
+            //If the cause of this exception is a KafkaException and if getCause == sourceException (see Throwable.getCause - including SerializationException)
+            //use to handle poison pill => sent message into dlq and continue our life.
+            if(isCausedByKafka || sourceException.getCause() == null) {
+                producer.send(new ProducerRecord<>(StreamExecutionContext.getDlqTopicName(), record.key(), builder.build())).get();
+                return DeserializationHandlerResponse.CONTINUE;
+            }
         } catch (InterruptedException ie) {
             log.error("Interruption while sending the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), ie);
@@ -52,7 +58,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             return DeserializationHandlerResponse.FAIL;
         }
 
-        return DeserializationHandlerResponse.CONTINUE;
+        // here we only have exception like UnknownHostException for example or TimeoutException ...
+        // example:  we cannot ask schema registry De
+        return DeserializationHandlerResponse.FAIL;
     }
 
     /**
