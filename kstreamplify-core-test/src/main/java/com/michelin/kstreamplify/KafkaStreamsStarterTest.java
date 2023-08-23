@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
@@ -86,7 +87,7 @@ public abstract class KafkaStreamsStarterTest {
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        FileUtils.deleteQuietly(Paths.get(STATE_DIR).toFile());
+        FileUtils.deleteQuietly(Path.of(STATE_DIR).toFile());
         MockSchemaRegistry.dropScope("mock://" + getClass().getName());
     }
 
