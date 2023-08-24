@@ -7,6 +7,7 @@ import com.michelin.kstreamplify.utils.SerdesUtils;
 import com.michelin.kstreamplify.utils.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import org.apache.commons.io.FileUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.*;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
@@ -85,7 +87,7 @@ public abstract class KafkaStreamsStarterTest {
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        Files.deleteIfExists(Paths.get(STATE_DIR));
+        FileUtils.deleteQuietly(Path.of(STATE_DIR).toFile());
         MockSchemaRegistry.dropScope("mock://" + getClass().getName());
     }
 
