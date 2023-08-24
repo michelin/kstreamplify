@@ -7,16 +7,17 @@ import com.michelin.kstreamplify.utils.SerdesUtils;
 import com.michelin.kstreamplify.utils.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
-import org.apache.commons.io.FileUtils;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
@@ -27,7 +28,7 @@ import java.util.Properties;
  * <p>It provides a {@link TopologyTestDriver} and a {@link TestOutputTopic} for the DLQ</p>
  */
 public abstract class KafkaStreamsStarterTest {
-    private static final String STATE_DIR = "/tmp/kafka-streams";
+    private static final String STATE_DIR = "/tmp/kafka-streams/";
 
     /**
      * The topology test driver
@@ -47,7 +48,7 @@ public abstract class KafkaStreamsStarterTest {
         Properties properties = new Properties();
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR);
+        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getName());
 
         KafkaStreamsExecutionContext.registerProperties(properties);
         KafkaStreamsExecutionContext.setSerdesConfig(Collections
@@ -87,7 +88,7 @@ public abstract class KafkaStreamsStarterTest {
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        FileUtils.deleteQuietly(Path.of(STATE_DIR).toFile());
+        Files.deleteIfExists(Paths.get(STATE_DIR + getClass().getName()));
         MockSchemaRegistry.dropScope("mock://" + getClass().getName());
     }
 
