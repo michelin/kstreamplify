@@ -119,7 +119,7 @@
 		<java.version>17</java.version>
 		<junit-jupiter.version>5.10.0</junit-jupiter.version>
 		<kafka.version>3.4.0</kafka.version>
-		<kafka-streams-avro-serde.version>7.4.1</kafka-streams-avro-serde.version>
+		<kafka-streams-avro-serde.version>7.5.0</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.28</lombok.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
