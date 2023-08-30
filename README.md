@@ -67,6 +67,9 @@ These dependencies are compatible with Java Standard Edition (SE).
 </dependency>
 ```
 
+![](gifs/pom.gif "Pom gif")
+
+
 ### Spring Boot
 
 If you are using Spring Boot, you can use the following dependency to integrate Kstreamplify with your Spring Boot application:
@@ -81,11 +84,70 @@ If you are using Spring Boot, you can use the following dependency to integrate 
 
 The dependency is compatible with Spring Boot 3.
 
-## Getting Started
+![](gifs/pom_spring.gif "Spring pom gif")
 
-To begin using Kstreamplify, you simply need to set up a `KafkaStreamsStarter` bean within you Spring Boot context, overriding the `topology` method. 
+## Getting Started
+To begin using Kstreamplify, you simply need to set up 2 classes :
+
+### Java SE
+
+#### Main class
+Implement your main class which extends `KafkaStreamsInitializer` and define your main method.
+
+```java
+public class KafkaStreamsApplication extends KafkaStreamsInitializer {
+    
+  public static void main(String[] args) {
+    KafkaStreamsApplication kafkaStreamsApplication = new KafkaStreamsApplication();
+    kafkaStreamsApplication.init(new MyKafkaStreamsTopology());
+  }
+  
+}
+```
+
+![](gifs/app.gif "App gif")
+
+
+#### Topology class
+Implement a new class which extends `KafkaStreamsStarter` interface, overriding the `topology` method.
+
+```java
+public class MyKafkaStreamsTopology implements KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) { 
+        // Your topology here
+    }
+}
+```
+
+![](gifs/topology.gif "Topology gif")
+
+
+### Spring Boot
+
+#### Main class
+For instance, you can start by creating a class annotated with `@SpringBootApplication` and define your main method :
+
+```java
+@SpringBootApplication
+public class MyKafkaStreamsApplication {
+    
+    public static void main(String[] args) {
+        SpringApplication.run(MyKafkaStreamsApplication.class, args);
+    }
+}
+```
+
+![](gifs/app_spring.gif "App Spring gif")
+
+
+#### Topology class
+Implement a new class which extends `KafkaStreamsStarter` interface, overriding the `topology` method.
 
 For instance, you can start by creating a class annotated with `@Component`:
+
+#### Main class
+Implement your main class which extends `KafkaStreamsInitializer` and define your main method.
 
 ```java
 @Component
@@ -96,6 +158,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     }
 }
 ```
+![](gifs/topology_spring.gif "Spring topology gif")
+
 
 Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
 
