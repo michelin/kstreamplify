@@ -88,6 +88,10 @@ public class AvroToJsonConverter {
                 recordValue = jsonMap;
             }
 
+            if (recordValue instanceof GenericRecord genericRecord) {
+                recordValue = recordAsMap(genericRecord);
+            }
+
             recordMapping.put(field.name(), recordValue);
         }
 
