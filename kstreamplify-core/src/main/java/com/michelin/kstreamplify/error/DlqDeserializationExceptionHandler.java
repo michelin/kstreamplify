@@ -60,7 +60,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         }
 
         // here we only have exception like UnknownHostException for example or TimeoutException ...
-        // example:  we cannot ask schema registry De
+        // situation example:  we cannot ask schema registry because the url is unavailable 
         return DeserializationHandlerResponse.FAIL;
     }
 
