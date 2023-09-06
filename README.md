@@ -81,7 +81,7 @@ For instance, you can start by creating a class annotated with `@Component`:
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) { 
         // Your topology here
@@ -151,7 +151,7 @@ To do this, the first step is to override the `dlqTopic` method and return the n
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) { //... }
     
@@ -172,7 +172,7 @@ Here is a complete example of how to do this:
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, MyAvroValue> myStream = streamsBuilder

@@ -8,12 +8,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 /**
  * The Kafka Streams starter interface
  */
-public interface KafkaStreamsStarter {
+public abstract class KafkaStreamsStarter {
     /**
      * Define the topology of the Kafka Streams
      * @param streamsBuilder The streams builder
      */
-    void topology(StreamsBuilder streamsBuilder);
+    public abstract void topology(StreamsBuilder streamsBuilder);
 
     /**
      * <p>Define the dead letter queue (DLQ) topic</p>
@@ -21,11 +21,11 @@ public interface KafkaStreamsStarter {
      *
      * @return The dead letter queue (DLQ) topic
      */
-    String dlqTopic();
+    public abstract String dlqTopic();
 
     /**
      * Define runnable code after the Kafka Streams startup
      * @param kafkaStreams The Kafka Streams instance
      */
-    default void onStart(KafkaStreams kafkaStreams) { }
+    public void onStart(KafkaStreams kafkaStreams) { }
 }
