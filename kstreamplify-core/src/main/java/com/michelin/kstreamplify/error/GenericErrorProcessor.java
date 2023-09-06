@@ -1,23 +1,25 @@
 package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.avro.KafkaError;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.processor.api.RecordMetadata;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
- * Generic error processor
+ * Generic error processor.
+ *
  * @param <V> The type of the failed record
  */
-public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, ProcessingError<V>, KafkaError> {
+public class GenericErrorProcessor<V>
+    implements FixedKeyProcessor<String, ProcessingError<V>, KafkaError> {
     private FixedKeyProcessorContext<String, KafkaError> context;
 
     /**
-     * init context
+     * Init context.
+     *
      * @param context the context to init
      */
     @Override
@@ -26,7 +28,8 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
     }
 
     /**
-     * process the error
+     * Process the error.
+     *
      * @param fixedKeyRecord the record to process an error
      */
     @Override
@@ -38,14 +41,16 @@ public class GenericErrorProcessor<V> implements FixedKeyProcessor<String, Proce
         RecordMetadata recordMetadata = context.recordMetadata().orElse(null);
 
         KafkaError error = KafkaError.newBuilder()
-                .setCause(fixedKeyRecord.value().getException().getMessage())
-                .setContextMessage(fixedKeyRecord.value().getContextMessage())
-                .setOffset(recordMetadata != null ? recordMetadata.offset() : -1)
-                .setPartition(recordMetadata != null ? recordMetadata.partition() : -1)
-                .setStack(sw.toString())
-                .setTopic(recordMetadata != null && recordMetadata.topic() != null ? recordMetadata.topic() : "Outside topic context")
-                .setValue(fixedKeyRecord.value().getKafkaRecord())
-                .build();
+            .setCause(fixedKeyRecord.value().getException().getMessage())
+            .setContextMessage(fixedKeyRecord.value().getContextMessage())
+            .setOffset(recordMetadata != null ? recordMetadata.offset() : -1)
+            .setPartition(recordMetadata != null ? recordMetadata.partition() : -1)
+            .setStack(sw.toString())
+            .setTopic(
+                recordMetadata != null && recordMetadata.topic() != null ? recordMetadata.topic() :
+                    "Outside topic context")
+            .setValue(fixedKeyRecord.value().getKafkaRecord())
+            .build();
 
         context.forward(fixedKeyRecord.withValue(error));
     }

@@ -19,27 +19,28 @@ package com.michelin.kstreamplify.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.avro.Schema.Field;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.util.Utf8;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 
 /**
- * The class to convert Avro to Json
+ * The class to convert Avro to Json.
  */
 public class AvroToJsonConverter {
-    private AvroToJsonConverter() { }
+    private AvroToJsonConverter() {
+    }
 
     private static final Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
+        .setPrettyPrinting()
+        .create();
 
     /**
-     * Convert the record from avro format to json format
+     * Convert the record from avro format to json format.
+     *
      * @param inputRecord the record in avro format
      * @return the record in json format
      */
@@ -48,7 +49,8 @@ public class AvroToJsonConverter {
     }
 
     /**
-     * convert avro to a map for json format
+     * Convert avro to a map for json format.
+     *
      * @param inputRecord record in avro
      * @return map for json format
      */
@@ -64,15 +66,15 @@ public class AvroToJsonConverter {
 
             if (recordValue instanceof List<?> recordValueAsList) {
                 recordValue = recordValueAsList
-                        .stream()
-                        .map(value -> {
-                            if (value instanceof GenericRecord genericRecord) {
-                                return recordAsMap(genericRecord);
-                            } else {
-                                return value.toString();
-                            }
-                        })
-                        .toList();
+                    .stream()
+                    .map(value -> {
+                        if (value instanceof GenericRecord genericRecord) {
+                            return recordAsMap(genericRecord);
+                        } else {
+                            return value.toString();
+                        }
+                    })
+                    .toList();
             }
 
             if (recordValue instanceof Map<?, ?> recordValueAsMap) {

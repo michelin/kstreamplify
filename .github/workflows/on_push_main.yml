@@ -31,6 +31,9 @@ jobs:
           mvn clean compile
           echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
 
+      - name: Check Style
+        run: mvn checkstyle:check
+
       - name: Test
         run: mvn test
 
