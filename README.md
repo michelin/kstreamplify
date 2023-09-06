@@ -279,23 +279,36 @@ You can use this hook to perform any custom initialization or setup tasks for yo
 
 Kstreamplify is designed to make your Kafka Streams instance ready for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html), including support for RPC (Remote Procedure Call).
 
-The `application.server` property, which contains the host:port information, is automatically handled by Kstreamplify. It follows the logic described below:
+The `application.server` property, which should contain the host:port information, is automatically handled by Kstreamplify.
+The property can be loaded in three different ways.
+By order of priority:
 
-- a environment variable whose name is defined by the `ip.env.var.name` property.
-- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from Kubernetes.
-
-Here's an example of how to set the `MY_POD_IP` environment variable in a Kubernetes environment:
+- an environment variable whose name is defined by the `ip.env.var.name` property.
 
 ```yml
+kafka:
+  properties:
+    ip.env.var.name: MY_APPLICATION_PORT_HOST
+```
+
+Where `MY_APPLICATION_PORT_HOST` contains the host:port information.
+
+- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from Kubernetes.
+
+Here's an extract of a Kubernetes deployment which set the `MY_POD_IP` environment variable in a Kubernetes environment:
+
+```yml
+...
 containers:
   env:
   - name: MY_POD_IP
     valueFrom:
       fieldRef:
         fieldPath: status.podIP
+...
 ```
 
-- set to `localhost`.
+- If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify sets `application.server` to the default value `localhost`.
 
 ### Testing
 
