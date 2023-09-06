@@ -22,6 +22,7 @@ Kstreamplify is a Java library that brings new features on top of Kafka Streams.
   * [REST Endpoints](#rest-endpoints)
   * [Hooks](#hooks)
     * [On Start](#on-start)
+  * [Interactive Queries](#interactive-queries)
   * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -273,6 +274,28 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 ```
 
 You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
+
+### Interactive Queries
+
+Kstreamplify is designed to make your Kafka Streams instance ready for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html), including support for RPC (Remote Procedure Call).
+
+The `application.server` property, which contains the host:port information, is automatically handled by Kstreamplify. It follows the logic described below:
+
+- a environment variable whose name is defined by the `ip.env.var.name` property.
+- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from Kubernetes.
+
+Here's an example of how to set the `MY_POD_IP` environment variable in a Kubernetes environment:
+
+```yml
+containers:
+  env:
+  - name: MY_POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+```
+
+- set to `localhost`.
 
 ### Testing
 
