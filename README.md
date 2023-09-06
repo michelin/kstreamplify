@@ -76,6 +76,12 @@ If you are using Spring Boot, you can use the following dependency to integrate 
     <artifactId>kstreamplify-spring-boot</artifactId>
     <version>${kstreamplify.version}</version>
 </dependency>
+<dependency>
+  <groupId>io.github.michelin</groupId>
+  <artifactId>kstreamplify-core-test</artifactId>
+  <version>${kstreamplify.version}</version>
+  <scope>test</scope>
+</dependency>
 ```
 
 ![](gifs/pom_spring.gif "Spring pom gif")
