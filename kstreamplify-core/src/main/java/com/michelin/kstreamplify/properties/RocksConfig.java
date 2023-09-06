@@ -10,7 +10,7 @@ import org.rocksdb.Options;
 /**
  * The RockDB configuration class.
  */
-public class RocksDbConfig implements RocksDBConfigSetter {
+public class RocksConfig implements RocksDBConfigSetter {
     /**
      * The RocksDB cache size config key.
      */
