@@ -20,6 +20,7 @@ Kstreamplify is a Java library that brings new features on top of Kafka Streams.
     * [Production and Deserialization](#production-and-deserialization)
     * [Avro Schema](#avro-schema)
   * [REST Endpoints](#rest-endpoints)
+  * [Hooks](#hooks)
   * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -251,6 +252,26 @@ The Kstreamplify library provides several REST endpoints, which are listed below
 - `GET /ready`: This endpoint is used as a readiness probe for Kubernetes deployment.
 - `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
 - `GET /topology`: This endpoint returns the Kafka Streams topology as JSON.
+
+### Hooks
+
+Kstreamplify offers the flexibility to execute custom code through hooks. These hooks can be defined by overriding specific methods.
+
+#### On Start
+
+The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka Streams instance as a parameter.
+
+```java
+@Component
+public class MyKafkaStreams implements KafkaStreamsStarter {
+    @Override
+    public void onStart(KafkaStreams kafkaStreams) {
+        // Your code here
+    }
+}
+```
+
+You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
 
 ### Testing
 
