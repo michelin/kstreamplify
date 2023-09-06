@@ -27,7 +27,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * The class to convert Avro to Json
@@ -63,34 +62,34 @@ public class AvroToJsonConverter {
                 recordValue = recordValue.toString();
             }
 
-            if (recordValue instanceof List) {
-                List<?> recordValueAsList  = (List<?>) recordValue;
-
+            if (recordValue instanceof List<?> recordValueAsList) {
                 recordValue = recordValueAsList
                         .stream()
                         .map(value -> {
-                            if (value instanceof GenericRecord) {
-                                return recordAsMap((GenericRecord) value);
+                            if (value instanceof GenericRecord genericRecord) {
+                                return recordAsMap(genericRecord);
                             } else {
                                 return value.toString();
                             }
                         })
-                        .collect(Collectors.toList());
+                        .toList();
             }
 
-            if (recordValue instanceof Map) {
+            if (recordValue instanceof Map<?, ?> recordValueAsMap) {
                 Map<Object, Object> jsonMap = new HashMap<>();
-                Map<?, ?> recordValueAsMap  = (Map<?, ?>) recordValue;
-
                 recordValueAsMap.forEach((key, value) -> {
-                    if (value instanceof GenericRecord) {
-                        jsonMap.put(key, recordAsMap((GenericRecord) value));
+                    if (value instanceof GenericRecord genericRecord) {
+                        jsonMap.put(key, recordAsMap(genericRecord));
                     } else {
                         jsonMap.put(key, value.toString());
                     }
                 });
 
                 recordValue = jsonMap;
+            }
+
+            if (recordValue instanceof GenericRecord genericRecord) {
+                recordValue = recordAsMap(genericRecord);
             }
 
             recordMapping.put(field.name(), recordValue);

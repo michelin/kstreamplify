@@ -3,6 +3,7 @@ package com.michelin.kstreamplify;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.utils.SerdesUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -13,6 +14,7 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,64 +23,74 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     private final String AVRO_TOPIC = "avroTopic";
+    private TestInputTopic<String, KafkaError> avroInputTopic;
     private final String STRING_TOPIC = "stringTopic";
+    private TestInputTopic<String, String> stringInputTopic;
     private final String OUTPUT_AVRO_TOPIC = "outputAvroTopic";
+    private TestOutputTopic<String, KafkaError> avroOutputTopic;
     private final String OUTPUT_STRING_TOPIC = "outputStringTopic";
+    private TestOutputTopic<String, String> stringOutputTopic;
+    private final String DLQ_TOPIC = "dlqTopic";
+    private TestOutputTopic<String, KafkaError> dlqTopic;
 
     @Override
-    protected void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder
-                .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
-                .mapValues(value -> "error".equals(value) ?
-                        ProcessingResult.fail(new NullPointerException(), value) : ProcessingResult.success(value));
+    protected KafkaStreamsStarter getKafkaStreamsStarter() {
+        return new KafkaStreamsStarter() {
+            @Override
+            public String dlqTopic() {
+                return DLQ_TOPIC;
+            }
 
-        TopologyErrorHandler.catchErrors(stringStream)
-                .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+            @Override
+            public void topology(StreamsBuilder streamsBuilder) {
+                KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder
+                        .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
+                        .mapValues(value -> "error".equals(value) ?
+                                ProcessingResult.fail(new NullPointerException(), value) : ProcessingResult.success(value));
 
-        KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream = streamsBuilder
-                .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getSerdesForValue()))
-                .mapValues(value -> value == null ?
-                        ProcessingResult.fail(new NullPointerException(), null) : ProcessingResult.success(value));
+                TopologyErrorHandler.catchErrors(stringStream)
+                        .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
-        TopologyErrorHandler.catchErrors(avroStream)
-                .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(),SerdesUtils.getSerdesForValue()));
+                KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream = streamsBuilder
+                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getSerdesForValue()))
+                        .mapValues(value -> value == null ?
+                                ProcessingResult.fail(new NullPointerException(), null) : ProcessingResult.success(value));
+
+                TopologyErrorHandler.catchErrors(avroStream)
+                        .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+            }
+        };
+    }
+
+    @BeforeEach
+    void setUp() {
+        stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(), new StringSerializer());
+        avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(), SerdesUtils.<KafkaError>getSerdesForValue().serializer());
+
+        stringOutputTopic = testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(), new StringDeserializer());
+        avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+
+        dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
     }
 
     @Test
     void shouldContinueWhenProcessingValueIsValid() {
-        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(STRING_TOPIC,
-                new StringSerializer(), new StringSerializer());
 
-        TestOutputTopic<String, KafkaError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
-
-        TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(OUTPUT_STRING_TOPIC,
-                new StringDeserializer(), new StringDeserializer());
-
-        inputTopic.pipeInput("key", "message");
+        stringInputTopic.pipeInput("key", "message");
 
         var resultDlq = dlqTopic.readValuesToList();
-        var resultOutput = outputTopic.readValuesToList();
+        var resultOutput = stringOutputTopic.readValuesToList();
 
         assertEquals(0, resultDlq.size());
         assertEquals(1, resultOutput.size());
     }
-    
+
     @Test
     void shouldSendExceptionToDLQWhenProcessingValueIsInvalid() {
-        TestInputTopic<String, String> inputTopic = testDriver.createInputTopic(STRING_TOPIC,
-                new StringSerializer(), new StringSerializer());
-
-        TestOutputTopic<String, KafkaError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
-
-        TestOutputTopic<String, String> outputTopic = testDriver.createOutputTopic(OUTPUT_STRING_TOPIC,
-                new StringDeserializer(), new StringDeserializer());
-
-        inputTopic.pipeInput("key", "error");
+        stringInputTopic.pipeInput("key", "error");
 
         var resultDlq = dlqTopic.readValuesToList();
-        var resultOutput = outputTopic.readValuesToList();
+        var resultOutput = stringOutputTopic.readValuesToList();
 
         assertEquals(1, resultDlq.size());
         assertEquals(0, resultOutput.size());
@@ -86,14 +98,6 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsValidAvro() {
-        TestInputTopic<String, KafkaError> inputTopic = testDriver.createInputTopic(AVRO_TOPIC,
-                new StringSerializer(), SerdesUtils.<KafkaError>getSerdesForValue().serializer());
-
-        TestOutputTopic<String, KafkaError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
-
-        TestOutputTopic<String, KafkaError> outputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
 
         KafkaError avroModel = KafkaError.newBuilder()
                 .setTopic("topic")
@@ -104,10 +108,10 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
                 .setValue("value")
                 .build();
 
-        inputTopic.pipeInput("key", avroModel);
-        
+        avroInputTopic.pipeInput("key", avroModel);
+
         List<KafkaError> resultDlq = dlqTopic.readValuesToList();
-        List<KafkaError> resultOutput = outputTopic.readValuesToList();
+        List<KafkaError> resultOutput = avroOutputTopic.readValuesToList();
 
         assertEquals(0, resultDlq.size());
         assertEquals(1, resultOutput.size());
@@ -115,19 +119,11 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsInvalidAvro() {
-        TestInputTopic<String, KafkaError> inputTopic = testDriver.createInputTopic(AVRO_TOPIC,
-                new StringSerializer(), SerdesUtils.<KafkaError>getSerdesForValue().serializer());
 
-        TestOutputTopic<String, KafkaError> dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
-
-        TestOutputTopic<String, KafkaError> outputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC,
-                new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
-        
-        inputTopic.pipeInput("key", null);
+        avroInputTopic.pipeInput("key", null);
 
         List<KafkaError> resultDlq = dlqTopic.readValuesToList();
-        List<KafkaError> resultOutput = outputTopic.readValuesToList();
+        List<KafkaError> resultOutput = avroOutputTopic.readValuesToList();
 
         assertEquals(1, resultDlq.size());
         assertEquals(0, resultOutput.size());

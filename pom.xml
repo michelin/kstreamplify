@@ -6,7 +6,7 @@
 
 	<groupId>com.michelin</groupId>
 	<artifactId>kstreamplify</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<name>kstreamplify</name>
 	<description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
 	<url>https://github.com/michelin/kstreamplify</url>
@@ -114,18 +114,23 @@
 	<properties>
 		<avro.version>1.11.2</avro.version>
 		<commons-io.version>2.13.0</commons-io.version>
-		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<commons-lang3.version>3.13.0</commons-lang3.version>
 		<gson.version>2.10.1</gson.version>
 		<java.version>17</java.version>
-		<junit-jupiter.version>5.9.3</junit-jupiter.version>
+		<junit-jupiter.version>5.10.0</junit-jupiter.version>
 		<kafka.version>3.4.0</kafka.version>
-		<kafka-streams-avro-serde.version>7.4.0</kafka-streams-avro-serde.version>
+		<kafka-streams-avro-serde.version>7.5.0</kafka-streams-avro-serde.version>
 		<lombok.version>1.18.28</lombok.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<spring-boot.version>3.1.1</spring-boot.version>
 		<mockito.version>5.4.0</mockito.version>
 		<jacoco.version>0.8.10</jacoco.version>
+		<spring-boot.version>3.1.3</spring-boot.version>
+		<sonar.organization>michelin</sonar.organization>
+		<sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
+		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+>>>>>>> main
 	</properties>
 
 	<dependencies>
@@ -145,12 +150,6 @@
 			<groupId>io.confluent</groupId>
 			<artifactId>kafka-streams-avro-serde</artifactId>
 			<version>${kafka-streams-avro-serde.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>${avro.version}</version>
 		</dependency>
 
 		<dependency>
@@ -241,6 +240,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -255,7 +255,55 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.1.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.jupiter</groupId>
+						<artifactId>junit-jupiter-engine</artifactId>
+						<version>${junit-jupiter.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.10</version>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>target/jacoco.exec</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>target/jacoco-ut</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+
 		<pluginManagement>
 			<plugins>
 				<plugin>

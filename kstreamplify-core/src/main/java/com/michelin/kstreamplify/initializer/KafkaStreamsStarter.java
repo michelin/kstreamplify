@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.initializer;
 
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -15,13 +16,16 @@ public interface KafkaStreamsStarter {
     void topology(StreamsBuilder streamsBuilder);
 
     /**
-     * Define the dead letter queue (DLQ) topic
+     * <p>Define the dead letter queue (DLQ) topic</p>
+     * <p>If you don't want to use the DLQ topic, you can return {@link org.apache.commons.lang3.StringUtils#EMPTY}</p>
+     *
      * @return The dead letter queue (DLQ) topic
      */
-    default String dlqTopic() { return EMPTY; }
+    String dlqTopic();
 
     /**
      * Define runnable code after the Kafka Streams startup
+     * @param kafkaStreams The Kafka Streams instance
      */
-    default void onStart() { }
+    default void onStart(KafkaStreams kafkaStreams) { }
 }

@@ -3,6 +3,8 @@ package com.michelin.kstreamplify.services;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.model.RestServiceResponse;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
@@ -10,14 +12,15 @@ import org.apache.kafka.streams.processor.internals.StreamThread;
 
 import java.net.HttpURLConnection;
 
+/**
+ * Kafka Streams probe service
+ */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ProbeService {
-    private ProbeService() {
-    }
-
     /**
-     * The Kubernetes readiness probe endpoint
-     *
+     * Kubernetes' readiness probe
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @return An HTTP response based on the Kafka Streams state
      */
     public static RestServiceResponse<String> readinessProbe(KafkaStreamsInitializer kafkaStreamsInitializer) {
@@ -40,13 +43,12 @@ public final class ProbeService {
             return kafkaStreamsInitializer.getKafkaStreams().state().isRunningOrRebalancing() ?
                     RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_OK).build() : RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_UNAVAILABLE).build();
         }
-
         return RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_BAD_REQUEST).build();
     }
 
     /**
-     * The Kubernetes liveness probe endpoint
-     *
+     * Kubernetes' liveness probe
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @return An HTTP response based on the Kafka Streams state
      */
     public static RestServiceResponse<String> livenessProbe(KafkaStreamsInitializer kafkaStreamsInitializer) {
@@ -54,14 +56,13 @@ public final class ProbeService {
             return kafkaStreamsInitializer.getKafkaStreams().state() != KafkaStreams.State.NOT_RUNNING ? RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_OK).build()
                     : RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_INTERNAL_ERROR).build();
         }
-
         return RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_NO_CONTENT).build();
     }
 
     /**
-     * The topology endpoint
-     *
-     * @return The Kafka Streams topology as JSON
+     * Get the Kafka Streams topology
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     * @return The Kafka Streams topology
      */
     public static RestServiceResponse<String> exposeTopology(KafkaStreamsInitializer kafkaStreamsInitializer) {
         if (kafkaStreamsInitializer.getTopology() != null) {
