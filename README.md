@@ -264,7 +264,7 @@ The `On Start` hook allows you to execute code right after the Kafka Streams ins
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void onStart(KafkaStreams kafkaStreams) {
         // Your code here
