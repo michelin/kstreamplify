@@ -67,7 +67,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
         dedupTimestampedStore = this.processorContext.getStateStore(dedupStoreName);
 
         processorContext.schedule(Duration.ofHours(1), PunctuationType.WALL_CLOCK_TIME,
-            (currentTimestamp) -> {
+            currentTimestamp -> {
                 try (var iterator = dedupTimestampedStore.all()) {
                     while (iterator.hasNext()) {
                         var currentRecord = iterator.next();

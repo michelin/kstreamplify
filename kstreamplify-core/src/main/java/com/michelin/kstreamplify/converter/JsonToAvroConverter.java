@@ -42,11 +42,11 @@ public class JsonToAvroConverter {
      */
     public static SpecificRecordBase jsonToAvro(JsonObject jsonEvent, Schema schema) {
         try {
-            SpecificRecordBase record =
+            SpecificRecordBase message =
                 baseClass(schema.getNamespace(), schema.getName()).getDeclaredConstructor()
                     .newInstance();
-            populateGenericRecordFromJson(jsonEvent, record);
-            return record;
+            populateGenericRecordFromJson(jsonEvent, message);
+            return message;
         } catch (Exception e) {
             return null;
         }
