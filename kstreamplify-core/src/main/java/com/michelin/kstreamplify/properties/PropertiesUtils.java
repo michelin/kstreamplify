@@ -1,30 +1,33 @@
 package com.michelin.kstreamplify.properties;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.yaml.snakeyaml.Yaml;
+import static com.michelin.kstreamplify.constants.PropertyConstants.DEFAULT_PROPERTY_FILE;
+import static com.michelin.kstreamplify.constants.PropertyConstants.KAFKA_PROPERTIES_PREFIX;
+import static com.michelin.kstreamplify.constants.PropertyConstants.PROPERTY_SEPARATOR;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Properties;
-
-import static com.michelin.kstreamplify.constants.PropertyConstants.*;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.yaml.snakeyaml.Yaml;
 
 /**
- * Properties utils
+ * Properties utils.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PropertiesUtils {
     /**
-     * Load the properties from the default properties file
+     * Load the properties from the default properties file.
+     *
      * @return The properties
      */
     public static Properties loadProperties() {
         Yaml yaml = new Yaml();
 
-        try (InputStream inputStream = PropertiesUtils.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTY_FILE)) {
+        try (InputStream inputStream = PropertiesUtils.class.getClassLoader()
+            .getResourceAsStream(DEFAULT_PROPERTY_FILE)) {
             LinkedHashMap<String, Object> propsMap = yaml.load(inputStream);
             return parsePropertiesMap(propsMap);
         } catch (IOException e) {
@@ -33,7 +36,8 @@ public final class PropertiesUtils {
     }
 
     /**
-     * Get the Kafka properties only from the given properties
+     * Get the Kafka properties only from the given properties.
+     *
      * @param props The properties
      * @return The Kafka properties
      */
@@ -41,14 +45,16 @@ public final class PropertiesUtils {
         Properties resultProperties = new Properties();
         for (var prop : props.entrySet()) {
             if (StringUtils.contains(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX)) {
-                resultProperties.put(StringUtils.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR), prop.getValue());
+                resultProperties.put(StringUtils.remove(prop.getKey().toString(),
+                    KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR), prop.getValue());
             }
         }
         return resultProperties;
     }
 
     /**
-     * Parse a map into Properties
+     * Parse a map into Properties.
+     *
      * @param map The map
      * @return The properties
      */
@@ -57,9 +63,10 @@ public final class PropertiesUtils {
     }
 
     /**
-     * Parse a given key
-     * @param key The key
-     * @param map The underlying map
+     * Parse a given key.
+     *
+     * @param key   The key
+     * @param map   The underlying map
      * @param props The properties
      * @return The properties
      */

@@ -1,51 +1,64 @@
 package com.michelin.kstreamplify.rest;
 
-import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.sun.net.httpserver.HttpServer;
 import com.michelin.kstreamplify.constants.HttpServerConstants;
+import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.services.ProbeService;
-import org.apache.commons.lang3.StringUtils;
-
+import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * Default probe controller
+ * Default probe controller.
  */
 public class DefaultProbeController {
     /**
-     * HTTP server
+     * HTTP server.
      */
     protected HttpServer server;
 
     /**
-     * Constructor
+     * Constructor.
+     *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
     public DefaultProbeController(KafkaStreamsInitializer kafkaStreamsInitializer) {
         try {
-            server = HttpServer.create(new InetSocketAddress(kafkaStreamsInitializer.getServerPort()), 0);
+            server =
+                HttpServer.create(new InetSocketAddress(kafkaStreamsInitializer.getServerPort()),
+                    0);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        var readinessPath = (String) kafkaStreamsInitializer.getProperties().get(HttpServerConstants.READINESS_PROPERTY);
-        var livenessPath = (String) kafkaStreamsInitializer.getProperties().get(HttpServerConstants.LIVENESS_PROPERTY);
-        var exposeTopologyPath = (String) kafkaStreamsInitializer.getProperties().get(HttpServerConstants.TOPOLOGY_PROPERTY);
+        var readinessPath = (String) kafkaStreamsInitializer.getProperties()
+            .get(HttpServerConstants.READINESS_PROPERTY);
+        var livenessPath = (String) kafkaStreamsInitializer.getProperties()
+            .get(HttpServerConstants.LIVENESS_PROPERTY);
+        var exposeTopologyPath = (String) kafkaStreamsInitializer.getProperties()
+            .get(HttpServerConstants.TOPOLOGY_PROPERTY);
 
-        readinessProbe(kafkaStreamsInitializer, '/' + (StringUtils.isBlank(readinessPath) ? HttpServerConstants.READINESS_DEFAULT_PATH : readinessPath));
-        livenessProbe(kafkaStreamsInitializer, '/' + (StringUtils.isBlank(livenessPath) ? HttpServerConstants.LIVENESS_DEFAULT_PATH : livenessPath));
-        exposeTopology(kafkaStreamsInitializer, '/' + (StringUtils.isBlank(exposeTopologyPath) ? HttpServerConstants.TOPOLOGY_DEFAULT_PATH : exposeTopologyPath));
+        readinessProbe(kafkaStreamsInitializer, '/'
+            + (StringUtils.isBlank(readinessPath) ? HttpServerConstants.READINESS_DEFAULT_PATH :
+                readinessPath));
+        livenessProbe(kafkaStreamsInitializer, '/'
+            + (StringUtils.isBlank(livenessPath) ? HttpServerConstants.LIVENESS_DEFAULT_PATH :
+                livenessPath));
+        exposeTopology(kafkaStreamsInitializer, '/'
+            + (StringUtils.isBlank(exposeTopologyPath) ? HttpServerConstants.TOPOLOGY_DEFAULT_PATH :
+                exposeTopologyPath));
         endpointCaller(kafkaStreamsInitializer);
         server.start();
     }
 
     /**
-     * Kubernetes' readiness probe
+     * Kubernetes' readiness probe.
      */
-    private void readinessProbe(KafkaStreamsInitializer kafkaStreamsInitializer, String readinessPath) {
+    private void readinessProbe(KafkaStreamsInitializer kafkaStreamsInitializer,
+                                String readinessPath) {
         server.createContext(readinessPath, (exchange -> {
-            exchange.sendResponseHeaders(ProbeService.readinessProbe(kafkaStreamsInitializer).getStatus(), 0);
+            exchange.sendResponseHeaders(
+                ProbeService.readinessProbe(kafkaStreamsInitializer).getStatus(), 0);
             var output = exchange.getResponseBody();
             output.close();
             exchange.close();
@@ -54,11 +67,13 @@ public class DefaultProbeController {
 
 
     /**
-     * Kubernetes' liveness probe
+     * Kubernetes' liveness probe.
      */
-    private void livenessProbe(KafkaStreamsInitializer kafkaStreamsInitializer, String livenessPath) {
+    private void livenessProbe(KafkaStreamsInitializer kafkaStreamsInitializer,
+                               String livenessPath) {
         server.createContext(livenessPath, (exchange -> {
-            exchange.sendResponseHeaders(ProbeService.livenessProbe(kafkaStreamsInitializer).getStatus(), 0);
+            exchange.sendResponseHeaders(
+                ProbeService.livenessProbe(kafkaStreamsInitializer).getStatus(), 0);
             var output = exchange.getResponseBody();
             output.close();
             exchange.close();
@@ -66,9 +81,10 @@ public class DefaultProbeController {
     }
 
     /**
-     * Get the Kafka Streams topology
+     * Get the Kafka Streams topology.
      */
-    private void exposeTopology(KafkaStreamsInitializer kafkaStreamsInitializer, String exposeTopologyPath) {
+    private void exposeTopology(KafkaStreamsInitializer kafkaStreamsInitializer,
+                                String exposeTopologyPath) {
         server.createContext(exposeTopologyPath, (exchange -> {
             var restServiceResponse = ProbeService.exposeTopology(kafkaStreamsInitializer);
 
@@ -83,7 +99,8 @@ public class DefaultProbeController {
 
 
     /**
-     * Callback to override in case of custom endpoint definition
+     * Callback to override in case of custom endpoint definition.
+     *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
     protected void endpointCaller(KafkaStreamsInitializer kafkaStreamsInitializer) {

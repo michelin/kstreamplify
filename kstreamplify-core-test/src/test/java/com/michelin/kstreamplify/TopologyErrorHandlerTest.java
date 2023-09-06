@@ -1,10 +1,13 @@
 package com.michelin.kstreamplify;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.utils.SerdesUtils;
+import java.util.List;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -17,20 +20,17 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
-    private final String AVRO_TOPIC = "avroTopic";
+    private static final String AVRO_TOPIC = "avroTopic";
+    private static final String STRING_TOPIC = "stringTopic";
+    private static final String OUTPUT_AVRO_TOPIC = "outputAvroTopic";
+    private static final String OUTPUT_STRING_TOPIC = "outputStringTopic";
+    private static final String DLQ_TOPIC = "dlqTopic";
+
     private TestInputTopic<String, KafkaError> avroInputTopic;
-    private final String STRING_TOPIC = "stringTopic";
     private TestInputTopic<String, String> stringInputTopic;
-    private final String OUTPUT_AVRO_TOPIC = "outputAvroTopic";
     private TestOutputTopic<String, KafkaError> avroOutputTopic;
-    private final String OUTPUT_STRING_TOPIC = "outputStringTopic";
     private TestOutputTopic<String, String> stringOutputTopic;
-    private final String DLQ_TOPIC = "dlqTopic";
     private TestOutputTopic<String, KafkaError> dlqTopic;
 
     @Override
@@ -44,33 +44,44 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
             @Override
             public void topology(StreamsBuilder streamsBuilder) {
                 KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder
-                        .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
-                        .mapValues(value -> "error".equals(value) ?
-                                ProcessingResult.fail(new NullPointerException(), value) : ProcessingResult.success(value));
+                    .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
+                    .mapValues(value -> "error".equals(value)
+                        ? ProcessingResult.fail(new NullPointerException(), value) :
+                        ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(stringStream)
-                        .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+                    .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
-                KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream = streamsBuilder
-                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getSerdesForValue()))
-                        .mapValues(value -> value == null ?
-                                ProcessingResult.fail(new NullPointerException(), null) : ProcessingResult.success(value));
+                KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream =
+                    streamsBuilder
+                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(),
+                            SerdesUtils.<KafkaError>getSerdesForValue()))
+                        .mapValues(value -> value == null
+                            ? ProcessingResult.fail(new NullPointerException(), null) :
+                            ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(avroStream)
-                        .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+                    .to(OUTPUT_AVRO_TOPIC,
+                        Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
             }
         };
     }
 
     @BeforeEach
     void setUp() {
-        stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(), new StringSerializer());
-        avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(), SerdesUtils.<KafkaError>getSerdesForValue().serializer());
+        stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(),
+            new StringSerializer());
+        avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(),
+            SerdesUtils.<KafkaError>getSerdesForValue().serializer());
 
-        stringOutputTopic = testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(), new StringDeserializer());
-        avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+        stringOutputTopic =
+            testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(),
+                new StringDeserializer());
+        avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(),
+            SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
 
-        dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+        dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(),
+            SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
     }
 
     @Test
@@ -86,7 +97,7 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     }
 
     @Test
-    void shouldSendExceptionToDLQWhenProcessingValueIsInvalid() {
+    void shouldSendExceptionToDlqWhenProcessingValueIsInvalid() {
         stringInputTopic.pipeInput("key", "error");
 
         var resultDlq = dlqTopic.readValuesToList();
@@ -98,15 +109,14 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsValidAvro() {
-
         KafkaError avroModel = KafkaError.newBuilder()
-                .setTopic("topic")
-                .setStack("stack")
-                .setPartition(0)
-                .setOffset(0)
-                .setCause("cause")
-                .setValue("value")
-                .build();
+            .setTopic("topic")
+            .setStack("stack")
+            .setPartition(0)
+            .setOffset(0)
+            .setCause("cause")
+            .setValue("value")
+            .build();
 
         avroInputTopic.pipeInput("key", avroModel);
 
