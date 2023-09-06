@@ -21,6 +21,7 @@ Kstreamplify is a Java library that brings new features on top of Kafka Streams.
     * [Avro Schema](#avro-schema)
   * [REST Endpoints](#rest-endpoints)
   * [Hooks](#hooks)
+    * [On Start](#on-start)
   * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
