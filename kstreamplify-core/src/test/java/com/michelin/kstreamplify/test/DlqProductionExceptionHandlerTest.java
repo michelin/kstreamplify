@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
+import com.michelin.kstreamplify.error.DlqExceptionHandler;
 import com.michelin.kstreamplify.error.DlqProductionExceptionHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -20,7 +21,9 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExce
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +79,7 @@ public class DlqProductionExceptionHandlerTest {
         DlqProductionExceptionHandler handler = mock(DlqProductionExceptionHandler.class);
         when(handler.getProducer()).thenReturn(kafkaProducer);
         when(handler.handle(any(),any())).thenCallRealMethod();
+        doCallRealMethod().when(handler).configure(any());
         handler.configure(new HashMap<>());
         return handler;
     }
@@ -115,6 +119,17 @@ public class DlqProductionExceptionHandlerTest {
         ProductionExceptionHandlerResponse response = handler.handle(producerRecord,new IOException());
         assertEquals(ProductionExceptionHandlerResponse.CONTINUE, response);
         ctx.close();
+    }
+
+    @Test
+    public void testConfigure() {
+        var handler = initHandler();
+
+        Map<String, Object> configs = new HashMap<>();
+        when(handler.getProducer()).thenReturn(null);
+        try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
+            handler.configure(configs);
+        }
     }
 }
 

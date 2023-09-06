@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.utils;
 import com.michelin.kstreamplify.avro.KafkaError;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.junit.jupiter.api.Test;
 
 public class TopicWithSerdesTest<K, V> extends TopicWithSerde<K, V> {
 
@@ -17,4 +18,5 @@ public class TopicWithSerdesTest<K, V> extends TopicWithSerde<K, V> {
     public static TopicWithSerdesTest<String, KafkaError> inputTopicWithSerdes() {
         return new TopicWithSerdesTest<>("INPUT_TOPIC", "APP_NAME", Serdes.String(), SerdesUtils.getSerdesForValue());
     }
+
 }

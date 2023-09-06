@@ -24,7 +24,7 @@ import static com.michelin.kstreamplify.constants.PropertyConstants.SELF;
  * @param <V> The model used as the value avro of the topic.
  */
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
-public final class TopicWithSerde<K, V> {
+public class TopicWithSerde<K, V> {
     /**
      * Name of the topic
      */

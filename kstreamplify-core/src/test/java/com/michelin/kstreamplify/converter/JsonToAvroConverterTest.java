@@ -1,6 +1,6 @@
 package com.michelin.kstreamplify.converter;
 
-import com.michelin.kstreamplify.avro.KafkaTest;
+import com.michelin.kstreamplify.avro.KafkaTestAvro;
 import com.michelin.kstreamplify.converter.JsonToAvroConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ class JsonToAvroConverterTest {
 
     @Test
     void shouldConvertJsonToAvro() {
-        KafkaTest kafkaTest = (KafkaTest) JsonToAvroConverter.jsonToAvro(JSON, KafkaTest.getClassSchema());
+        KafkaTestAvro kafkaTest = (KafkaTestAvro) JsonToAvroConverter.jsonToAvro(JSON, KafkaTestAvro.getClassSchema());
         assertEquals("val1", kafkaTest.getMembersString().get("key1"));
         assertEquals(8, kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubIntField());
         assertEquals("subSubTest", kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubField());

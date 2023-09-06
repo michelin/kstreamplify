@@ -2,6 +2,7 @@ package com.michelin.kstreamplify.test;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
+import com.michelin.kstreamplify.error.DlqExceptionHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -14,6 +15,7 @@ import org.mockito.MockedStatic;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +69,7 @@ public class DlqDeserializationExceptionHandlerTest {
         DlqDeserializationExceptionHandler handler = mock(DlqDeserializationExceptionHandler.class);
         when(handler.getProducer()).thenReturn(kafkaProducer);
         when(handler.handle(any(),any(),any())).thenCallRealMethod();
+        doCallRealMethod().when(handler).configure(any());
         handler.configure(new HashMap<>());
         return handler;
     }
@@ -107,4 +110,18 @@ public class DlqDeserializationExceptionHandlerTest {
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
         ctx.close();
     }
+
+
+    @Test
+    public void testConfigure() {
+        var handler = initHandler();
+
+        Map<String, Object> configs = new HashMap<>();
+        when(handler.getProducer()).thenReturn(null);
+
+        try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
+            handler.configure(configs);
+        }
+    }
+
 }
