@@ -20,11 +20,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build
-        run: mvn clean compile
-
       - name: Check Style
         run: mvn checkstyle:check
+
+      - name: Build
+        run: mvn clean compile
 
       - name: Test
         run: mvn test
