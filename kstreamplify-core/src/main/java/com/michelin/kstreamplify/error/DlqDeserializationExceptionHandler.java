@@ -37,9 +37,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             var builder = KafkaError.newBuilder();
             enrichWithException(builder, consumptionException, consumerRecord.key(), consumerRecord.value())
                     .setContextMessage("An exception occurred during the stream internal deserialization")
-                    .setOffset(processorContext.offset())
-                    .setPartition(processorContext.partition())
-                    .setTopic(processorContext.topic());
+                    .setOffset(consumerRecord.offset())
+                    .setPartition(consumerRecord.partition())
+                    .setTopic(consumerRecord.topic());
 
             producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
         } catch (InterruptedException ie) {

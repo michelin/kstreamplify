@@ -3,8 +3,6 @@ package com.michelin.kstreamplify.initializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
 /**
  * The Kafka Streams starter interface
  */
