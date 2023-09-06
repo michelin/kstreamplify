@@ -67,7 +67,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
         dedupTimestampedStore = this.processorContext.getStateStore(dedupStoreName);
 
         processorContext.schedule(Duration.ofHours(1), PunctuationType.WALL_CLOCK_TIME,
-            (currentTimestamp) -> {
+            currentTimestamp -> {
                 try (var iterator = dedupTimestampedStore.all()) {
                     while (iterator.hasNext()) {
                         var currentRecord = iterator.next();
@@ -97,7 +97,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
                 "Couldn't figure out what to do with the current payload: "
-                    + "An unlikely error occured during deduplication transform"));
+                    + "An unlikely error occurred during deduplication transform"));
         }
     }
 }
