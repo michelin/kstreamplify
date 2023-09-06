@@ -56,7 +56,6 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         } catch (Exception e) {
             log.error("Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
-            return DeserializationHandlerResponse.FAIL;
         }
 
         // here we only have exception like UnknownHostException for example or TimeoutException ...
