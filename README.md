@@ -116,8 +116,8 @@ Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` wi
 ```java
 @Bean
 public KafkaStreamsStarter kafkaStreamsStarter() {
-        return streamsBuilder -> streamsBuilder.map(...).to(...); // Your topology here
-        }
+    return streamsBuilder -> streamsBuilder.map(...).to(...); // Your topology here
+}
 ```
 
 ### Properties Injection
