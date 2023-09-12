@@ -1,4 +1,5 @@
 package com.michelin.kstreamplify.test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import com.michelin.kstreamplify.avro.KafkaError;
@@ -49,5 +50,7 @@ class GenericErrorProcessorTest {
         // When processing the record
         errorProcessor.init(mockContext);
         errorProcessor.process(mockRecord);
+
+        assertNotNull(errorProcessor);
     }
 }

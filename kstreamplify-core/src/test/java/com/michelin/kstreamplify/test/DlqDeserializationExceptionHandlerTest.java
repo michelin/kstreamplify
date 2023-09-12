@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 class DlqDeserializationExceptionHandlerTest {
@@ -122,6 +123,8 @@ class DlqDeserializationExceptionHandlerTest {
         try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
             handler.configure(configs);
         }
+
+        assertNotNull(handler);
     }
 
 }

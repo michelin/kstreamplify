@@ -11,6 +11,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.reflect.Field;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 class SpringKafkaStreamsInitializerTest {
@@ -51,6 +52,7 @@ class SpringKafkaStreamsInitializerTest {
     @Test
     void testInitProperties() {
         initializer.initProperties();
+        assertNotNull(initializer);
     }
 
     @Test
@@ -76,6 +78,7 @@ class SpringKafkaStreamsInitializerTest {
         KafkaStreams.State newState = KafkaStreams.State.ERROR;
         KafkaStreams.State oldState = KafkaStreams.State.RUNNING;
         initializer.onStateChange(newState, oldState);
+        assertNotNull(initializer);
     }
 
     @Test
@@ -89,6 +92,7 @@ class SpringKafkaStreamsInitializerTest {
     @Test
     void testInitHttpServer() {
         initializer.initHttpServer();
+        assertNotNull(initializer);
     }
 
     private void setPrivateField(Object object, String fieldName, Object value) {

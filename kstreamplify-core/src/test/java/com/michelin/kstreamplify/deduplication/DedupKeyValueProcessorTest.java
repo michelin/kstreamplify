@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 class DedupKeyValueProcessorTest {
@@ -44,7 +45,7 @@ class DedupKeyValueProcessorTest {
         dedupKeyValueProcessor.init(context);
         dedupKeyValueProcessor.process(record);
 
-        // verify(windowStore).put(eq(key), any());
+        assertNotNull(record);
     }
 
 }

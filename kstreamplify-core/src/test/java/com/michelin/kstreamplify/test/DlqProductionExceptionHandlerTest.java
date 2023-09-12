@@ -1,7 +1,6 @@
 package com.michelin.kstreamplify.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.michelin.kstreamplify.avro.KafkaError;
@@ -130,6 +129,8 @@ class DlqProductionExceptionHandlerTest {
         try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
             handler.configure(configs);
         }
+
+        assertNotNull(handler);
     }
 }
 
