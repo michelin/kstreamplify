@@ -47,6 +47,7 @@ class SpringKafkaStreamsInitializerTest {
     void testRun() {
         doCallRealMethod().when(initializerMocked).run(applicationArguments);
         initializerMocked.run(applicationArguments);
+        assertNotNull(initializerMocked);
     }
 
     @Test

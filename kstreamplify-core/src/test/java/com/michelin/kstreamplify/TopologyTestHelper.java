@@ -2,7 +2,7 @@ package com.michelin.kstreamplify;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.initializer.KafkaStreamsStarterTopologyTest;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarterTopologyTestHelper;
 import com.michelin.kstreamplify.model.TopologyExposeJsonModel;
 import com.michelin.kstreamplify.services.ConvertTopology;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class TopologyTest {
+class TopologyTestHelper {
     protected TopologyTestDriver testDriver;
     @Test
     void convertTopologyForRestTest() {
@@ -31,7 +31,7 @@ class TopologyTest {
 
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        KafkaStreamsStarterTopologyTest kafkaStreamsStarterTopologyTest = new KafkaStreamsStarterTopologyTest();
+        KafkaStreamsStarterTopologyTestHelper kafkaStreamsStarterTopologyTest = new KafkaStreamsStarterTopologyTestHelper();
         kafkaStreamsStarterTopologyTest.topology(streamsBuilder);
         KafkaStreamsInitializer kafkaStreamsInitializer = new KafkaStreamsInitializer();
         kafkaStreamsInitializer.init(kafkaStreamsStarterTopologyTest);
