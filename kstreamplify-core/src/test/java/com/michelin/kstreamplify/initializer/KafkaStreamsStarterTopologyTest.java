@@ -10,7 +10,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import java.io.IOException;
 import java.time.Duration;
 
-public class KafkaStreamsStarterTopologyTest implements KafkaStreamsStarter {
+public class KafkaStreamsStarterTopologyTest extends KafkaStreamsStarter {
 
 
     @Override
