@@ -20,6 +20,8 @@ Kstreamplify is a Java library that brings new features on top of Kafka Streams.
     * [Production and Deserialization](#production-and-deserialization)
     * [Avro Schema](#avro-schema)
   * [REST Endpoints](#rest-endpoints)
+  * [Hooks](#hooks)
+    * [On Start](#on-start)
   * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -81,7 +83,7 @@ For instance, you can start by creating a class annotated with `@Component`:
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) { 
         // Your topology here
@@ -151,7 +153,7 @@ To do this, the first step is to override the `dlqTopic` method and return the n
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) { //... }
     
@@ -172,7 +174,7 @@ Here is a complete example of how to do this:
 
 ```java
 @Component
-public class MyKafkaStreams implements KafkaStreamsStarter {
+public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, MyAvroValue> myStream = streamsBuilder
@@ -251,6 +253,26 @@ The Kstreamplify library provides several REST endpoints, which are listed below
 - `GET /ready`: This endpoint is used as a readiness probe for Kubernetes deployment.
 - `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
 - `GET /topology`: This endpoint returns the Kafka Streams topology as JSON.
+
+### Hooks
+
+Kstreamplify offers the flexibility to execute custom code through hooks. These hooks can be defined by overriding specific methods.
+
+#### On Start
+
+The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka Streams instance as a parameter.
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void onStart(KafkaStreams kafkaStreams) {
+        // Your code here
+    }
+}
+```
+
+You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
 
 ### Testing
 

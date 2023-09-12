@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.common.KafkaException;
 
 import java.util.Map;
 
@@ -37,10 +38,17 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             var builder = KafkaError.newBuilder();
             enrichWithException(builder, consumptionException, consumerRecord.key(), consumerRecord.value())
                     .setContextMessage("An exception occurred during the stream internal deserialization")
-                    .setOffset(processorContext.offset())
-                    .setPartition(processorContext.partition())
-                    .setTopic(processorContext.topic());
-            getProducer().send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
+                    .setOffset(consumerRecord.offset())
+                    .setPartition(consumerRecord.partition())
+                    .setTopic(consumerRecord.topic());
+
+            boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
+            //If the cause of this exception is a KafkaException and if getCause == sourceException (see Throwable.getCause - including SerializationException)
+            //use to handle poison pill => sent message into dlq and continue our life.
+            if(isCausedByKafka || consumptionException.getCause() == null) {
+                getProducer().send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build())).get();
+                return DeserializationHandlerResponse.CONTINUE;
+            }
         } catch (InterruptedException ie) {
             log.error("Interruption while sending the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), ie);
@@ -48,10 +56,11 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         } catch (Exception e) {
             log.error("Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}", consumptionException,
                     consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(), KafkaStreamsExecutionContext.getDlqTopicName(), e);
-            return DeserializationHandlerResponse.FAIL;
         }
 
-        return DeserializationHandlerResponse.CONTINUE;
+        // here we only have exception like UnknownHostException for example or TimeoutException ...
+        // situation example:  we cannot ask schema registry because the url is unavailable 
+        return DeserializationHandlerResponse.FAIL;
     }
 
     /**
