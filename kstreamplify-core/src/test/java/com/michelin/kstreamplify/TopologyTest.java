@@ -16,7 +16,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class TopologyTestHelper {
+class TopologyTest {
     protected TopologyTestDriver testDriver;
     @Test
     void convertTopologyForRestTest() {
