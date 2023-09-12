@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 
 import static org.mockito.Mockito.*;
 
-public class SpringKafkaStreamsInitializerTest {
+class SpringKafkaStreamsInitializerTest {
 
     @Mock
     private ConfigurableApplicationContext applicationContext;

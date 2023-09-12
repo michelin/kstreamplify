@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DlqExceptionHandlerTest {
@@ -25,6 +26,6 @@ class DlqExceptionHandlerTest {
         handler.instantiateProducer(clientId, configs);
 
         KafkaProducer<byte[], KafkaError> producer = handler.getProducer();
-        assertTrue(producer != null);
+        assertNotNull(producer);
     }
 }

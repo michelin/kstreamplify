@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-public class DlqDeserializationExceptionHandlerTest {
+class DlqDeserializationExceptionHandlerTest {
 
     private MockedStatic<KafkaStreamsExecutionContext> ctx;
 
@@ -75,7 +75,7 @@ public class DlqDeserializationExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnContinue() {
+    void handleShouldReturnContinue() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
         ConsumerRecord consumerRecord = initConsumerRecord();
@@ -88,7 +88,7 @@ public class DlqDeserializationExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnFailBecauseOfNullDlqTopic() {
+    void handleShouldReturnFailBecauseOfNullDlqTopic() {
         initCtx("");
         ProcessorContext processorContext = initProcessorContext();
         ConsumerRecord consumerRecord = initConsumerRecord();
@@ -100,7 +100,7 @@ public class DlqDeserializationExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnFailBecauseOfException() {
+    void handleShouldReturnFailBecauseOfException() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
         ConsumerRecord consumerRecord = initConsumerRecord();
@@ -113,7 +113,7 @@ public class DlqDeserializationExceptionHandlerTest {
 
 
     @Test
-    public void testConfigure() {
+    void testConfigure() {
         var handler = initHandler();
 
         Map<String, Object> configs = new HashMap<>();

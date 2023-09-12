@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-public class DlqTopicTest {
+class DlqTopicTest {
 
     @Mock
     private DlqTopic dlqTopicMock;
@@ -19,7 +19,7 @@ public class DlqTopicTest {
     }
 
     @Test
-    public void testDlqTopicName() {
+    void testDlqTopicName() {
         DlqTopic dlqTopic = DlqTopic.builder()
                 .name("TestTopic")
                 .build();

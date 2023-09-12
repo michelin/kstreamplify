@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class DlqProductionExceptionHandlerTest {
+class DlqProductionExceptionHandlerTest {
 
     private MockedStatic<KafkaStreamsExecutionContext> ctx;
 
@@ -85,7 +85,7 @@ public class DlqProductionExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnContinue() {
+    void handleShouldReturnContinue() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
         ProducerRecord producerRecord = initProducerRecord();
@@ -98,7 +98,7 @@ public class DlqProductionExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnFailBecauseOfNullDlqTopic() {
+    void handleShouldReturnFailBecauseOfNullDlqTopic() {
         initCtx("");
         ProcessorContext processorContext = initProcessorContext();
         ProducerRecord producerRecord = initProducerRecord();
@@ -110,7 +110,7 @@ public class DlqProductionExceptionHandlerTest {
     }
 
     @Test
-    public void handleShouldReturnContinueBecauseOfException() {
+    void handleShouldReturnContinueBecauseOfException() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
         ProducerRecord producerRecord = initProducerRecord();
@@ -122,7 +122,7 @@ public class DlqProductionExceptionHandlerTest {
     }
 
     @Test
-    public void testConfigure() {
+    void testConfigure() {
         var handler = initHandler();
 
         Map<String, Object> configs = new HashMap<>();

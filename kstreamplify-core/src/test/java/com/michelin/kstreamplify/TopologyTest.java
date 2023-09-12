@@ -16,10 +16,10 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class TopologyTest {
+class TopologyTest {
     protected TopologyTestDriver testDriver;
     @Test
-    public void convertTopologyForRestTest() {
+    void convertTopologyForRestTest() {
 
         Properties properties = new Properties();
         properties.setProperty("application.id", "test");

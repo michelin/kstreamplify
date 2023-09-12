@@ -14,7 +14,7 @@ import java.util.Iterator;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class WindowStateStoreUtilsTest {
+class WindowStateStoreUtilsTest {
 
     private WindowStore<String, String> windowStore;
 

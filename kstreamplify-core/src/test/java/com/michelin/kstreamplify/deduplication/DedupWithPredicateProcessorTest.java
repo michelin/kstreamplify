@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DedupWithPredicateProcessorTest {
+class DedupWithPredicateProcessorTest {
 
     private DedupWithPredicateProcessor<String, KafkaError> processor;
     private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
@@ -42,7 +42,7 @@ public class DedupWithPredicateProcessorTest {
     }
 
     @Test
-    public void testProcessFirstTime() {
+    void testProcessFirstTime() {
         // Create a test record
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
@@ -58,7 +58,7 @@ public class DedupWithPredicateProcessorTest {
     }
 
     @Test
-    public void testProcessDuplicate() {
+    void testProcessDuplicate() {
         // Create a test record
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
@@ -77,7 +77,7 @@ public class DedupWithPredicateProcessorTest {
 
     // Example: Test error handling in process method
     @Test
-    public void testProcessError() {
+    void testProcessError() {
         // Create a test record that will trigger an exception
         Record<String, KafkaError> record = new Record<>("key", null, 0L);
 

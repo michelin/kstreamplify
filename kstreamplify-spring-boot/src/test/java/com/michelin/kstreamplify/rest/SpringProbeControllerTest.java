@@ -17,20 +17,20 @@ import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Field;
 
-public class SpringProbeControllerTest {
+class SpringProbeControllerTest {
 
     private SpringProbeController controller;
     private SpringKafkaStreamsInitializer kafkaStreamsInitializer;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         kafkaStreamsInitializer = mock(SpringKafkaStreamsInitializer.class);
         controller = new SpringProbeController();
         setPrivateField(controller, "kafkaStreamsInitializer", kafkaStreamsInitializer);
     }
 
     @Test
-    public void testReadinessProbe() {
+    void testReadinessProbe() {
         try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
             probeService.when(() -> ProbeService.readinessProbe(any())).thenReturn(new RestServiceResponse<>(200, "Ready"));
 
@@ -42,7 +42,7 @@ public class SpringProbeControllerTest {
     }
 
     @Test
-    public void testLivenessProbe() {
+    void testLivenessProbe() {
         try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
             probeService.when(() -> ProbeService.livenessProbe(any())).thenReturn(new RestServiceResponse<>(200, "Alive"));
 
@@ -54,7 +54,7 @@ public class SpringProbeControllerTest {
     }
 
     @Test
-    public void testExposeTopology() {
+    void testExposeTopology() {
         try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
             probeService.when(() -> ProbeService.exposeTopology(any())).thenReturn(new RestServiceResponse<>(200, "Topology"));
 

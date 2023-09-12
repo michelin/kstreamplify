@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-public class GenericErrorProcessorTest {
+class GenericErrorProcessorTest {
 
     private GenericErrorProcessor<String> errorProcessor;
     private FixedKeyProcessorContext<String, KafkaError> mockContext;
@@ -28,7 +28,7 @@ public class GenericErrorProcessorTest {
     }
 
     @Test
-    public void testProcess() {
+    void testProcess() {
         // Given a mock ProcessingError
         ProcessingError<String> mockProcessingError = mock(ProcessingError.class);
         when(mockProcessingError.getException()).thenReturn(new RuntimeException("Test Exception"));
