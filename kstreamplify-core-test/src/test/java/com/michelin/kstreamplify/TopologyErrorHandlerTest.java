@@ -86,7 +86,6 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsValid() {
-
         stringInputTopic.pipeInput("key", "message");
 
         var resultDlq = dlqTopic.readValuesToList();
@@ -109,7 +108,6 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsValidAvro() {
-
         KafkaError avroModel = KafkaError.newBuilder()
             .setTopic("topic")
             .setStack("stack")
@@ -130,7 +128,6 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
     @Test
     void shouldContinueWhenProcessingValueIsInvalidAvro() {
-
         avroInputTopic.pipeInput("key", null);
 
         List<KafkaError> resultDlq = dlqTopic.readValuesToList();

@@ -93,7 +93,9 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
                 processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
             }
         } catch (Exception e) {
-            processorContext.forward(ProcessingResult.wrapRecordFailure(e, message, "Couldn't figure out what to do with the current payload: An unlikely error occurred during deduplication transform"));
+            processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
+                "Couldn't figure out what to do with the current payload: "
+                    + "An unlikely error occurred during deduplication transform"));
         }
     }
 }
