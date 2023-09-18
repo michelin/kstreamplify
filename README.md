@@ -27,6 +27,7 @@ Declare your KafkaStreams class as below and define your topology, nothing more 
   * [REST Endpoints](#rest-endpoints)
   * [Hooks](#hooks)
     * [On Start](#on-start)
+  * [Interactive Queries](#interactive-queries)
   * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -220,6 +221,41 @@ The `On Start` hook allows you to execute code right after the Kafka Streams ins
 ![](gifs/onstart.gif "On start gif")
 
 You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
+
+### Interactive Queries
+
+Kstreamplify is designed to make your Kafka Streams instance ready for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html), including support for RPC (Remote Procedure Call).
+
+The `application.server` property, which should contain the host:port information, is automatically handled by Kstreamplify.
+The property can be loaded in three different ways.
+By order of priority:
+
+- an environment variable whose name is defined by the `ip.env.var.name` property.
+
+```yml
+kafka:
+  properties:
+    ip.env.var.name: MY_APPLICATION_PORT_HOST
+```
+
+Where `MY_APPLICATION_PORT_HOST` contains the host:port information.
+
+- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from Kubernetes.
+
+Here's an extract of a Kubernetes deployment which set the `MY_POD_IP` environment variable in a Kubernetes environment:
+
+```yml
+...
+containers:
+  env:
+  - name: MY_POD_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+...
+```
+
+- If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify sets `application.server` to the default value `localhost`.
 
 ### Testing
 
