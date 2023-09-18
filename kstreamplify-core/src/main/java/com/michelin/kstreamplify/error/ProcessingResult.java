@@ -26,7 +26,7 @@ public class ProcessingResult<V, V2> {
      *
      * @param value The success value
      */
-    private ProcessingResult(V value) {
+    public ProcessingResult(V value) {
         this.value = value;
     }
 
@@ -35,7 +35,7 @@ public class ProcessingResult<V, V2> {
      *
      * @param error the ProcessingError containing the
      */
-    private ProcessingResult(ProcessingError<V2> error) {
+    public ProcessingResult(ProcessingError<V2> error) {
         this.error = error;
     }
 

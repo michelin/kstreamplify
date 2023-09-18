@@ -111,24 +111,26 @@
         <module>kstreamplify-core-test</module>
     </modules>
 
-    <properties>
-        <avro.version>1.11.2</avro.version>
-        <commons-io.version>2.13.0</commons-io.version>
-        <commons-lang3.version>3.13.0</commons-lang3.version>
-        <gson.version>2.10.1</gson.version>
-        <java.version>17</java.version>
-        <junit-jupiter.version>5.10.0</junit-jupiter.version>
-        <kafka.version>3.4.0</kafka.version>
-        <kafka-streams-avro-serde.version>7.5.0</kafka-streams-avro-serde.version>
-        <lombok.version>1.18.28</lombok.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <spring-boot.version>3.1.3</spring-boot.version>
-        <sonar.organization>michelin</sonar.organization>
-        <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
-        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    </properties>
+	<properties>
+		<avro.version>1.11.2</avro.version>
+		<commons-io.version>2.13.0</commons-io.version>
+		<commons-lang3.version>3.13.0</commons-lang3.version>
+		<gson.version>2.10.1</gson.version>
+		<java.version>17</java.version>
+		<junit-jupiter.version>5.10.0</junit-jupiter.version>
+		<kafka.version>3.4.0</kafka.version>
+		<kafka-streams-avro-serde.version>7.5.0</kafka-streams-avro-serde.version>
+		<lombok.version>1.18.28</lombok.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<mockito.version>5.4.0</mockito.version>
+		<jacoco.version>0.8.10</jacoco.version>
+		<spring-boot.version>3.1.3</spring-boot.version>
+		<sonar.organization>michelin</sonar.organization>
+		<sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
+		<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	</properties>
 
     <dependencies>
         <dependency>
@@ -180,24 +182,37 @@
             <version>${commons-lang3.version}</version>
         </dependency>
 
-    </dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -230,7 +245,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
                         <id>jacoco-initialize</id>

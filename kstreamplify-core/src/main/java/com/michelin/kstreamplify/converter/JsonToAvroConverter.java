@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -21,6 +23,7 @@ import org.apache.avro.specific.SpecificRecordBase;
 /**
  * The class to convert Json to Avro.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonToAvroConverter {
     /**
      * Convert a file in json to avro.
