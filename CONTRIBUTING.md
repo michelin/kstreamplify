@@ -35,7 +35,32 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 - Push changes to your fork
 - Open a PR in our repository targeting master and follow the PR template so that we can efficiently review the changes.
 
-## Styleguides
+## Style Guide
+
+### Code Style
+
+We maintain a consistent code style using Checkstyle.
+
+#### IntelliJ
+
+To ensure code style consistency in IntelliJ, follow these steps:
+
+1. Install the [CheckStyle-IDEA plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea).
+2. Create a new CheckStyle configuration for Kstreamplify based on the code style configuration located in the `.checkstyle` folder. Configure it as follows:
+
+![check_style.png](.readme%2Fcontributing%2Fcheck_style.png)
+
+3. Enable the "Reformat code" and "Optimize imports" options in the save actions:
+
+![save_actions.png](.readme%2Fcontributing%2Fsave_actions.png)
+
+4. Reformat your code with the Checkstyle configuration:
+
+![reformat_code.png](.readme%2Fcontributing%2Freformat_code.png)
+
+5. Before committing your changes, ensure your contribution doesn't introduce any problems by running a scan:
+
+![scan.png](.readme%2Fcontributing%2Fscan.png)
 
 ### Git Commit Messages
 

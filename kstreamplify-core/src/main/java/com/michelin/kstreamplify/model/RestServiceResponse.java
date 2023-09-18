@@ -6,7 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Rest service response
+ * Rest service response.
+ *
  * @param <T> The body type
  */
 @Getter
@@ -15,12 +16,12 @@ import lombok.Setter;
 @Builder
 public class RestServiceResponse<T> {
     /**
-     * The HTTP status
+     * The HTTP status.
      */
     private int status;
 
     /**
-     * The request body
+     * The request body.
      */
     private T body;
 }
