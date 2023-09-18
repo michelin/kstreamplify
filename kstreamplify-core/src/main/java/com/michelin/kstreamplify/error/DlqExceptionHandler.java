@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Properties;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -54,8 +53,8 @@ public abstract class DlqExceptionHandler {
      * @return the error enriched by the exception
      */
     public KafkaError.Builder enrichWithException(KafkaError.Builder builder,
-                                                     Exception exception, byte[] key,
-                                                     byte[] value) {
+                                                  Exception exception, byte[] key,
+                                                  byte[] value) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);

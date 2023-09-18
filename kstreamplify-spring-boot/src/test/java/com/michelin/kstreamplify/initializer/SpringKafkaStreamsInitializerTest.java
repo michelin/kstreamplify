@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +67,10 @@ class SpringKafkaStreamsInitializerTest {
         when(kafkaProperties.asProperties()).thenReturn(properties);
 
         initializer.initProperties();
-        initializer.onStreamsUncaughtException(new RuntimeException("Test Exception"));
+        StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response = initializer
+            .onStreamsUncaughtException(new RuntimeException("Test Exception"));
+
+        assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         verify(applicationContext).close();
     }
 

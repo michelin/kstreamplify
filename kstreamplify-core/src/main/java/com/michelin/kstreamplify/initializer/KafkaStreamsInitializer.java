@@ -193,8 +193,4 @@ public class KafkaStreamsInitializer {
             System.exit(3);
         }
     }
-
-    public Topology getTopology() {
-        return topology;
-    }
 }
