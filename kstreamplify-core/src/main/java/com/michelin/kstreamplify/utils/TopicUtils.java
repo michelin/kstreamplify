@@ -1,11 +1,14 @@
 package com.michelin.kstreamplify.utils;
 
+import static com.michelin.kstreamplify.constants.PropertyConstants.PREFIX_PROPERTY_NAME;
+import static com.michelin.kstreamplify.constants.PropertyConstants.PROPERTY_SEPARATOR;
+import static com.michelin.kstreamplify.constants.PropertyConstants.REMAP_PROPERTY_NAME;
+import static com.michelin.kstreamplify.constants.PropertyConstants.TOPIC_PROPERTY_NAME;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 
-import static com.michelin.kstreamplify.constants.PropertyConstants.*;
-
 /**
- * The topic utils class
+ * The topic utils class.
  */
 public final class TopicUtils {
     private TopicUtils() {
@@ -42,17 +45,17 @@ public final class TopicUtils {
 
         // Check for dynamic remap in properties
         String resultTopicName = properties.getProperty(
-                TOPIC_PROPERTY_NAME
-                        + PROPERTY_SEPARATOR
-                        + REMAP_PROPERTY_NAME
-                        + PROPERTY_SEPARATOR
-                        + topicName,
-                topicName);
+            TOPIC_PROPERTY_NAME
+                + PROPERTY_SEPARATOR
+                + REMAP_PROPERTY_NAME
+                + PROPERTY_SEPARATOR
+                + topicName,
+            topicName);
 
         // check if topic prefix property exists
-        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixPropertyKey, "");
+        String prefix =
+            properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixPropertyKey,
+                "");
         return prefix.concat(resultTopicName);
     }
-
-
 }
