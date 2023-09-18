@@ -1,28 +1,16 @@
-package com.michelin.kstreamplify.test;
+package com.michelin.kstreamplify.rest;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
 import com.michelin.kstreamplify.error.DlqExceptionHandler;
-import com.michelin.kstreamplify.error.DlqProductionExceptionHandler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.errors.ProductionExceptionHandler.ProductionExceptionHandlerResponse;
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +21,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-class DlqProductionExceptionHandlerTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
+
+class DlqDeserializationExceptionHandlerTest {
 
     private MockedStatic<KafkaStreamsExecutionContext> ctx;
 
@@ -50,8 +42,8 @@ class DlqProductionExceptionHandlerTest {
         return ctx;
     }
 
-    private ProducerRecord initProducerRecord() {
-        ProducerRecord record = mock(ProducerRecord.class);
+    private ConsumerRecord initConsumerRecord() {
+        ConsumerRecord record = mock(ConsumerRecord.class);
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
         when(record.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(record.topic()).thenReturn("TOPIC");
@@ -69,15 +61,15 @@ class DlqProductionExceptionHandlerTest {
         });
     }
 
-    private DlqProductionExceptionHandler initHandler() {
+    private DlqDeserializationExceptionHandler initHandler() {
         Future<RecordMetadata> recordMetadataFuture = initRecordMd();
 
         KafkaProducer kafkaProducer = mock(KafkaProducer.class);
         when(kafkaProducer.send(any())).thenReturn(recordMetadataFuture);
 
-        DlqProductionExceptionHandler handler = mock(DlqProductionExceptionHandler.class);
+        DlqDeserializationExceptionHandler handler = mock(DlqDeserializationExceptionHandler.class);
         when(handler.getProducer()).thenReturn(kafkaProducer);
-        when(handler.handle(any(),any())).thenCallRealMethod();
+        when(handler.handle(any(),any(),any())).thenCallRealMethod();
         doCallRealMethod().when(handler).configure(any());
         handler.configure(new HashMap<>());
         return handler;
@@ -87,12 +79,12 @@ class DlqProductionExceptionHandlerTest {
     void handleShouldReturnContinue() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
-        ProducerRecord producerRecord = initProducerRecord();
-        DlqProductionExceptionHandler handler = initHandler();
+        ConsumerRecord consumerRecord = initConsumerRecord();
+        DlqDeserializationExceptionHandler handler = initHandler();
         when(handler.enrichWithException(any(),any(),any(),any())).thenCallRealMethod();
 
-        ProductionExceptionHandlerResponse response = handler.handle(producerRecord,new IOException());
-        assertEquals(ProductionExceptionHandlerResponse.CONTINUE, response);
+        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,new IOException());
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
         ctx.close();
     }
 
@@ -100,25 +92,26 @@ class DlqProductionExceptionHandlerTest {
     void handleShouldReturnFailBecauseOfNullDlqTopic() {
         initCtx("");
         ProcessorContext processorContext = initProcessorContext();
-        ProducerRecord producerRecord = initProducerRecord();
-        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        ConsumerRecord consumerRecord = initConsumerRecord();
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
 
-        ProductionExceptionHandlerResponse response = handler.handle(producerRecord,null);
-        assertEquals(ProductionExceptionHandlerResponse.FAIL, response);
+        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,null);
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
         ctx.close();
     }
 
     @Test
-    void handleShouldReturnContinueBecauseOfException() {
+    void handleShouldReturnFailBecauseOfException() {
         initCtx("DLQ_TOPIC");
         ProcessorContext processorContext = initProcessorContext();
-        ProducerRecord producerRecord = initProducerRecord();
-        DlqProductionExceptionHandler handler = initHandler();
+        ConsumerRecord consumerRecord = initConsumerRecord();
+        DlqDeserializationExceptionHandler handler = initHandler();
 
-        ProductionExceptionHandlerResponse response = handler.handle(producerRecord,new IOException());
-        assertEquals(ProductionExceptionHandlerResponse.CONTINUE, response);
+        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,new IOException());
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
         ctx.close();
     }
+
 
     @Test
     void testConfigure() {
@@ -126,11 +119,12 @@ class DlqProductionExceptionHandlerTest {
 
         Map<String, Object> configs = new HashMap<>();
         when(handler.getProducer()).thenReturn(null);
+
         try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
             handler.configure(configs);
         }
 
         assertNotNull(handler);
     }
-}
 
+}

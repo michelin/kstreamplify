@@ -1,11 +1,9 @@
-package com.michelin.kstreamplify.test;
+package com.michelin.kstreamplify.rest;
 
-import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.converter.AvroToJsonConverter;
 import com.michelin.kstreamplify.error.ProcessingError;
 import org.apache.avro.generic.GenericRecord;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 

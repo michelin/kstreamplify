@@ -1,13 +1,10 @@
-package com.michelin.kstreamplify.test;
+package com.michelin.kstreamplify.rest;
 
-import com.michelin.kstreamplify.error.ProcessingError;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class ProcessingResultTest {
 

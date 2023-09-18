@@ -2,6 +2,7 @@ package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.ProcessingResult;
+import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.MockProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -13,26 +14,34 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.Iterator;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.google.common.base.Verify.verify;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DedupWithPredicateProcessorTest {
 
     private DedupWithPredicateProcessor<String, KafkaError> processor;
+
+    @Mock
     private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
+
+    @Mock
     private TimestampedKeyValueStore<String, KafkaError> store;
 
     @BeforeEach
     public void setUp() {
-        // Initialize mock objects and the processor
-        context = mock(ProcessorContext.class);
-        store = mock(TimestampedKeyValueStore.class);
-
         // Create an instance of DedupWithPredicateProcessor for testing
         processor = new DedupWithPredicateProcessor<>("testStore", Duration.ofHours(1), TestKeyExtractor::extract);
 
@@ -43,46 +52,52 @@ class DedupWithPredicateProcessorTest {
     }
 
     @Test
-    void testProcessFirstTime() {
+    void shouldProcessFirstTime() {
         // Create a test record
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
         // Stub store.get to return null, indicating it's the first time
-        when(store.get("key")).thenReturn(null);
+        when(store.get(any())).thenReturn(null);
 
         // Call the process method
         processor.process(record);
 
-        // Verify that the record is stored in the store and forwarded
-        store.put(eq("key"), any());
-        context.forward(any());
-
-        assertNotNull(record);
+        verify(store).put(eq(""), argThat(arg -> arg.value().equals(record.value())));
+        verify(context).forward(argThat(arg -> arg.value().getValue().equals(record.value())));
     }
 
     @Test
-    void testProcessDuplicate() {
+    void shouldProcessDuplicate() {
         // Create a test record
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
         // Stub store.get to return a value, indicating a duplicate
-        when(store.get("key")).thenReturn(ValueAndTimestamp.make(new KafkaError(), 0L));
+        when(store.get("")).thenReturn(ValueAndTimestamp.make(new KafkaError(), 0L));
 
         // Call the process method
         processor.process(record);
 
-        assertNotNull(record);
+        verify(store, never()).put(any(), any());
+        verify(context, never()).forward(any());
     }
 
-    // Example: Test error handling in process method
     @Test
-    void testProcessError() {
-        // Create a test record that will trigger an exception
-        Record<String, KafkaError> record = new Record<>("key", null, 0L);
+    void shouldThrowException() {
+        // Create a test record
+        Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
+
+        when(store.get(any())).thenReturn(null);
+        doThrow(new RuntimeException("Exception...")).when(store).put(any(), any());
 
         // Call the process method
         processor.process(record);
 
-        assertNotNull(record);
+        verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage().equals("Couldn't figure out what to do with the current payload: An unlikely error occurred during deduplication transform")));
+    }
+
+    public static class TestKeyExtractor {
+        public static <V extends SpecificRecord> String extract(V v) {
+            return "";
+        }
     }
 }

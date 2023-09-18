@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.test;
+package com.michelin.kstreamplify.rest;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;

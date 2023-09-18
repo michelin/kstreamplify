@@ -8,105 +8,86 @@ import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.processor.internals.StreamThread;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.net.HttpURLConnection;
 import java.util.Properties;
 import java.util.Set;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class ProbeServiceTest {
-
     @Mock
     private KafkaStreamsInitializer kafkaStreamsInitializer;
 
     @Mock
     private KafkaStreams kafkaStreams;
 
-    @Mock
-    private StreamThread streamThread;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
-    }
-
     @Test
-    void testReadinessProbeWithRunningStreams() {
-        // Arrange
+    void shouldGetReadinessProbeWithRunningStreams() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
+
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.readinessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
     }
 
     @Test
     void testReadinessProbeWithNonRunningStreams() {
-        // Arrange
         KafkaStreamsExecutionContext.registerProperties(new Properties());
+
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.readinessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.getStatus());
     }
 
     @Test
     void testReadinessProbeWithNullKafkaStreams() {
-        // Arrange
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.readinessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.getStatus());
     }
 
     @Test
     void testLivenessProbeWithRunningStreams() {
-        // Arrange
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.livenessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
     }
 
     @Test
     void testLivenessProbeWithNonRunningStreams() {
-        // Arrange
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.livenessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.getStatus());
     }
 
     @Test
     void testLivenessProbeWithNullKafkaStreams() {
-        // Arrange
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.livenessProbe(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.getStatus());
     }
 

@@ -15,7 +15,7 @@ import java.util.Properties;
 
 import static org.mockito.Mockito.*;
 
-class RocksDBConfigTest {
+class RocksDbConfigTest {
 
     @Mock
     private Options options;

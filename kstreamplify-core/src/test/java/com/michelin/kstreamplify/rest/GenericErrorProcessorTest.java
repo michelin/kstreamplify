@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.test;
+package com.michelin.kstreamplify.rest;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 

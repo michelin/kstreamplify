@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Slf4j
 class JsonToAvroConverterTest {
@@ -19,7 +20,7 @@ class JsonToAvroConverterTest {
         assertEquals(8, kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubIntField());
         assertEquals("subSubTest", kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubField());
         assertEquals("subTest", kafkaTest.getSplit().get(0).getSubField());
-        assertEquals(false, kafkaTest.getBooleanField());
+        assertFalse(kafkaTest.getBooleanField());
         assertEquals("1.0000", kafkaTest.getMembers().get("key1").getMapQuantityField().toString());
         assertEquals("10.0000", kafkaTest.getQuantityField().toString());
         assertEquals("test", kafkaTest.getStringField());

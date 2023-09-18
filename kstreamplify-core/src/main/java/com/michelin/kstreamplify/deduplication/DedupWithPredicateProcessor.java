@@ -79,7 +79,6 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
     @Override
     public void process(Record<K, V> record) {
         try {
-
             String identifier = deduplicationKeyExtractor.apply(record.value());
             // Retrieve the matching identifier in the statestore and return null if found it (signaling a duplicate)
             if (dedupTimestampedStore.get(identifier) == null) {
@@ -88,7 +87,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
                 processorContext.forward(ProcessingResult.wrapRecordSuccess(record));
             }
         } catch (Exception e) {
-            processorContext.forward(ProcessingResult.wrapRecordFailure(e, record, "Couldn't figure out what to do with the current payload: An unlikely error occured during deduplication transform"));
+            processorContext.forward(ProcessingResult.wrapRecordFailure(e, record, "Couldn't figure out what to do with the current payload: An unlikely error occurred during deduplication transform"));
         }
     }
 }
