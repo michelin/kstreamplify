@@ -53,7 +53,8 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler
                     producerRecord.key(), builder.build())).get();
             } catch (InterruptedException ie) {
                 log.error(
-                    "Interruption while sending the production exception {} for key {}, value {} and topic {} to DLQ topic {}",
+                    "Interruption while sending the production exception {} for key {}, value {} "
+                        + "and topic {} to DLQ topic {}",
                     productionException,
                     producerRecord.key(), producerRecord.value(), producerRecord.topic(),
                     KafkaStreamsExecutionContext.getDlqTopicName(), ie);

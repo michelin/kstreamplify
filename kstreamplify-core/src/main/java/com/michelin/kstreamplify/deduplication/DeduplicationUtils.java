@@ -38,7 +38,8 @@ public final class DeduplicationUtils {
      * @param initialStream  Stream containing the events that should be deduplicated
      * @param windowDuration Window of time on which we should watch out for duplicates
      * @param <V>            Generic Type of the Stream value.
-     *                       Key type is not implemented because using anything other than a String as the key is retarded.
+     *                       Key type is not implemented because using anything other than
+     *                       a String as the key is retarded.
      *                       You can quote me on this.
      * @return KStream with a processingResult
      */
@@ -59,7 +60,8 @@ public final class DeduplicationUtils {
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
      * @param <V>             Generic Type of the Stream value.
-     *                        Key type is not implemented because using anything other than a String as the key is retarded.
+     *                        Key type is not implemented because using anything other than
+     *                        a String as the key is retarded.
      *                        You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
@@ -89,7 +91,8 @@ public final class DeduplicationUtils {
      * @param initialStream  Stream containing the events that should be deduplicated
      * @param windowDuration Window of time on which we should watch out for duplicates
      * @param <V>            Generic Type of the Stream value.
-     *                       Key type is not implemented because using anything other than a String as the key is retarded.
+     *                       Key type is not implemented because using anything other than
+     *                       a String as the key is retarded.
      *                       You can quote me on this.
      * @return KStream with a processingResult
      */
@@ -111,7 +114,8 @@ public final class DeduplicationUtils {
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
      * @param <V>             Generic Type of the Stream value.
-     *                        Key type is not implemented because using anything other than a String as the key is retarded.
+     *                        Key type is not implemented because using anything other
+     *                        than a String as the key is retarded.
      *                        You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
@@ -138,7 +142,8 @@ public final class DeduplicationUtils {
      * <p>The input stream should have a String key.</p>
      * <p>⚠ This constructor should not be used if using the deduplicator multiple times in the same topology.
      * Use {@link
-     * DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName, String repartitionName, Duration, Function)}
+     * DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName,
+     * String repartitionName, Duration, Function)}
      * in this scenario.</p>
      *
      * @param streamsBuilder            Stream builder instance for topology editing
@@ -149,7 +154,8 @@ public final class DeduplicationUtils {
      *                                  A recommended approach is to concatenate all necessary fields in String format
      *                                  to provide a unique identifier for comparison between records.
      * @param <V>                       Generic Type of the Stream value.
-     *                                  Key type is not implemented because using anything other than a String as the key is retarded.
+     *                                  Key type is not implemented because using anything other
+     *                                  than a String as the key is retarded.
      *                                  You can quote me on this.
      * @return Resulting de-duplicated Stream
      */
@@ -177,7 +183,8 @@ public final class DeduplicationUtils {
      *                                  A recommended approach is to concatenate all necessary fields
      *                                  in String format to provide a unique identifier for comparison between records.
      * @param <V>                       Generic Type of the Stream value.
-     *                                  Key type is not implemented because using anything other than a String as the key is retarded.
+     *                                  Key type is not implemented because using anything other than
+     *                                  a String as the key is retarded.
      *                                  You can quote me on this.
      * @return Resulting de-duplicated Stream
      */

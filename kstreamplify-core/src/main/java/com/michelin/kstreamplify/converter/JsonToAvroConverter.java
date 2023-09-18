@@ -121,7 +121,8 @@ public class JsonToAvroConverter {
                                 populateFieldWithCorrespondingType(currentValue,
                                     currentSchema.getType()));
                         }
-                    } else if (currentValue instanceof JsonArray jsonArray) { // If this is an Array, call method for each one of them
+                    } else if (currentValue instanceof JsonArray jsonArray) {
+                        // If this is an Array, call method for each one of them
                         var arraySchema = message.getSchema().getField(currentKey).schema();
                         Schema arrayType = arraySchema.getType() != Schema.Type.UNION
                             ? arraySchema :
@@ -152,7 +153,9 @@ public class JsonToAvroConverter {
                             }
                             message.put(currentKey, objArray);
                         }
-                    } else { // Otherwise, put the value in the record after parsing according to its corresponding schema type
+                    } else {
+                        // Otherwise, put the value in the record after parsing according to its
+                        // corresponding schema type
                         if (!jsonObject.get(currentKey).isJsonNull()) {
                             populateFieldInRecordWithCorrespondingType(jsonObject, currentKey,
                                 message);

@@ -31,7 +31,8 @@ public final class TopicWithSerde<K, V> {
     private final String topicName;
 
     /**
-     * <p>Name of the property key defined under kafka.properties.prefix. Used to prefix the topicName dynamically at runtime.</p>
+     * <p>Name of the property key defined under kafka.properties.prefix.
+     * Used to prefix the topicName dynamically at runtime.</p>
      * <p>For instance, with the given following configuration :</p>
      * <pre>{@code
      * kafka:

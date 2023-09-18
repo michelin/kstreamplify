@@ -60,7 +60,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler
             }
         } catch (InterruptedException ie) {
             log.error(
-                "Interruption while sending the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}",
+                "Interruption while sending the deserialization exception {} for key {}, "
+                    + "value {} and topic {} to DLQ topic {}",
                 consumptionException,
                 consumerRecord.key(), consumerRecord.value(), consumerRecord.topic(),
                 KafkaStreamsExecutionContext.getDlqTopicName(), ie);

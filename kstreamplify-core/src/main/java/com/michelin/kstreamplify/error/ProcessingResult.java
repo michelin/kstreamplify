@@ -96,7 +96,8 @@ public class ProcessingResult<V, V2> {
      * Create a failed processing result.
      * </p>
      * <p>
-     * If you are using this in a Processor, refer to {@link ProcessingResult#wrapRecordFailure(Exception, Record)} for easier syntax.
+     * If you are using this in a Processor, refer to
+     * {@link ProcessingResult#wrapRecordFailure(Exception, Record)} for easier syntax.
      * </p>
      *
      * @param e                 The exception
@@ -114,7 +115,8 @@ public class ProcessingResult<V, V2> {
      * Create a failed processing result.
      * </p>
      * <p>
-     * If you are using this in a Processor, refer to {@link ProcessingResult#wrapRecordFailure(Exception, Record, String)}
+     * If you are using this in a Processor, refer to
+     * {@link ProcessingResult#wrapRecordFailure(Exception, Record, String)}
      * for easier syntax.
      * </p>
      *
@@ -140,7 +142,8 @@ public class ProcessingResult<V, V2> {
      * </p>
      *
      * @param e            The initial exception
-     * @param failedRecord The resulting failed Record from the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param failedRecord The resulting failed Record from
+     *                     the processor that needs to be wrapped in a {@link ProcessingResult}
      * @param <K>          The type of the record key
      * @param <V>          The type of the ProcessingResult successful value
      * @param <V2>         The type of the ProcessingResult error value
@@ -162,7 +165,8 @@ public class ProcessingResult<V, V2> {
      * </p>
      *
      * @param e              The initial exception
-     * @param failedRecord   The resulting failed Record from the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param failedRecord   The resulting failed Record from
+     *                       the processor that needs to be wrapped in a {@link ProcessingResult}
      * @param contextMessage The custom context message that will be added in the stack trace
      * @param <K>            The type of the record key
      * @param <V>            The type of the ProcessingResult successful value
@@ -185,7 +189,8 @@ public class ProcessingResult<V, V2> {
      *
      * @param e           The initial exception
      * @param key         The key to put in the resulting record
-     * @param failedValue The resulting failed value from the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param failedValue The resulting failed value from
+     *                    the processor that needs to be wrapped in a {@link ProcessingResult}
      * @param timestamp   The timestamp to apply on the resulting record
      * @param <K>         The type of the record key
      * @param <V>         The type of the ProcessingResult successful value
@@ -201,7 +206,8 @@ public class ProcessingResult<V, V2> {
 
     /**
      * <p>
-     * Wraps a key, value and timestamp in a Record with {@link ProcessingResult#fail(Exception, Object, String)} as value.
+     * Wraps a key, value and timestamp in a Record
+     * with {@link ProcessingResult#fail(Exception, Object, String)} as value.
      * </p>
      * <p>
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
@@ -210,7 +216,8 @@ public class ProcessingResult<V, V2> {
      *
      * @param e              The initial exception
      * @param key            The key to put in the resulting record
-     * @param failedValue    The resulting failed value from the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param failedValue    The resulting failed value from the processor
+     *                       that needs to be wrapped in a {@link ProcessingResult}
      * @param timestamp      The timestamp to apply on the resulting record
      * @param contextMessage The custom context message that will be added in the stack trace
      * @param <K>            The type of the record key
