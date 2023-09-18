@@ -7,8 +7,10 @@ import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Properties;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -21,7 +23,8 @@ public abstract class DlqExceptionHandler {
     /**
      * The DLQ producer.
      */
-    protected static KafkaProducer<byte[], KafkaError> producer;
+    @Getter
+    protected static Producer<byte[], KafkaError> producer;
 
     /**
      * Create a producer.
@@ -29,7 +32,7 @@ public abstract class DlqExceptionHandler {
      * @param clientId The producer client id
      * @param configs  The producer configs
      */
-    protected static void instantiateProducer(String clientId, Map<String, ?> configs) {
+    public static void instantiateProducer(String clientId, Map<String, ?> configs) {
         Properties properties = new Properties();
         properties.putAll(configs);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
@@ -49,9 +52,9 @@ public abstract class DlqExceptionHandler {
      * @param value     the record value
      * @return the error enriched by the exception
      */
-    protected KafkaError.Builder enrichWithException(KafkaError.Builder builder,
-                                                     Exception exception, byte[] key,
-                                                     byte[] value) {
+    public KafkaError.Builder enrichWithException(KafkaError.Builder builder,
+                                                  Exception exception, byte[] key,
+                                                  byte[] value) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);

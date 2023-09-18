@@ -38,9 +38,11 @@ public final class WindowStateStoreUtils {
         var resultIterator =
             stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)),
                 Instant.now());
+
         if (resultIterator != null && resultIterator.hasNext()) {
             return resultIterator.next().value;
         }
+
         return null;
     }
 }

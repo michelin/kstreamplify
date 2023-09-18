@@ -3,8 +3,10 @@ package com.michelin.kstreamplify.error;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Map;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
@@ -13,9 +15,17 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler;
  * The class managing DLQ production exceptions.
  */
 @Slf4j
+@NoArgsConstructor
 public class DlqProductionExceptionHandler extends DlqExceptionHandler
     implements ProductionExceptionHandler {
     private static final Object GUARD = new Object();
+
+    /**
+     * Constructor.
+     */
+    public DlqProductionExceptionHandler(Producer<byte[], KafkaError> producer) {
+        DlqExceptionHandler.producer = producer;
+    }
 
     /**
      * Manage production exceptions.
