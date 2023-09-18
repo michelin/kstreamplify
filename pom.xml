@@ -1,115 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<packaging>pom</packaging>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
 
-	<groupId>com.michelin</groupId>
-	<artifactId>kstreamplify</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
-	<name>kstreamplify</name>
-	<description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
-	<url>https://github.com/michelin/kstreamplify</url>
+    <groupId>com.michelin</groupId>
+    <artifactId>kstreamplify</artifactId>
+    <version>0.1.1-SNAPSHOT</version>
+    <name>kstreamplify</name>
+    <description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
+    <url>https://github.com/michelin/kstreamplify</url>
 
-	<licenses>
-		<license>
-			<name>The Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
 
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
-	<developers>
-		<developer>
-			<id>sebastienviale</id>
-			<name>Sebastien Viale</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/sebastienviale</url>
-			<organization>Michelin</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>clvacher</id>
-			<name>Clement Vacher</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/clvacher</url>
-			<organization>CGI</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>alexbosch3000</id>
-			<name>Alexandre Bosch</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/alexbosch3000</url>
-			<organization>Michelin</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>clvacher</id>
-			<name>Clement Vacher</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/clvacher</url>
-			<organization>CGI</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>loicgreffier</id>
-			<name>Loïc Greffier</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/loicgreffier</url>
-			<organization>Michelin</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<id>adriencalime</id>
-			<name>Adrien Calime</name>
-			<email>dif-hap-dev@michelin.com</email>
-			<url>https://github.com/adriencalime</url>
-			<organization>Michelin</organization>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <id>sebastienviale</id>
+            <name>Sebastien Viale</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/sebastienviale</url>
+            <organization>Michelin</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>clvacher</id>
+            <name>Clement Vacher</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/clvacher</url>
+            <organization>CGI</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>alexbosch3000</id>
+            <name>Alexandre Bosch</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/alexbosch3000</url>
+            <organization>Michelin</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>clvacher</id>
+            <name>Clement Vacher</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/clvacher</url>
+            <organization>CGI</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>loicgreffier</id>
+            <name>Loïc Greffier</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/loicgreffier</url>
+            <organization>Michelin</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>adriencalime</id>
+            <name>Adrien Calime</name>
+            <email>dif-hap-dev@michelin.com</email>
+            <url>https://github.com/adriencalime</url>
+            <organization>Michelin</organization>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+    </developers>
 
-	<repositories>
-		<repository>
-			<id>confluent</id>
-			<url>https://packages.confluent.io/maven/</url>
-		</repository>
-	</repositories>
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
 
-	<scm>
-		<connection>scm:git:https://github.com/michelin/kstreamplify.git</connection>
-		<url>scm:git:https://github.com/michelin/kstreamplify.git</url>
-		<developerConnection>scm:git:https://github.com/michelin/kstreamplify.git</developerConnection>
-	</scm>
+    <scm>
+        <connection>scm:git:https://github.com/michelin/kstreamplify.git</connection>
+        <url>scm:git:https://github.com/michelin/kstreamplify.git</url>
+        <developerConnection>scm:git:https://github.com/michelin/kstreamplify.git</developerConnection>
+    </scm>
 
-	<modules>
+    <modules>
         <module>kstreamplify-core</module>
-		<module>kstreamplify-spring-boot</module>
-		<module>kstreamplify-core-test</module>
-	</modules>
+        <module>kstreamplify-spring-boot</module>
+        <module>kstreamplify-core-test</module>
+    </modules>
 
 	<properties>
 		<avro.version>1.11.2</avro.version>
@@ -132,55 +132,55 @@
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka-streams</artifactId>
-			<version>${kafka.version}</version>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.kafka</groupId>
-			<artifactId>kafka-streams-test-utils</artifactId>
-			<version>${kafka.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams-test-utils</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>io.confluent</groupId>
-			<artifactId>kafka-streams-avro-serde</artifactId>
-			<version>${kafka-streams-avro-serde.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-streams-avro-serde</artifactId>
+            <version>${kafka-streams-avro-serde.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>${lombok.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${commons-io.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>${junit-jupiter.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>${gson.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>${commons-lang3.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -201,38 +201,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M7</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.junit.jupiter</groupId>
-						<artifactId>junit-jupiter-engine</artifactId>
-						<version>${junit-jupiter.version}</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco.version}</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>report</id>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<version>3.3.0</version>
 				<executions>
@@ -246,115 +214,146 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.5.0</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.2</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.junit.jupiter</groupId>
-						<artifactId>junit-jupiter-engine</artifactId>
-						<version>${junit-jupiter.version}</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit-jupiter.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
 
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.10</version>
-				<executions>
-					<execution>
-						<id>jacoco-initialize</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>post-unit-test</id>
-						<phase>test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-						<configuration>
-							<!-- Sets the path to the file which contains the execution data. -->
-							<dataFile>target/jacoco.exec</dataFile>
-							<!-- Sets the output directory for the code coverage report. -->
-							<outputDirectory>target/jacoco-ut</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>target/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.avro</groupId>
-					<artifactId>avro-maven-plugin</artifactId>
-					<version>${avro.version}</version>
-					<executions>
-						<execution>
-							<phase>generate-sources</phase>
-							<goals>
-								<goal>schema</goal>
-							</goals>
-							<configuration>
-								<stringType>String</stringType>
-								<enableDecimalLogicalType>true</enableDecimalLogicalType>
-								<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-								<outputDirectory>${project.basedir}/target/generated-sources</outputDirectory>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.12.3</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>.checkstyle/checkstyle.xml</configLocation>
+                    <sourceDirectories>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                        <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                    </sourceDirectories>
+                    <violationSeverity>info</violationSeverity>
+                    <consoleOutput>true</consoleOutput>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-style</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
 
-	<profiles>
-		<profile>
-			<id>sign</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>3.1.0</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro-maven-plugin</artifactId>
+                    <version>${avro.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>schema</goal>
+                            </goals>
+                            <configuration>
+                                <stringType>String</stringType>
+                                <enableDecimalLogicalType>true</enableDecimalLogicalType>
+                                <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+                                <outputDirectory>${project.basedir}/target/generated-sources</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>sign</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

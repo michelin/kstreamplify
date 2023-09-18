@@ -2,51 +2,60 @@ package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.errors.RecordTooLargeException;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Properties;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.errors.RecordTooLargeException;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 /**
- * The class to manage DLQ exception
+ * The class to manage DLQ exception.
  */
 @Slf4j
 public abstract class DlqExceptionHandler {
     /**
-     * The DLQ producer
+     * The DLQ producer.
      */
-    private static KafkaProducer<byte[], KafkaError> producer;
+    @Getter
+    protected static Producer<byte[], KafkaError> producer;
 
     /**
-     * Create a producer
+     * Create a producer.
+     *
      * @param clientId The producer client id
-     * @param configs The producer configs
+     * @param configs  The producer configs
      */
     public static void instantiateProducer(String clientId, Map<String, ?> configs) {
         Properties properties = new Properties();
         properties.putAll(configs);
-        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            ByteArraySerializer.class.getName());
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            KafkaAvroSerializer.class.getName());
         properties.setProperty(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         producer = new KafkaProducer<>(properties);
     }
 
     /**
-     * enrich with exception
-     * @param builder the error builder
+     * Enrich with exception.
+     *
+     * @param builder   the error builder
      * @param exception the exception to add
-     * @param key the record key
-     * @param value the record value
+     * @param key       the record key
+     * @param value     the record value
      * @return the error enriched by the exception
      */
-    public KafkaError.Builder enrichWithException(KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {
+    public KafkaError.Builder enrichWithException(KafkaError.Builder builder,
+                                                     Exception exception, byte[] key,
+                                                     byte[] value) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
@@ -54,17 +63,11 @@ public abstract class DlqExceptionHandler {
         boolean tooLarge = exception instanceof RecordTooLargeException;
 
         return builder
-                .setCause(exception.getCause() != null ? exception.getCause().getMessage() : "Unknown cause")
-                .setValue(tooLarge ? "The record is too large to be set as value (" + value.length + " bytes). The key will be used instead" : null)
-                .setStack(sw.toString())
-                .setByteValue(tooLarge ? ByteBuffer.wrap(key) : ByteBuffer.wrap(value));
-    }
-
-    public KafkaProducer<byte[], KafkaError> getProducer() {
-        return producer;
-    }
-
-    public static void setProducer(KafkaProducer<byte[], KafkaError> producer) {
-        DlqExceptionHandler.producer = producer;
+            .setCause(
+                exception.getCause() != null ? exception.getCause().getMessage() : "Unknown cause")
+            .setValue(tooLarge ? "The record is too large to be set as value (" + value.length
+                + " bytes). The key will be used instead" : null)
+            .setStack(sw.toString())
+            .setByteValue(tooLarge ? ByteBuffer.wrap(key) : ByteBuffer.wrap(value));
     }
 }

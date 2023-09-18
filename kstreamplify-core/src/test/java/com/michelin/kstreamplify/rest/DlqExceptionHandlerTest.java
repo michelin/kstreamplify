@@ -1,31 +1,23 @@
 package com.michelin.kstreamplify.rest;
 
-import com.michelin.kstreamplify.avro.KafkaError;
-import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.michelin.kstreamplify.error.DlqExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 class DlqExceptionHandlerTest {
 
     @Test
-    void testInstantiateProducer() {
-        String clientId = "test-client";
+    void shouldInstantiateProducer() {
         Map<String, Object> configs = new HashMap<>();
         configs.put("bootstrap.servers", "localhost:9092");
         configs.put("schema.registry.url", "localhost:8080");
         configs.put("acks", "all");
 
-        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
+        DlqExceptionHandler.instantiateProducer("test-client", configs);
 
-        handler.instantiateProducer(clientId, configs);
-
-        KafkaProducer<byte[], KafkaError> producer = handler.getProducer();
-        assertNotNull(producer);
+        assertNotNull(DlqExceptionHandler.getProducer());
     }
 }

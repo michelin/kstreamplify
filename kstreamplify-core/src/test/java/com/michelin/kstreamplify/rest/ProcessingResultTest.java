@@ -1,15 +1,19 @@
 package com.michelin.kstreamplify.rest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.michelin.kstreamplify.error.ProcessingResult;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ProcessingResultTest {
 
     @Test
-    void successTest() {
+    void shouldCreateProcessingResultSuccess() {
         String successValue = "Success";
         ProcessingResult<String, Integer> result = ProcessingResult.success(successValue);
 
@@ -19,7 +23,7 @@ class ProcessingResultTest {
     }
 
     @Test
-    void wrapRecordSuccessTest() {
+    void shouldCreateWrappedProcessingResult() {
         String value = "Value";
         long timestamp = System.currentTimeMillis();
 
@@ -35,7 +39,7 @@ class ProcessingResultTest {
     }
 
     @Test
-    void failTest() {
+    void shouldCreateFailedProcessingResult() {
         String failedRecordValue = "Failed Value";
         Exception exception = new Exception("Test Exception");
 
@@ -50,7 +54,7 @@ class ProcessingResultTest {
     }
 
     @Test
-    void wrapRecordFailureTest() {
+    void shouldCreateWrappedFailedProcessingResult() {
         String key = "key";
         String failedValue = "value";
         long timestamp = System.currentTimeMillis();
@@ -58,7 +62,8 @@ class ProcessingResultTest {
 
         Record<String, String> record = new Record<>(key, failedValue, timestamp);
 
-        Record<String, ProcessingResult<String, String>> wrappedRecord = ProcessingResult.<String,String,String>wrapRecordFailure(exception, record);
+        Record<String, ProcessingResult<String, String>> wrappedRecord =
+            ProcessingResult.<String, String, String>wrapRecordFailure(exception, record);
 
         assertEquals(record.key(), wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
@@ -72,7 +77,7 @@ class ProcessingResultTest {
     }
 
     @Test
-    void isValidTest() {
+    void shouldProcessingResultBeValid() {
         ProcessingResult<String, Integer> validResult = ProcessingResult.success("Value");
         ProcessingResult<String, Integer> invalidResult1 = ProcessingResult.fail(new Exception(), 42);
         ProcessingResult<String, Integer> invalidResult2 = new ProcessingResult<>(null);

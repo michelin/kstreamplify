@@ -9,14 +9,16 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.deduplication.DeduplicationUtils;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
-import com.michelin.kstreamplify.utils.TopicWithSerdesTestHelper;
+import com.michelin.kstreamplify.utils.SerdesUtils;
+import com.michelin.kstreamplify.utils.TopicWithSerde;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 import lombok.Getter;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
@@ -26,7 +28,8 @@ class KafkaStreamsStarterTest {
     @Test
     void shouldInstantiateKafkaStreamsStarter() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
-        KafkaStreamsExecutionContext.setSerdesConfig(Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+        KafkaStreamsExecutionContext.setSerdesConfig(
+            Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
         KafkaStreamsStarterImpl starter = new KafkaStreamsStarterImpl();
@@ -39,6 +42,9 @@ class KafkaStreamsStarterTest {
         assertTrue(starter.isStarted());
     }
 
+    /**
+     * Kafka Streams Starter implementation used for unit tests purpose.
+     */
     @Getter
     static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
         private boolean started;
@@ -47,8 +53,12 @@ class KafkaStreamsStarterTest {
         public void topology(StreamsBuilder streamsBuilder) {
             var streams = TopicWithSerdesTestHelper.inputTopicWithSerdes().stream(streamsBuilder);
 
-            DeduplicationUtils.deduplicateKeys(streamsBuilder, streams, "deduplicateKeysStoreName", "deduplicateKeysRepartitionName", Duration.ZERO);
-            DeduplicationUtils.deduplicateKeyValues(streamsBuilder, streams, "deduplicateKeyValuesStoreName", "deduplicateKeyValuesRepartitionName", Duration.ZERO);
+            DeduplicationUtils.deduplicateKeys(streamsBuilder, streams,
+                "deduplicateKeysStoreName", "deduplicateKeysRepartitionName",
+                Duration.ZERO);
+            DeduplicationUtils.deduplicateKeyValues(streamsBuilder, streams,
+                "deduplicateKeyValuesStoreName",
+                "deduplicateKeyValuesRepartitionName", Duration.ZERO);
             DeduplicationUtils.deduplicateWithPredicate(streamsBuilder, streams, Duration.ofMillis(1), null);
 
             var enrichedStreams = streams.mapValues(KafkaStreamsStarterImpl::enrichValue);
@@ -85,6 +95,28 @@ class KafkaStreamsStarterTest {
             } else {
                 return ProcessingResult.fail(new IOException("an exception occurred"), "output error 2");
             }
+        }
+    }
+
+    /**
+     * Topic with serdes helper used for unit tests purpose.
+     *
+     * @param <K> The key type
+     * @param <V> The value type
+     */
+    public static class TopicWithSerdesTestHelper<K, V> extends TopicWithSerde<K, V> {
+        private TopicWithSerdesTestHelper(String name, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
+            super(name, appName, keySerde, valueSerde);
+        }
+
+        public static TopicWithSerdesTestHelper<String, String> outputTopicWithSerdes() {
+            return new TopicWithSerdesTestHelper<>("OUTPUT_TOPIC", "APP_NAME",
+                Serdes.String(), Serdes.String());
+        }
+
+        public static TopicWithSerdesTestHelper<String, KafkaError> inputTopicWithSerdes() {
+            return new TopicWithSerdesTestHelper<>("INPUT_TOPIC", "APP_NAME",
+                Serdes.String(), SerdesUtils.getSerdesForValue());
         }
     }
 }

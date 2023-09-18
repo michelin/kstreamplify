@@ -1,130 +1,99 @@
 package com.michelin.kstreamplify.rest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
 import com.michelin.kstreamplify.error.DlqExceptionHandler;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
-import java.io.IOException;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.MockProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
+import org.apache.kafka.streams.processor.ProcessorContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
-
+@ExtendWith(MockitoExtension.class)
 class DlqDeserializationExceptionHandlerTest {
+    @Mock
+    private ConsumerRecord<byte[], byte[]> record;
 
-    private MockedStatic<KafkaStreamsExecutionContext> ctx;
+    @Mock
+    private ProcessorContext processorContext;
 
-    private void initCtx(String dlqTopic) {
-        ctx = mockStatic(KafkaStreamsExecutionContext.class);
-        ctx.when(KafkaStreamsExecutionContext::getDlqTopicName).thenReturn(dlqTopic);
+    private Producer<byte[], KafkaError> producer;
+
+    private DlqDeserializationExceptionHandler handler;
+
+    @BeforeEach
+    void setUp() {
+        Serializer<KafkaError> serializer = (Serializer) new KafkaAvroSerializer();
+        serializer.configure(Map.of(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"), false);
+        producer = new MockProducer<>(true, new ByteArraySerializer(), serializer);
+
+        KafkaStreamsExecutionContext.setDlqTopicName(null);
     }
 
-    private ProcessorContext initProcessorContext() {
-        ProcessorContext ctx = mock(ProcessorContext.class);
-        when(ctx.offset()).thenReturn((long) 0);
-        when(ctx.partition()).thenReturn(1);
-        when(ctx.topic()).thenReturn("TOPIC");
-        return ctx;
+    @Test
+    void shouldReturnFailIfNoDlq() {
+        handler = new DlqDeserializationExceptionHandler(producer);
+
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+            handler.handle(processorContext, record, new RuntimeException("Exception..."));
+
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
 
-    private ConsumerRecord initConsumerRecord() {
-        ConsumerRecord record = mock(ConsumerRecord.class);
+    @Test
+    void shouldReturnFailOnExceptionDuringHandle() {
+        handler = new DlqDeserializationExceptionHandler(producer);
+        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+            handler.handle(processorContext, record, new KafkaException("Exception..."));
+
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
+    }
+
+    @Test
+    void shouldReturnContinueOnKafkaException() {
+        handler = new DlqDeserializationExceptionHandler(producer);
+        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
         when(record.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
-        when(record.topic()).thenReturn("TOPIC");
-        return record;
-    }
+        when(record.topic()).thenReturn("topic");
 
-    private Future<RecordMetadata> initRecordMd() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+            handler.handle(processorContext, record, new KafkaException("Exception..."));
 
-        return executor.submit(new Callable<RecordMetadata>() {
-            @Override
-            public RecordMetadata call() throws Exception {
-                return new RecordMetadata(new TopicPartition("TOPIC", 0), 0, 0, 0, 0, 0);
-            }
-        });
-    }
-
-    private DlqDeserializationExceptionHandler initHandler() {
-        Future<RecordMetadata> recordMetadataFuture = initRecordMd();
-
-        KafkaProducer kafkaProducer = mock(KafkaProducer.class);
-        when(kafkaProducer.send(any())).thenReturn(recordMetadataFuture);
-
-        DlqDeserializationExceptionHandler handler = mock(DlqDeserializationExceptionHandler.class);
-        when(handler.getProducer()).thenReturn(kafkaProducer);
-        when(handler.handle(any(),any(),any())).thenCallRealMethod();
-        doCallRealMethod().when(handler).configure(any());
-        handler.configure(new HashMap<>());
-        return handler;
-    }
-
-    @Test
-    void handleShouldReturnContinue() {
-        initCtx("DLQ_TOPIC");
-        ProcessorContext processorContext = initProcessorContext();
-        ConsumerRecord consumerRecord = initConsumerRecord();
-        DlqDeserializationExceptionHandler handler = initHandler();
-        when(handler.enrichWithException(any(),any(),any(),any())).thenCallRealMethod();
-
-        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,new IOException());
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
-        ctx.close();
     }
 
     @Test
-    void handleShouldReturnFailBecauseOfNullDlqTopic() {
-        initCtx("");
-        ProcessorContext processorContext = initProcessorContext();
-        ConsumerRecord consumerRecord = initConsumerRecord();
-        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
-
-        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,null);
-        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
-        ctx.close();
-    }
-
-    @Test
-    void handleShouldReturnFailBecauseOfException() {
-        initCtx("DLQ_TOPIC");
-        ProcessorContext processorContext = initProcessorContext();
-        ConsumerRecord consumerRecord = initConsumerRecord();
-        DlqDeserializationExceptionHandler handler = initHandler();
-
-        DeserializationExceptionHandler.DeserializationHandlerResponse response = handler.handle(processorContext,consumerRecord,new IOException());
-        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
-        ctx.close();
-    }
-
-
-    @Test
-    void testConfigure() {
-        var handler = initHandler();
-
+    void shouldConfigure() {
         Map<String, Object> configs = new HashMap<>();
-        when(handler.getProducer()).thenReturn(null);
+        configs.put("bootstrap.servers", "localhost:9092");
+        configs.put("schema.registry.url", "localhost:8080");
+        configs.put("acks", "all");
 
-        try (var mockHandler = mockStatic(DlqExceptionHandler.class)) {
-            handler.configure(configs);
-        }
+        handler = new DlqDeserializationExceptionHandler();
+        handler.configure(configs);
 
-        assertNotNull(handler);
+        assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
     }
-
 }

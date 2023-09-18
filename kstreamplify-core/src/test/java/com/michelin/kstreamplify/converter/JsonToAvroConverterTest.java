@@ -1,17 +1,20 @@
 package com.michelin.kstreamplify.converter;
 
-import com.michelin.kstreamplify.avro.KafkaTestAvro;
-import com.michelin.kstreamplify.converter.JsonToAvroConverter;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import com.michelin.kstreamplify.avro.KafkaTestAvro;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 @Slf4j
 class JsonToAvroConverterTest {
 
-    private static final String JSON = "{\"membersString\":{\"key1\":\"val1\"},\"split\":[{\"subSplit\":[{\"subSubIntField\":8,\"subSubField\":\"subSubTest\"}],\"subField\":\"subTest\"}],\"booleanField\":false,\"members\":{\"key1\":{\"mapQuantityField\":1}},\"quantityField\":10,\"stringField\":\"test\",\"listString\":[\"val1\",\"val2\"]}";
+    private static final String JSON =
+        "{\"membersString\":{\"key1\":\"val1\"},\"split\":[{\"subSplit\":"
+            + "[{\"subSubIntField\":8,\"subSubField\":\"subSubTest\"}],\"subField\":\"subTest\"}],"
+            + "\"booleanField\":false,\"members\":{\"key1\":{\"mapQuantityField\":1}},"
+            + "\"quantityField\":10,\"stringField\":\"test\",\"listString\":[\"val1\",\"val2\"]}";
 
     @Test
     void shouldConvertJsonToAvro() {

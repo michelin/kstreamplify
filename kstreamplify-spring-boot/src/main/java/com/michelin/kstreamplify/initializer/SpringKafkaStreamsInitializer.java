@@ -13,41 +13,41 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 /**
- * The Kafka Streams initializer class
+ * The Kafka Streams initializer class.
  */
 @Slf4j
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
-public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
+public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer
+    implements ApplicationRunner {
     /**
-     * The application context
+     * The application context.
      */
     @Autowired
     private ConfigurableApplicationContext applicationContext;
 
     /**
-     * The server port
+     * The server port.
      */
     @Value("${server.port:8080}")
     private int springBootServerPort;
 
     /**
-     * The Kafka properties
+     * The Kafka properties.
      */
     @Autowired
     private KafkaProperties springBootKafkaProperties;
 
     /**
-     * The Kafka Streams starter
+     * The Kafka Streams starter.
      */
     @Autowired
     private KafkaStreamsStarter kafkaStreamsStarter;
 
     /**
-     * Run method
+     * Run method.
+     *
      * @param args the program arguments
      */
     @Override
@@ -56,7 +56,7 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
     }
 
     /**
-     * ${@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     protected void initHttpServer() {
@@ -64,7 +64,7 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
     }
 
     /**
-     * ${@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     protected void initProperties() {
@@ -74,16 +74,17 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
     }
 
     /**
-     * ${@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
-    protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(Throwable exception) {
+    protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(
+        Throwable exception) {
         closeApplicationContext();
         return super.onStreamsUncaughtException(exception);
     }
 
     /**
-     * ${@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     protected void onStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
@@ -93,7 +94,7 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
     }
 
     /**
-     * Close the application context
+     * Close the application context.
      */
     private void closeApplicationContext() {
         if (applicationContext != null) {

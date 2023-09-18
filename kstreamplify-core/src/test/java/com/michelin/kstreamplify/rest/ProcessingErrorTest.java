@@ -1,28 +1,20 @@
 package com.michelin.kstreamplify.rest;
 
-import com.michelin.kstreamplify.converter.AvroToJsonConverter;
-import com.michelin.kstreamplify.error.ProcessingError;
-import org.apache.avro.generic.GenericRecord;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+
+import com.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.error.ProcessingError;
+import org.junit.jupiter.api.Test;
 
 class ProcessingErrorTest {
 
     @Test
-    void testProcessingErrorWithStringKafkaRecord() {
-        // Arrange
+    void shouldCreateProcessingErrorFromStringRecord() {
         String contextMessage = "Some context message";
         Exception exception = new Exception("Test Exception");
         String kafkaRecord = "Sample Kafka Record";
 
-        // Act
-        ProcessingError processingError = new ProcessingError(exception, contextMessage, kafkaRecord);
+        ProcessingError<String> processingError = new ProcessingError<>(exception, contextMessage, kafkaRecord);
 
         // Assert
         assertEquals(exception, processingError.getException());
@@ -30,27 +22,43 @@ class ProcessingErrorTest {
         assertEquals(kafkaRecord, processingError.getKafkaRecord());
     }
 
-//    @Test
-    void testProcessingErrorWithGenericRecordKafkaRecord() {
-        // Arrange
+    @Test
+    void shouldCreateProcessingErrorWithNoContextMessage() {
         Exception exception = new Exception("Test Exception");
+        String kafkaRecord = "Sample Kafka Record";
 
-        // Mocking the GenericRecord
-        GenericRecord genericRecord = Mockito.mock(GenericRecord.class);
-        when(genericRecord.toString()).thenReturn("Sample GenericRecord");
-
-        // Mocking the AvroToJsonConverter
-        MockedStatic<AvroToJsonConverter> avroToJsonConverter = mockStatic(AvroToJsonConverter.class);
-        avroToJsonConverter.when(() -> AvroToJsonConverter.convertRecord(genericRecord)).thenReturn("Sample AvroToJsonConverted");
-
-        // Act
-        ProcessingError processingError = new ProcessingError(exception, genericRecord);
+        ProcessingError<String> processingError = new ProcessingError<>(exception, kafkaRecord);
 
         // Assert
         assertEquals(exception, processingError.getException());
         assertEquals("No context message", processingError.getContextMessage());
-        assertEquals("Sample AvroToJsonConverted", processingError.getKafkaRecord());
-        avroToJsonConverter.close();
+        assertEquals(kafkaRecord, processingError.getKafkaRecord());
+    }
+
+    @Test
+    void shouldCreateProcessingErrorFromAvroRecord() {
+        String contextMessage = "Some context message";
+        Exception exception = new Exception("Test Exception");
+        KafkaError kafkaRecord = KafkaError.newBuilder()
+            .setCause("Cause")
+            .setOffset(1L)
+            .setPartition(1)
+            .setTopic("Topic")
+            .setValue("Value")
+            .build();
+
+        ProcessingError<KafkaError> processingError = new ProcessingError<>(exception, contextMessage, kafkaRecord);
+
+        assertEquals(exception, processingError.getException());
+        assertEquals(contextMessage, processingError.getContextMessage());
+        assertEquals("""
+            {
+              "partition": 1,
+              "offset": 1,
+              "cause": "Cause",
+              "topic": "Topic",
+              "value": "Value"
+            }""", processingError.getKafkaRecord());
     }
 }
 

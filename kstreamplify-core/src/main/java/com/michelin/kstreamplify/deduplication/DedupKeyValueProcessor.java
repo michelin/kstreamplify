@@ -2,42 +2,44 @@ package com.michelin.kstreamplify.deduplication;
 
 
 import com.michelin.kstreamplify.error.ProcessingResult;
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-import java.time.Instant;
-
 /**
- * Transformer class for the deduplication mechanism on both keys and values of a given topic
+ * Transformer class for the deduplication mechanism on both keys and values of a given topic.
  *
  * @param <V> The type of the value
  */
-public class DedupKeyValueProcessor<V extends SpecificRecord> implements Processor<String, V, String, ProcessingResult<V, V>> {
+public class DedupKeyValueProcessor<V extends SpecificRecord>
+    implements Processor<String, V, String, ProcessingResult<V, V>> {
 
     /**
-     * Kstream context for this transformer
+     * Kstream context for this transformer.
      */
     private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
+
     /**
-     * Window store containing all the records seen on the given window
+     * Window store containing all the records seen on the given window.
      */
     private WindowStore<String, V> dedupWindowStore;
 
     /**
-     * Window store name, initialized @ construction
+     * Window store name, initialized @ construction.
      */
     private final String windowStoreName;
+
     /**
-     * Retention window for the statestore. Used for fetching data
+     * Retention window for the statestore. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
 
     /**
-     * Constructor method
+     * Constructor.
      *
      * @param windowStoreName      The window store name
      * @param retentionWindowHours The retention window duration
@@ -55,26 +57,30 @@ public class DedupKeyValueProcessor<V extends SpecificRecord> implements Process
     }
 
     @Override
-    public void process(Record<String, V> record) {
+    public void process(Record<String, V> message) {
         try {
             // Get the record timestamp
-            var currentInstant = Instant.ofEpochMilli(record.timestamp());
+            var currentInstant = Instant.ofEpochMilli(message.timestamp());
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-            try (var resultIterator = dedupWindowStore.backwardFetch(record.key(), currentInstant.minus(retentionWindowDuration), currentInstant.plus(retentionWindowDuration))) {
+            try (var resultIterator = dedupWindowStore.backwardFetch(message.key(),
+                currentInstant.minus(retentionWindowDuration),
+                currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
-                    if (record.value().equals(currentKeyValue.value)) {
+                    if (message.value().equals(currentKeyValue.value)) {
                         return;
                     }
                 }
             }
 
             // First time we see this record, store entry in the window store and forward the record to the output
-            dedupWindowStore.put(record.key(), record.value(), record.timestamp());
-            processorContext.forward(ProcessingResult.wrapRecordSuccess(record));
+            dedupWindowStore.put(message.key(), message.value(), message.timestamp());
+            processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
         } catch (Exception e) {
-            processorContext.forward(ProcessingResult.wrapRecordFailure(e, record, "Couldn't figure out what to do with the current payload: An unlikely error occured during deduplication transform"));
+            processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
+                "Couldn't figure out what to do with the current payload: "
+                    + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

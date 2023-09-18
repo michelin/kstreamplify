@@ -1,25 +1,20 @@
 package com.michelin.kstreamplify.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.model.RestServiceResponse;
+import java.net.HttpURLConnection;
+import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.TopologyDescription;
-import org.apache.kafka.streams.processor.internals.StreamThread;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.net.HttpURLConnection;
-import java.util.Properties;
-import java.util.Set;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProbeServiceTest {
@@ -30,7 +25,7 @@ class ProbeServiceTest {
     private KafkaStreams kafkaStreams;
 
     @Test
-    void shouldGetReadinessProbeWithRunningStreams() {
+    void shouldGetReadinessProbeWithWhenStreamsRunning() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
@@ -42,7 +37,7 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testReadinessProbeWithNonRunningStreams() {
+    void shouldGetReadinessProbeWithWhenStreamsNotRunning() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
@@ -54,7 +49,7 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testReadinessProbeWithNullKafkaStreams() {
+    void shouldGetReadinessProbeWithWhenStreamsNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
         RestServiceResponse<String> response = ProbeService.readinessProbe(kafkaStreamsInitializer);
@@ -63,7 +58,7 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testLivenessProbeWithRunningStreams() {
+    void shouldGetLivenessProbeWithWhenStreamsRunning() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
 
@@ -73,7 +68,7 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testLivenessProbeWithNonRunningStreams() {
+    void shouldGetLivenessProbeWithWhenStreamsNotRunning() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
 
@@ -83,7 +78,7 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testLivenessProbeWithNullKafkaStreams() {
+    void shouldGetLivenessProbeWithWhenStreamsNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
         RestServiceResponse<String> response = ProbeService.livenessProbe(kafkaStreamsInitializer);
@@ -92,39 +87,48 @@ class ProbeServiceTest {
     }
 
     @Test
-    void testExposeTopologyWithNonNullTopology() {
-        // Arrange
-        TopologyDescription topologyDescription =new TopologyDescription() {
-            @Override
-            public Set<Subtopology> subtopologies() {
-                return null;
-            }
+    void shouldExposeTopologyWithNonNullTopology() {
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+        KafkaStreamsStarter starter = new KafkaStreamsStarterImpl();
+        starter.topology(streamsBuilder);
 
-            @Override
-            public Set<GlobalStore> globalStores() {
-                return null;
-            }
-        };
-        when(kafkaStreamsInitializer.getTopology()).thenReturn(mock(org.apache.kafka.streams.Topology.class));
-        when(kafkaStreamsInitializer.getTopology().describe()).thenReturn(topologyDescription);
+        when(kafkaStreamsInitializer.getTopology()).thenReturn(streamsBuilder.build());
 
-        // Act
         RestServiceResponse<String> response = ProbeService.exposeTopology(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
+        assertEquals("""
+            Topologies:
+               Sub-topology: 0
+                Source: KSTREAM-SOURCE-0000000000 (topics: [inputTopic])
+                  --> KSTREAM-SINK-0000000001
+                Sink: KSTREAM-SINK-0000000001 (topic: outputTopic)
+                  <-- KSTREAM-SOURCE-0000000000
+
+            """, response.getBody());
     }
 
     @Test
-    void testExposeTopologyWithNullTopology() {
-        // Arrange
+    void shouldExposeTopologyWithNullTopology() {
         when(kafkaStreamsInitializer.getTopology()).thenReturn(null);
 
-        // Act
         RestServiceResponse<String> response = ProbeService.exposeTopology(kafkaStreamsInitializer);
 
-        // Assert
         assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.getStatus());
+    }
+
+    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+        @Override
+        public void topology(StreamsBuilder streamsBuilder) {
+            streamsBuilder
+                .stream("inputTopic")
+                .to("outputTopic");
+        }
+
+        @Override
+        public String dlqTopic() {
+            return "dlqTopic";
+        }
     }
 }
 

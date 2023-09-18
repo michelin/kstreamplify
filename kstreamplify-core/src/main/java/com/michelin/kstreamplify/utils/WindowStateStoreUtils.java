@@ -1,18 +1,19 @@
 package com.michelin.kstreamplify.utils;
 
-import org.apache.kafka.streams.state.WindowStore;
-
 import java.time.Duration;
 import java.time.Instant;
+import org.apache.kafka.streams.state.WindowStore;
 
 /**
- * The window state store utils
+ * The window state store utils.
  */
 public final class WindowStateStoreUtils {
-    private WindowStateStoreUtils() { }
+    private WindowStateStoreUtils() {
+    }
 
     /**
-     * Put the key/value into the state store
+     * Put the key/value into the state store.
+     *
      * @param stateStore The stateStore
      * @param key        The key
      * @param value      The value
@@ -24,7 +25,8 @@ public final class WindowStateStoreUtils {
     }
 
     /**
-     * Get the value by the key from the state store
+     * Get the value by the key from the state store.
+     *
      * @param stateStore    The stateStore
      * @param key           The key
      * @param retentionDays The delay of retention
@@ -33,10 +35,14 @@ public final class WindowStateStoreUtils {
      * @return The last value inserted in the state store for the key
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, int retentionDays) {
-        var resultIterator = stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)), Instant.now());
+        var resultIterator =
+            stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)),
+                Instant.now());
+
         if (resultIterator != null && resultIterator.hasNext()) {
             return resultIterator.next().value;
         }
+
         return null;
     }
 }

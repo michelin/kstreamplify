@@ -1,43 +1,40 @@
 package com.michelin.kstreamplify.rest;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.GenericErrorProcessor;
 import com.michelin.kstreamplify.error.ProcessingError;
-import org.apache.kafka.streams.processor.api.RecordMetadata;
+import java.util.Optional;
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext;
 import org.apache.kafka.streams.processor.api.FixedKeyRecord;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.kafka.streams.processor.api.RecordMetadata;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
+@ExtendWith(MockitoExtension.class)
 class GenericErrorProcessorTest {
+    private final GenericErrorProcessor<String> errorProcessor = new GenericErrorProcessor<>();
 
-    private GenericErrorProcessor<String> errorProcessor;
+    @Mock
     private FixedKeyProcessorContext<String, KafkaError> mockContext;
+
+    @Mock
     private FixedKeyRecord<String, ProcessingError<String>> mockRecord;
+
+    @Mock
     private RecordMetadata mockRecordMetadata;
 
-    @BeforeEach
-    public void setUp() {
-        errorProcessor = new GenericErrorProcessor<>();
-        mockContext = mock(FixedKeyProcessorContext.class);
-        mockRecord = mock(FixedKeyRecord.class);
-        mockRecordMetadata = mock(RecordMetadata.class);
-    }
-
     @Test
-    void testProcess() {
-        // Given a mock ProcessingError
-        ProcessingError<String> mockProcessingError = mock(ProcessingError.class);
-        when(mockProcessingError.getException()).thenReturn(new RuntimeException("Test Exception"));
-        when(mockProcessingError.getContextMessage()).thenReturn("Test Context Message");
-        when(mockProcessingError.getKafkaRecord()).thenReturn("Test Kafka Record");
-
-        // Given a mock FixedKeyRecord
-        when(mockRecord.value()).thenReturn(mockProcessingError);
+    void shouldProcessError() {
+        when(mockRecord.value())
+            .thenReturn(new ProcessingError<>(new RuntimeException("Exception..."), "Context message", "Record"));
 
         // Given a mock RecordMetadata
         when(mockRecordMetadata.offset()).thenReturn(10L);
@@ -51,6 +48,6 @@ class GenericErrorProcessorTest {
         errorProcessor.init(mockContext);
         errorProcessor.process(mockRecord);
 
-        assertNotNull(errorProcessor);
+        verify(mockContext).forward(any());
     }
 }

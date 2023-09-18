@@ -1,6 +1,14 @@
 package com.michelin.kstreamplify.properties;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -8,12 +16,6 @@ import org.mockito.MockitoAnnotations;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.CompressionType;
 import org.rocksdb.Options;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import static org.mockito.Mockito.*;
 
 class RocksDbConfigTest {
 
@@ -30,17 +32,17 @@ class RocksDbConfigTest {
     void testSetConfigWithDefaultValues() {
         // Arrange
         Map<String, Object> configs = new HashMap<>();
-        RocksDBConfig rocksDBConfig = new RocksDBConfig();
+        RocksDbConfig rocksDbConfig = new RocksDbConfig();
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         // Act
-        rocksDBConfig.setConfig("storeName", options, configs);
+        rocksDbConfig.setConfig("storeName", options, configs);
 
         // Assert
         verify(options, times(1)).tableFormatConfig();
         verify(options, times(1)).setTableFormatConfig(any());
-        verify(options, times(1)).setMaxWriteBufferNumber(RocksDBConfig.ROCKSDB_MAX_WRITE_BUFFER_DEFAULT);
-        verify(options, times(1)).setWriteBufferSize(RocksDBConfig.ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT);
+        verify(options, times(1)).setMaxWriteBufferNumber(RocksDbConfig.ROCKSDB_MAX_WRITE_BUFFER_DEFAULT);
+        verify(options, times(1)).setWriteBufferSize(RocksDbConfig.ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT);
         verify(options, times(1)).setCompressionType(CompressionType.NO_COMPRESSION);
     }
 
@@ -55,20 +57,20 @@ class RocksDbConfigTest {
         String compressionType = "lz4";
 
         Map<String, Object> configs = new HashMap<>();
-        configs.put(RocksDBConfig.ROCKSDB_CACHE_SIZE_CONFIG, String.valueOf(cacheSize));
-        configs.put(RocksDBConfig.ROCKSDB_WRITE_BUFFER_SIZE_CONFIG, String.valueOf(writeBufferSize));
-        configs.put(RocksDBConfig.ROCKSDB_BLOCK_SIZE_CONFIG, String.valueOf(blockSize));
-        configs.put(RocksDBConfig.ROCKSDB_MAX_WRITE_BUFFER_CONFIG, String.valueOf(maxWriteBuffer));
-        configs.put(RocksDBConfig.ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_CONFIG, String.valueOf(cacheIndexBlock));
-        configs.put(RocksDBConfig.ROCKSDB_COMPRESSION_TYPE_CONFIG, compressionType);
+        configs.put(RocksDbConfig.ROCKSDB_CACHE_SIZE_CONFIG, String.valueOf(cacheSize));
+        configs.put(RocksDbConfig.ROCKSDB_WRITE_BUFFER_SIZE_CONFIG, String.valueOf(writeBufferSize));
+        configs.put(RocksDbConfig.ROCKSDB_BLOCK_SIZE_CONFIG, String.valueOf(blockSize));
+        configs.put(RocksDbConfig.ROCKSDB_MAX_WRITE_BUFFER_CONFIG, String.valueOf(maxWriteBuffer));
+        configs.put(RocksDbConfig.ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_CONFIG, String.valueOf(cacheIndexBlock));
+        configs.put(RocksDbConfig.ROCKSDB_COMPRESSION_TYPE_CONFIG, compressionType);
         Properties properties = new Properties();
         properties.putAll(configs);
         KafkaStreamsExecutionContext.registerProperties(properties);
 
-        RocksDBConfig rocksDBConfig = new RocksDBConfig();
+        RocksDbConfig rocksDbConfig = new RocksDbConfig();
 
         // Act
-        rocksDBConfig.setConfig("storeName", options, configs);
+        rocksDbConfig.setConfig("storeName", options, configs);
 
         // Assert
         verify(options, times(1)).tableFormatConfig();

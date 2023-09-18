@@ -25,6 +25,9 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Check Style
+        run: mvn checkstyle:check
+
       - name: Build
         id: build
         run: |

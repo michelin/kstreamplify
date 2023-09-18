@@ -11,19 +11,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Spring Boot probe controller
+ * Spring Boot probe controller.
  */
 @RestController
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class SpringProbeController {
     /**
-     * The Kafka Streams initializer
+     * The Kafka Streams initializer.
      */
     @Autowired
     private SpringKafkaStreamsInitializer kafkaStreamsInitializer;
 
     /**
-     * Readiness Kubernetes probe endpoint
+     * Readiness Kubernetes probe endpoint.
+     *
      * @return An HTTP response based on the Kafka Streams state
      */
     @GetMapping("/${readiness_path:ready}")
@@ -32,7 +33,8 @@ public class SpringProbeController {
     }
 
     /**
-     * Liveness Kubernetes probe endpoint
+     * Liveness Kubernetes probe endpoint.
+     *
      * @return An HTTP response based on the Kafka Streams state
      */
     @GetMapping("/${liveness_path:liveness}")
@@ -41,7 +43,8 @@ public class SpringProbeController {
     }
 
     /**
-     * Get the Kafka Streams topology
+     * Get the Kafka Streams topology.
+     *
      * @return The Kafka Streams topology
      */
     @GetMapping("/${expose_topology_path:topology}")
@@ -50,11 +53,13 @@ public class SpringProbeController {
     }
 
     /**
-     * Convert the probe service response into an HTTP response entity
+     * Convert the probe service response into an HTTP response entity.
+     *
      * @param serviceResponse The probe service response
      * @return An HTTP response
      */
-    private static ResponseEntity<String> convertToResponseEntity(RestServiceResponse<String> serviceResponse) {
+    private static ResponseEntity<String> convertToResponseEntity(
+        RestServiceResponse<String> serviceResponse) {
         return ResponseEntity.status(serviceResponse.getStatus()).body(serviceResponse.getBody());
     }
 }

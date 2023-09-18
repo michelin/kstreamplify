@@ -1,33 +1,26 @@
 package com.michelin.kstreamplify.deduplication;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.ProcessingResult;
+import java.time.Duration;
 import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.api.MockProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
-import java.util.Iterator;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DedupWithPredicateProcessorTest {
@@ -92,7 +85,9 @@ class DedupWithPredicateProcessorTest {
         // Call the process method
         processor.process(record);
 
-        verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage().equals("Couldn't figure out what to do with the current payload: An unlikely error occurred during deduplication transform")));
+        verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
+            .equals("Couldn't figure out what to do with the current payload: "
+                + "An unlikely error occurred during deduplication transform")));
     }
 
     public static class TestKeyExtractor {
