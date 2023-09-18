@@ -18,14 +18,23 @@ import static com.michelin.kstreamplify.constants.PropertyConstants.*;
 @Slf4j
 public class KafkaStreamsExecutionContext {
 
+    /**
+     * the DLQ topic name
+     */
     @Getter
     @Setter
     private static String dlqTopicName;
 
+    /**
+     * the Serdes config Map
+     */
     @Getter
     @Setter
     private static Map<String, String> serdesConfig;
 
+    /**
+     * the properties of the stream execution context
+     */
     @Getter
     private static Properties properties;
 

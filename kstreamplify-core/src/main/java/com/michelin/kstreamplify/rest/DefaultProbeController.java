@@ -42,6 +42,8 @@ public class DefaultProbeController {
 
     /**
      * Kubernetes' readiness probe
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     * @param readinessPath The readiness path
      */
     private void readinessProbe(KafkaStreamsInitializer kafkaStreamsInitializer, String readinessPath) {
         server.createContext(readinessPath, (exchange -> {
@@ -55,6 +57,8 @@ public class DefaultProbeController {
 
     /**
      * Kubernetes' liveness probe
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     * @param livenessPath The liveness path
      */
     private void livenessProbe(KafkaStreamsInitializer kafkaStreamsInitializer, String livenessPath) {
         server.createContext(livenessPath, (exchange -> {
@@ -66,7 +70,9 @@ public class DefaultProbeController {
     }
 
     /**
-     * Get the Kafka Streams topology
+     * Expose the topology tree
+     * @param kafkaStreamsInitializer  The Kafka Streams initializer
+     * @param exposeTopologyPath The expose topology path
      */
     private void exposeTopology(KafkaStreamsInitializer kafkaStreamsInitializer, String exposeTopologyPath) {
         server.createContext(exposeTopologyPath, (exchange -> {
