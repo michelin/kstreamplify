@@ -18,14 +18,23 @@ import org.apache.kafka.streams.StreamsConfig;
 @Slf4j
 public class KafkaStreamsExecutionContext {
 
+    /**
+     * The DLQ topic name.
+     */
     @Getter
     @Setter
     private static String dlqTopicName;
 
+    /**
+     * The Serdes config Map.
+     */
     @Getter
     @Setter
     private static Map<String, String> serdesConfig;
 
+    /**
+     * The properties of the stream execution context.
+     */
     @Getter
     private static Properties properties;
 
