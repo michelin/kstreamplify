@@ -1,13 +1,12 @@
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
-import com.michelin.kstreamplify.error.DlqExceptionHandler;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +17,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
@@ -95,5 +95,45 @@ class DlqDeserializationExceptionHandlerTest {
         handler.configure(configs);
 
         assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
+    }
+
+    @Test
+    void shouldEnrichWithException() {
+        KafkaError.Builder kafkaError = KafkaError.newBuilder()
+            .setTopic("topic")
+            .setStack("stack")
+            .setPartition(0)
+            .setOffset(0)
+            .setCause("cause")
+            .setValue("value");
+
+        handler = new DlqDeserializationExceptionHandler();
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(kafkaError,
+            new RuntimeException("Exception..."), "key".getBytes(StandardCharsets.UTF_8),
+            "value".getBytes(StandardCharsets.UTF_8));
+
+        KafkaError error = enrichedBuilder.build();
+        assertEquals("Unknown cause", error.getCause());
+        assertNull(error.getContextMessage());
+    }
+
+    @Test
+    void shouldEnrichWithRecordTooLargeException() {
+        KafkaError.Builder kafkaError = KafkaError.newBuilder()
+            .setTopic("topic")
+            .setStack("stack")
+            .setPartition(0)
+            .setOffset(0)
+            .setCause("cause")
+            .setValue("value");
+
+        handler = new DlqDeserializationExceptionHandler();
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(kafkaError,
+            new RecordTooLargeException("Exception..."), "key".getBytes(StandardCharsets.UTF_8),
+            "value".getBytes(StandardCharsets.UTF_8));
+
+        KafkaError error = enrichedBuilder.build();
+        assertEquals("Unknown cause", error.getCause());
+        assertEquals("The record is too large to be set as value (5 bytes). The key will be used instead", error.getValue());
     }
 }
