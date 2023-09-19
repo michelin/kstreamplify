@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.rest;
+package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -6,22 +6,22 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler;
 import com.michelin.kstreamplify.error.DlqExceptionHandler;
+import com.michelin.kstreamplify.error.DlqProductionExceptionHandler;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.RetriableCommitFailedException;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,16 +29,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DlqDeserializationExceptionHandlerTest {
+class DlqProductionExceptionHandlerTest {
     @Mock
-    private ConsumerRecord<byte[], byte[]> record;
-
-    @Mock
-    private ProcessorContext processorContext;
+    private ProducerRecord<byte[], byte[]> record;
 
     private Producer<byte[], KafkaError> producer;
 
-    private DlqDeserializationExceptionHandler handler;
+    private DlqProductionExceptionHandler handler;
 
     @BeforeEach
     void setUp() {
@@ -51,37 +48,48 @@ class DlqDeserializationExceptionHandlerTest {
 
     @Test
     void shouldReturnFailIfNoDlq() {
-        handler = new DlqDeserializationExceptionHandler(producer);
+        handler = new DlqProductionExceptionHandler(producer);
 
-        DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, record, new RuntimeException("Exception..."));
+        ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
+            handler.handle(record, new RuntimeException("Exception..."));
 
-        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
+        assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL, response);
     }
 
     @Test
-    void shouldReturnFailOnExceptionDuringHandle() {
-        handler = new DlqDeserializationExceptionHandler(producer);
+    void shouldReturnContinueOnExceptionDuringHandle() {
+        handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
-        DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, record, new KafkaException("Exception..."));
+        ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
+            handler.handle(record, new KafkaException("Exception..."));
 
-        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
+        assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE, response);
     }
 
     @Test
     void shouldReturnContinueOnKafkaException() {
-        handler = new DlqDeserializationExceptionHandler(producer);
+        handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
 
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
         when(record.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(record.topic()).thenReturn("topic");
 
-        DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, record, new KafkaException("Exception..."));
+        ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
+            handler.handle(record, new KafkaException("Exception..."));
 
-        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
+        assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE, response);
+    }
+
+    @Test
+    void shouldReturnFailOnRetriableException() {
+        handler = new DlqProductionExceptionHandler(producer);
+        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+
+        ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
+            handler.handle(record, new RetriableCommitFailedException("Exception..."));
+
+        assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL, response);
     }
 
     @Test
@@ -91,9 +99,10 @@ class DlqDeserializationExceptionHandlerTest {
         configs.put("schema.registry.url", "localhost:8080");
         configs.put("acks", "all");
 
-        handler = new DlqDeserializationExceptionHandler();
+        handler = new DlqProductionExceptionHandler();
         handler.configure(configs);
 
         assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
     }
 }
+
