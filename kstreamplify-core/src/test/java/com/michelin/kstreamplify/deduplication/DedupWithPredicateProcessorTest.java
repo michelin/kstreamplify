@@ -34,7 +34,7 @@ class DedupWithPredicateProcessorTest {
     private TimestampedKeyValueStore<String, KafkaError> store;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         // Create an instance of DedupWithPredicateProcessor for testing
         processor = new DedupWithPredicateProcessor<>("testStore", Duration.ofHours(1), TestKeyExtractor::extract);
 

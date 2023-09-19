@@ -11,12 +11,15 @@ import java.util.Map;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.CompressionType;
 import org.rocksdb.Options;
 
+@ExtendWith(MockitoExtension.class)
 class RocksDbConfigTest {
 
     @Mock
@@ -24,7 +27,6 @@ class RocksDbConfigTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         when(options.tableFormatConfig()).thenReturn(new BlockBasedTableConfig());
     }
 
