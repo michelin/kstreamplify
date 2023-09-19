@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.rest;
+package com.michelin.kstreamplify.error;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;

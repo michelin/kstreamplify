@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.rest;
+package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
