@@ -134,6 +134,7 @@ class DlqDeserializationExceptionHandlerTest {
 
         KafkaError error = enrichedBuilder.build();
         assertEquals("Unknown cause", error.getCause());
-        assertEquals("The record is too large to be set as value (5 bytes). The key will be used instead", error.getValue());
+        assertEquals("The record is too large to be set as value (5 bytes). "
+            + "The key will be used instead", error.getValue());
     }
 }
