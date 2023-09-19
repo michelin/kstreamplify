@@ -79,7 +79,7 @@ class TopicWithSerdesTest {
     }
 
     @Test
-    void shouldCreateGKTable() {
+    void shouldCreateGlobalKtable() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
