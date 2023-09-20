@@ -24,6 +24,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler
 
     /**
      * Constructor.
+     *
+     * @param producer A Kafka producer.
      */
     public DlqDeserializationExceptionHandler(Producer<byte[], KafkaError> producer) {
         DlqExceptionHandler.producer = producer;
