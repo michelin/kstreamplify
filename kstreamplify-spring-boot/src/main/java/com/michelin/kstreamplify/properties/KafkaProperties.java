@@ -19,7 +19,7 @@ public class KafkaProperties {
     /**
      * The Kafka properties.
      */
-    private final Map<String, String> properties = new HashMap<>();
+    private Map<String, String> properties = new HashMap<>();
 
     /**
      * Return the Kafka properties as {@link java.util.Properties}.

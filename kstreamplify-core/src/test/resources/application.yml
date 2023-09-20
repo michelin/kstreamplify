@@ -3,3 +3,5 @@ server:
 kafka:
   properties:
     application.id: appId
+    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+    default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
