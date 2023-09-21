@@ -6,13 +6,11 @@
 [![SonarCloud Coverage](https://img.shields.io/sonar/coverage/michelin_kstreamplify?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/component_measures?id=michelin_kstreamplify&metric=coverage&view=list)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-So here you are, sitting on your chair  in that open space, scratching your head thinking "I really wish Kafka Streams was easier to implement... 
-If only there was someone out there who made a lib, somewhere, that would guarantee that my app doesn't crash loop in production because I forgot to null-safe that map node..." Well, guess what - Kstreamplify is THAT lib.
-Yes. You're welcome!
+Do you wish to improve your dev experience and implement Kafka Streams libraries at lightning speed? Then Kstreamplify is made just for you!
+This Java library enables the rapid creation of Kafka Streams-based applications, while providing a bunch of additionnal advanced features.
 
-Oh, and also, you'll have access to a bunch of advanced utility classes providing simplified topic declarations, idempotence, topic prefixing and dynamic remaping... 
-Making it wayyy easier to code Kstreams applications at lightning speed.
-
+Declare your KafkaStreams class as below and define your topology :
+![](gifs/topology.gif "Spring topology gif")
 
 ## Table of Contents
 
@@ -58,7 +56,6 @@ These dependencies are compatible with Java Standard Edition (SE).
   <artifactId>kstreamplify-core</artifactId>
   <version>${kstreamplify.version}</version>
 </dependency>
-
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core-test</artifactId>
@@ -66,8 +63,6 @@ These dependencies are compatible with Java Standard Edition (SE).
     <scope>test</scope>
 </dependency>
 ```
-
-![](gifs/pom.gif "Pom gif")
 
 
 ### Spring Boot
@@ -90,8 +85,6 @@ If you are using Spring Boot, you can use the following dependency to integrate 
 
 The dependency is compatible with Spring Boot 3.
 
-![](gifs/pom_spring.gif "Spring pom gif")
-
 
 ## Getting Started
 
@@ -108,8 +101,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     }
 }
 ```
-
-![](gifs/topology.gif "Spring topology gif")
 
 Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
 
