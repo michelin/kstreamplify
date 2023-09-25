@@ -121,7 +121,7 @@
         <kafka.version>3.4.0</kafka.version>
         <kafka-streams-avro-serde.version>7.5.0</kafka-streams-avro-serde.version>
         <logback.version>1.4.11</logback.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <mockito.version>5.4.0</mockito.version>
