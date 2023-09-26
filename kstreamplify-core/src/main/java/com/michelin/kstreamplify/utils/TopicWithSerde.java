@@ -57,7 +57,6 @@ public class TopicWithSerde<K, V> {
     @Getter
     private final Serde<V> valueSerde;
 
-
     /**
      * <p>Additional constructor which uses default parameter "self" for prefixPropertyKey.</p>
      *

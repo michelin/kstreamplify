@@ -7,6 +7,7 @@ import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.utils.SerdesUtils;
+import com.michelin.kstreamplify.utils.TopicWithSerde;
 import java.util.List;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -135,5 +136,20 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
         assertEquals(1, resultDlq.size());
         assertEquals(0, resultOutput.size());
+    }
+
+    @Test
+    void shouldCreateInputAndOutputTopicsWithSerde() {
+        TestInputTopic<String, String> inputTopic = createInputTestTopic(new TopicWithSerde<>("INPUT_TOPIC",
+            "APP_NAME", Serdes.String(), Serdes.String()));
+
+        assertEquals("TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
+            + "valueSerializer=StringSerializer]", inputTopic.toString());
+
+        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(new TopicWithSerde<>("OUTPUT_TOPIC",
+            "APP_NAME", Serdes.String(), Serdes.String()));
+
+        assertEquals("TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
+            + "valueDeserializer=StringDeserializer, size=0]", outputTopic.toString());
     }
 }

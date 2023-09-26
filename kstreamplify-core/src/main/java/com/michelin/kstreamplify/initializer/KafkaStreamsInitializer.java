@@ -48,7 +48,7 @@ public class KafkaStreamsInitializer {
     /**
      * The application properties.
      */
-    protected Properties properties;
+    protected Properties properties = new Properties();
 
     /**
      * The DLQ topic.
