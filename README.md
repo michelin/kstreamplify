@@ -9,7 +9,8 @@
 Do you wish to improve your dev experience and implement Kafka Streams libraries at lightning speed? Then Kstreamplify is made just for you!
 This Java library enables the rapid creation of Kafka Streams-based applications, while providing a bunch of additionnal advanced features.
 
-Declare your KafkaStreams class as below and define your topology :
+Declare your KafkaStreams class as below and define your topology, nothing more :
+
 ![](gifs/topology.gif "Spring topology gif")
 
 ## Table of Contents
@@ -92,24 +93,12 @@ To begin using Kstreamplify, you simply need to set up a `KafkaStreamsStarter` b
 
 For instance, you can start by creating a class annotated with `@Component`:
 
-```java
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) { 
-        // Your topology here
-    }
-}
-```
+![](gifs/topology.gif "Topology gif")
+
 
 Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
 
-```java
-@Bean
-public KafkaStreamsStarter kafkaStreamsStarter() {
-    return streamsBuilder -> streamsBuilder.map(...).to(...); // Your topology here
-}
-```
+![](gifs/KafkaStreamsStarter.gif "KafkaStreamsStarter gif")
 
 ### Properties Injection
 
@@ -146,15 +135,7 @@ SerdesUtils.<MyAvroValue>getSerdesForKey()
 
 Here's an example of using these methods in your topology:
 
-```java
-@Override
-public void topology(StreamsBuilder streamsBuilder) {
-    streamsBuilder
-            .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.<MyAvroValue>getSerdesForValue()))
-            // ...
-            .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.<MyAvroValue>getSerdesForValue()));
-}
-```
+![](gifs/serdes.gif "Serdes gif")
 
 ### Error Handling
 
@@ -162,18 +143,8 @@ The library provides the ability to handle errors that may occur in your topolog
 
 To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
 
-```java
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) { //... }
-    
-    @Override
-    public String dlqTopic() {
-        return "myDlqTopic";
-    }
-}
-```
+![](gifs/dlq.gif "DLQ topic gif")
+
 
 #### Topology 
 
@@ -183,36 +154,9 @@ The principle is simple: whenever you perform transformations on stream values, 
 
 Here is a complete example of how to do this:
 
-```java
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, MyAvroValue> myStream = streamsBuilder
-                .stream("inputTopic",
-                        Consumed.with(Serdes.String(), SerdesUtils.<MyAvroValue>getSerdesForValue()));
+![](gifs/full_topology.gif "Full topology example gif")
 
-        TopologyErrorHandler
-                .catchErrors(myStream.mapValues(MyKafkaStreams::toUpperCase))
-                .to("outputTopic",
-                        Produced.with(Serdes.String(), SerdesUtils.<MyAvroValue>getSerdesForValue()));
-    }
 
-    @Override
-    public String dlqTopic() {
-        return "myDlqTopic";
-    }
-
-    private static ProcessingResult<MyAvroValue, MyAvroValue> toUpperCase(MyAvroValue value) {
-        try {
-            value.setValue(value.getValue().toUpperCase());
-            return ProcessingResult.success(value);
-        } catch (Exception ex) {
-            return ProcessingResult.fail(ex, value, "An error occurred during the upper case map values process");
-        }
-    }
-}
-```
 
 The first step is during the map values processing. The operation should return a new value of type `ProcessingResult<V, V2>`.
 The first templatized parameter is the type of the new value after a successful transformation.
@@ -273,15 +217,7 @@ Kstreamplify offers the flexibility to execute custom code through hooks. These 
 
 The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka Streams instance as a parameter.
 
-```java
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void onStart(KafkaStreams kafkaStreams) {
-        // Your code here
-    }
-}
-```
+![](gifs/onstart.gif "On start gif")
 
 You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
 
@@ -291,14 +227,7 @@ For testing, you can create a test class that implements `KafkaStreamsStarterTes
 
 Here is an example:
 
-```java
-public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) { 
-        new MyKafkaStreams().topology(streamsBuilder);
-    }
-}
-```
+![](gifs/test.gif "Test class gif")
 
 ## Motivation
 
