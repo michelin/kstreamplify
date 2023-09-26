@@ -6,12 +6,15 @@
 [![SonarCloud Coverage](https://img.shields.io/sonar/coverage/michelin_kstreamplify?logo=sonarcloud&server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge)](https://sonarcloud.io/component_measures?id=michelin_kstreamplify&metric=coverage&view=list)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-Do you wish to improve your dev experience and implement Kafka Streams libraries at lightning speed? Then Kstreamplify is made just for you!
-This Java library enables the rapid creation of Kafka Streams-based applications, while providing a bunch of additionnal advanced features.
+Are you looking to enhance your development experience and accelerate the implementation of Kafka Streams? Look no further – Kstreamplify is tailor-made for you!
 
-Declare your KafkaStreams class as below and define your topology, nothing more :
+**Kstreamplify** is a Java library that empowers you to swiftly create Kafka Streams-based applications, offering a host of additional advanced features.
 
-![](gifs/topology.gif "Spring topology gif")
+With Kstreamplify, you can declare your KafkaStreams class and define your topology with minimal effort. Here's all you need to do:
+
+<p align="center">
+  <img src=".readme/gif/topology.gif" />
+</p>
 
 ## Table of Contents
 
@@ -48,7 +51,7 @@ Declare your KafkaStreams class as below and define your topology, nothing more 
 
 Kstreamplify provides three dependencies.
 
-### Java SE
+### Java
 
 These dependencies are compatible with Java Standard Edition (SE).
 
@@ -58,6 +61,7 @@ These dependencies are compatible with Java Standard Edition (SE).
   <artifactId>kstreamplify-core</artifactId>
   <version>${kstreamplify.version}</version>
 </dependency>
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core-test</artifactId>
@@ -77,6 +81,7 @@ If you are using Spring Boot, you can use the following dependency to integrate 
     <artifactId>kstreamplify-spring-boot</artifactId>
     <version>${kstreamplify.version}</version>
 </dependency>
+
 <dependency>
   <groupId>com.michelin</groupId>
   <artifactId>kstreamplify-core-test</artifactId>
@@ -94,12 +99,11 @@ To begin using Kstreamplify, you simply need to set up a `KafkaStreamsStarter` b
 
 For instance, you can start by creating a class annotated with `@Component`:
 
-![](gifs/topology.gif "Topology gif")
-
+![](.readme/gif/topology.gif "Topology gif")
 
 Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
 
-![](gifs/KafkaStreamsStarter.gif "KafkaStreamsStarter gif")
+![](.readme/gif/topology-bean.gif "Topology bean gif")
 
 ### Properties Injection
 
@@ -136,7 +140,7 @@ SerdesUtils.<MyAvroValue>getSerdesForKey()
 
 Here's an example of using these methods in your topology:
 
-![](gifs/serdes.gif "Serdes gif")
+![](.readme/gif/serdes.gif "Serdes gif")
 
 ### Error Handling
 
@@ -144,8 +148,7 @@ The library provides the ability to handle errors that may occur in your topolog
 
 To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
 
-![](gifs/dlq.gif "DLQ topic gif")
-
+![](.readme/gif/dlq.gif "DLQ topic gif")
 
 #### Topology 
 
@@ -155,9 +158,7 @@ The principle is simple: whenever you perform transformations on stream values, 
 
 Here is a complete example of how to do this:
 
-![](gifs/full_topology.gif "Full topology example gif")
-
-
+![](.readme/gif/full-topology.gif "Full topology example gif")
 
 The first step is during the map values processing. The operation should return a new value of type `ProcessingResult<V, V2>`.
 The first templatized parameter is the type of the new value after a successful transformation.
@@ -218,7 +219,7 @@ Kstreamplify offers the flexibility to execute custom code through hooks. These 
 
 The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka Streams instance as a parameter.
 
-![](gifs/onstart.gif "On start gif")
+![](.readme/gif/on-start.gif)
 
 You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
 
@@ -263,7 +264,7 @@ For testing, you can create a test class that implements `KafkaStreamsStarterTes
 
 Here is an example:
 
-![](gifs/test.gif "Test class gif")
+![](.readme/gif/test.gif "Test class gif")
 
 ## Motivation
 
