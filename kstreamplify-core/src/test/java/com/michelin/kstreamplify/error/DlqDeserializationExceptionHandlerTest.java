@@ -91,7 +91,7 @@ class DlqDeserializationExceptionHandlerTest {
         configs.put("schema.registry.url", "localhost:8080");
         configs.put("acks", "all");
 
-        handler = new DlqDeserializationExceptionHandler();
+        handler = new DlqDeserializationExceptionHandler(null);
         handler.configure(configs);
 
         assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
