@@ -1,5 +1,5 @@
-<h1 align="center"> Kstreamplify </h1>
-
+<h1> Kstreamplify </h1>
+  
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml)
 [![GitHub Stars](https://img.shields.io/github/stars/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify)
 [![GitHub Watch](https://img.shields.io/github/watchers/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify)
@@ -12,14 +12,15 @@ Are you looking to enhance your development experience and accelerate the implem
 
 With Kstreamplify, you can declare your KafkaStreams class and define your topology with minimal effort. Here's all you need to do:
 
-<p align="center">
-  <img src=".readme/gif/topology.gif" />
-</p>
+<img src=".readme/gif/topology.gif" />
 
 ## Table of Contents
 
 * [Features](#features)
 * [Dependencies](#dependencies)
+  * [Java](#java)
+  * [Spring Boot](#spring-boot)
+  * [Testing](#testing)
 * [Getting Started](#getting-started)
   * [Properties Injection](#properties-injection)
   * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
@@ -49,11 +50,13 @@ With Kstreamplify, you can declare your KafkaStreams class and define your topol
 
 ## Dependencies
 
-Kstreamplify provides three dependencies.
+Kstreamplify offers three dependencies, all compatible with Java 17.
 
 ### Java
 
-These dependencies are compatible with Java Standard Edition (SE).
+[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core/javadoc.svg?style=for-the-badge)](https://javadoc.io/doc/com.michelin/kstreamplify-core)
+
+To include the core Kstreamplify library in your project, add the following dependency:
 
 ```xml
 <dependency>
@@ -61,19 +64,13 @@ These dependencies are compatible with Java Standard Edition (SE).
   <artifactId>kstreamplify-core</artifactId>
   <version>${kstreamplify.version}</version>
 </dependency>
-
-<dependency>
-    <groupId>com.michelin</groupId>
-    <artifactId>kstreamplify-core-test</artifactId>
-    <version>${kstreamplify.version}</version>
-    <scope>test</scope>
-</dependency>
 ```
-
 
 ### Spring Boot
 
-If you are using Spring Boot, you can use the following dependency to integrate Kstreamplify with your Spring Boot application:
+[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-spring-boot/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-spring-boot)
+
+If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boot application by adding the following dependency:
 
 ```xml
 <dependency>
@@ -81,17 +78,24 @@ If you are using Spring Boot, you can use the following dependency to integrate 
     <artifactId>kstreamplify-spring-boot</artifactId>
     <version>${kstreamplify.version}</version>
 </dependency>
-
-<dependency>
-  <groupId>com.michelin</groupId>
-  <artifactId>kstreamplify-core-test</artifactId>
-  <version>${kstreamplify.version}</version>
-  <scope>test</scope>
-</dependency>
 ```
 
 The dependency is compatible with Spring Boot 3.
 
+### Testing 
+
+[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
+
+For both Java and Spring Boot dependencies, a testing dependency is available to facilitate testing:
+
+```xml
+<dependency>
+    <groupId>com.michelin</groupId>
+    <artifactId>kstreamplify-core-test</artifactId>
+    <version>${kstreamplify.version}</version>
+    <scope>test</scope>
+</dependency>
+```
 
 ## Getting Started
 
