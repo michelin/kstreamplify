@@ -26,29 +26,31 @@ With Kstreamplify, you can declare your KafkaStreams class and define your topol
   * [Spring Boot](#spring-boot)
   * [Testing](#testing)
 * [Getting Started](#getting-started)
-  * [Properties Injection](#properties-injection)
-  * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
-  * [Error Handling](#error-handling)
-    * [Topology](#topology)
-    * [Production and Deserialization](#production-and-deserialization)
-    * [Avro Schema](#avro-schema)
-  * [REST Endpoints](#rest-endpoints)
-  * [Hooks](#hooks)
-    * [On Start](#on-start)
-  * [Interactive Queries](#interactive-queries)
-  * [Testing](#testing)
+    * [Properties Injection](#properties-injection)
+    * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
+    * [Error Handling](#error-handling)
+        * [Topology](#topology)
+        * [Production and Deserialization](#production-and-deserialization)
+        * [Avro Schema](#avro-schema)
+    * [REST Endpoints](#rest-endpoints)
+    * [Hooks](#hooks)
+        * [On Start](#on-start)
+    * [Interactive Queries](#interactive-queries)
+    * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
 ## Features
 
-- **Easy bootstrapping**: Kafka Streams application bootstrapping is handled for you, allowing you to focus on topology implementation.
+- **Easy bootstrapping**: Kafka Streams application bootstrapping is handled for you, allowing you to focus on topology
+  implementation.
 
 - **Avro Schema Serializer and Deserializer**: Common serializers and deserializers for all your Avro specific records.
 
-- **Error Handling**: A strong error handling mechanism is provided for topology, production, and deserialization errors, and it also allows routing them into a dead letter queue (DLQ) topic.
+- **Error Handling**: A strong error handling mechanism is provided for topology, production, and deserialization
+  errors, and it also allows routing them into a dead letter queue (DLQ) topic.
 
-- **REST endpoints**: Some useful REST endpoints, including Kubernetes liveness and readiness probes. 
+- **REST endpoints**: Some useful REST endpoints, including Kubernetes liveness and readiness probes.
 
 - **Testing**: The library eases the use of Topology Test Driver, making it easier to write your tests.
 
@@ -77,6 +79,7 @@ To include the core Kstreamplify library in your project, add the following depe
 If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boot application by adding the following dependency:
 
 ```xml
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-spring-boot</artifactId>
@@ -140,7 +143,7 @@ Whenever you need to serialize or deserialize records with Avro schemas, you can
 SerdesUtils.<MyAvroValue>getSerdesForValue()
 ```
 
-or 
+or
 
 ```java
 SerdesUtils.<MyAvroValue>getSerdesForKey()
@@ -152,23 +155,28 @@ Here's an example of using these methods in your topology:
 
 ### Error Handling
 
-The library provides the ability to handle errors that may occur in your topology as well as during the production or deserialization of records and route them to a dead-letter queue (DLQ) topic.
+The library provides the ability to handle errors that may occur in your topology as well as during the production or
+deserialization of records and route them to a dead-letter queue (DLQ) topic.
 
 To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
 
 ![](.readme/gif/dlq.gif "DLQ topic gif")
 
-#### Topology 
+#### Topology
 
-Kstreamplify provides utilities to handle all the unexpected errors that can occur in your topologies and route them to a dead-letter queue (DLQ) topic automatically.
+Kstreamplify provides utilities to handle all the unexpected errors that can occur in your topologies and route them to
+a dead-letter queue (DLQ) topic automatically.
 
-The principle is simple: whenever you perform transformations on stream values, you can encapsulate the result as either success or failure. Failed records will be routed to your DLQ topic, while successful records will still be up for further processing.
+The principle is simple: whenever you perform transformations on stream values, you can encapsulate the result as either
+success or failure. Failed records will be routed to your DLQ topic, while successful records will still be up for
+further processing.
 
 Here is a complete example of how to do this:
 
 ![](.readme/gif/full-topology.gif "Full topology example gif")
 
-The first step is during the map values processing. The operation should return a new value of type `ProcessingResult<V, V2>`.
+The first step is during the map values processing. The operation should return a new value of
+type `ProcessingResult<V, V2>`.
 The first templatized parameter is the type of the new value after a successful transformation.
 The second templatized parameter is the type of the current value for which the transformation failed.
 
@@ -181,20 +189,25 @@ return ProcessingResult.success(value);
 Or the following in a catch clause to mark the result as failed:
 
 ```java
-return ProcessingResult.fail(ex, value, "An error occurred during the upper case map values process");
+return ProcessingResult.fail(ex,value,"An error occurred during the upper case map values process");
 ```
 
 The `ProcessingResult.fail()` method takes the exception, the record that failed and a custom error message.
 
-The second step is sending the new stream of `ProcessingResult<V, V2>` to the `TopologyErrorHandler.catchErrors()` method, which will split the
+The second step is sending the new stream of `ProcessingResult<V, V2>` to the `TopologyErrorHandler.catchErrors()`
+method, which will split the
 stream into two branches:
-- The first branch will contain the `ProcessingError` and will be routed to the DLQ topic as a `KafkaError` Avro objects that contains
-multiple useful information such as the topic, the partition, the offsets, the exception, and the custom error message of the failed record.
+
+- The first branch will contain the `ProcessingError` and will be routed to the DLQ topic as a `KafkaError` Avro objects
+  that contains
+  multiple useful information such as the topic, the partition, the offsets, the exception, and the custom error message
+  of the failed record.
 - The second branch will only contain the successful records and will be returned to continue the processing.
 
 #### Production and Deserialization
 
-The library provides handlers for production and deserialization errors, which can be used to route these errors to the configured DLQ topic.
+The library provides handlers for production and deserialization errors, which can be used to route these errors to the
+configured DLQ topic.
 
 Here's how to use them:
 
@@ -209,7 +222,8 @@ kafka:
 
 #### Avro Schema
 
-An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
+An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is
+available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
 
 ### REST endpoints
 
@@ -221,11 +235,13 @@ The Kstreamplify library provides several REST endpoints, which are listed below
 
 ### Hooks
 
-Kstreamplify offers the flexibility to execute custom code through hooks. These hooks can be defined by overriding specific methods.
+Kstreamplify offers the flexibility to execute custom code through hooks. These hooks can be defined by overriding
+specific methods.
 
 #### On Start
 
-The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka Streams instance as a parameter.
+The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka
+Streams instance as a parameter.
 
 ![](.readme/gif/on-start.gif)
 
@@ -233,9 +249,12 @@ You can use this hook to perform any custom initialization or setup tasks for yo
 
 ### Interactive Queries
 
-Kstreamplify is designed to make your Kafka Streams instance ready for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html), including support for RPC (Remote Procedure Call).
+Kstreamplify is designed to make your Kafka Streams instance ready
+for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html),
+including support for RPC (Remote Procedure Call).
 
-The `application.server` property, which should contain the host:port information, is automatically handled by Kstreamplify.
+The `application.server` property, which should contain the host:port information, is automatically handled by
+Kstreamplify.
 The property can be loaded in three different ways.
 By order of priority:
 
@@ -249,7 +268,8 @@ kafka:
 
 Where `MY_APPLICATION_PORT_HOST` contains the host:port information.
 
-- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from Kubernetes.
+- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from
+  Kubernetes.
 
 Here's an extract of a Kubernetes deployment which set the `MY_POD_IP` environment variable in a Kubernetes environment:
 
@@ -257,18 +277,20 @@ Here's an extract of a Kubernetes deployment which set the `MY_POD_IP` environme
 ...
 containers:
   env:
-  - name: MY_POD_IP
-    valueFrom:
-      fieldRef:
-        fieldPath: status.podIP
+    - name: MY_POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
 ...
 ```
 
-- If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify sets `application.server` to the default value `localhost`.
+- If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify
+  sets `application.server` to the default value `localhost`.
 
 ### Testing
 
-For testing, you can create a test class that implements `KafkaStreamsStarterTest` and override the `topology` method. Then, apply the topology of your Kafka Streams on the given `streamsBuilders`.
+For testing, you can create a test class that implements `KafkaStreamsStarterTest` and override the `topology` method.
+Then, apply the topology of your Kafka Streams on the given `streamsBuilders`.
 
 Here is an example:
 
@@ -276,10 +298,16 @@ Here is an example:
 
 ## Motivation
 
-Developing applications with Kafka Streams can be challenging and often raises many questions for developers. It involves considerations such as efficient bootstrapping of Kafka Streams applications, handling unexpected business issues, and integrating Kubernetes probes, among others.
+Developing applications with Kafka Streams can be challenging and often raises many questions for developers. It
+involves considerations such as efficient bootstrapping of Kafka Streams applications, handling unexpected business
+issues, and integrating Kubernetes probes, among others.
 
-To assist developers in overcoming these challenges, we have built this library. Our aim is to provide a comprehensive solution that simplifies the development process and addresses common pain points encountered while working with Kafka Streams.
+To assist developers in overcoming these challenges, we have built this library. Our aim is to provide a comprehensive
+solution that simplifies the development process and addresses common pain points encountered while working with Kafka
+Streams.
 
 ## Contribution
 
-We welcome contributions from the community! Before you get started, please take a look at our [contribution guide](https://github.com/michelin/kstreamplify/blob/master/CONTRIBUTING.md) to learn about our guidelines and best practices. We appreciate your help in making Kstreamplify a better library for everyone.
+We welcome contributions from the community! Before you get started, please take a look at
+our [contribution guide](https://github.com/michelin/kstreamplify/blob/master/CONTRIBUTING.md) to learn about our
+guidelines and best practices. We appreciate your help in making Kstreamplify a better library for everyone.
