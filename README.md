@@ -24,7 +24,7 @@ With Kstreamplify, you can declare your KafkaStreams class and define your topol
 * [Dependencies](#dependencies)
   * [Java](#java)
   * [Spring Boot](#spring-boot)
-  * [Testing](#testing)
+  * [Unit Test](#unit-test)
 * [Getting Started](#getting-started)
     * [Properties Injection](#properties-injection)
     * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
@@ -89,7 +89,7 @@ If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boo
 
 The dependency is compatible with Spring Boot 3.
 
-### Testing 
+### Unit Test
 
 [![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
 
