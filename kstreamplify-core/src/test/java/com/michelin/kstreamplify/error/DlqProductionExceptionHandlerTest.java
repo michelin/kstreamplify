@@ -6,8 +6,6 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.error.DlqExceptionHandler;
-import com.michelin.kstreamplify.error.DlqProductionExceptionHandler;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
@@ -99,7 +97,7 @@ class DlqProductionExceptionHandlerTest {
         configs.put("schema.registry.url", "localhost:8080");
         configs.put("acks", "all");
 
-        handler = new DlqProductionExceptionHandler();
+        handler = new DlqProductionExceptionHandler(null);
         handler.configure(configs);
 
         assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
