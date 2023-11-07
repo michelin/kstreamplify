@@ -49,5 +49,12 @@
             <artifactId>kstreamplify-core</artifactId>
             <version>1.0.1-SNAPSHOT</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <scope>test</scope>
+            <version>${slf4j.version}</version>
+        </dependency>
     </dependencies>
 </project>
