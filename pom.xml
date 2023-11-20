@@ -128,7 +128,7 @@
         <jacoco.version>0.8.11</jacoco.version>
         <slf4j.version>2.0.9</slf4j.version>
         <spring-boot.version>3.1.5</spring-boot.version>
-        <testcontainers.version>1.19.1</testcontainers.version>
+        <testcontainers.version>1.19.2</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
