@@ -81,7 +81,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
                     currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
-                    if (message.value().equals(currentKeyValue.value)) {
+                    if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
                         return;
                     }
                 }
