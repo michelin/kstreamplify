@@ -49,7 +49,7 @@ public final class ProbeService {
                 }
             }
 
-            return kafkaStreamsInitializer.getKafkaStreams().state().isRunningOrRebalancing()
+            return kafkaStreamsInitializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)
                 ? RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_OK).build() :
                 RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_UNAVAILABLE)
                     .build();
