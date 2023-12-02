@@ -73,7 +73,7 @@
         <developer>
             <id>loicgreffier</id>
             <name>Loïc Greffier</name>
-            <email>dif-hap-dev@michelin.com</email>
+            <email>loic.greffier@michelin.com</email>
             <url>https://github.com/loicgreffier</url>
             <organization>Michelin</organization>
             <roles>
@@ -120,14 +120,12 @@
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <kafka.version>3.4.0</kafka.version>
         <kafka-streams-avro-serde.version>7.5.2</kafka-streams-avro-serde.version>
-        <logback.version>1.4.11</logback.version>
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <mockito.version>5.7.0</mockito.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <slf4j.version>2.0.9</slf4j.version>
-        <spring-boot.version>3.1.5</spring-boot.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
