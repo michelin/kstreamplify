@@ -8,7 +8,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +61,7 @@ class SpringKafkaStreamsInitializerIntegrationTest {
     }
 
     @Test
-    void shouldInitAndRun() throws InterruptedException, IOException {
+    void shouldInitAndRun() throws InterruptedException {
         waitingForKafkaStreamsToRun();
 
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
