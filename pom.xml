@@ -123,7 +123,7 @@
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <mockito.version>5.8.0</mockito.version>
+        <mockito.version>5.9.0</mockito.version>
         <jacoco.version>0.8.11</jacoco.version>
         <spring-boot.version>3.2.1</spring-boot.version>
         <testcontainers.version>1.19.3</testcontainers.version>
