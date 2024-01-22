@@ -125,7 +125,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <mockito.version>5.9.0</mockito.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <spring-boot.version>3.2.1</spring-boot.version>
+        <spring-boot.version>3.2.2</spring-boot.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
