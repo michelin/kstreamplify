@@ -36,6 +36,7 @@ With Kstreamplify, you can declare your KafkaStreams class and define your topol
     * [Hooks](#hooks)
         * [On Start](#on-start)
     * [Interactive Queries](#interactive-queries)
+    * [Open Telemetry](#open-telemetry)
     * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -286,6 +287,26 @@ containers:
 
 - If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify
   sets `application.server` to the default value `localhost`.
+
+### Open Telemetry
+
+The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) into your Kafka Streams application 
+by binding all the metrics of the Kafka Streams instance to the Spring Boot registry which is used by the Open Telemetry Java agent.
+
+You can run your application with the Open Telemetry Java agent by including the following JVM options:
+
+```shell
+-javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
+```
+
+It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in your Grafana dashboard.
+
+```shell
+-Dotel.resource.attributes=environment=production,service.name=myNamespace,service.name=myKafkaStreams,category=orders
+```
+
+All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in the logs 
+during the application startup.
 
 ### Testing
 
