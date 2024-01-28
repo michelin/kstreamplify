@@ -72,7 +72,6 @@ Kstreamplify offers three dependencies, all compatible with Java 17.
 To include the core Kstreamplify library in your project, add the following dependency:
 
 ```xml
-
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core</artifactId>
@@ -88,7 +87,6 @@ If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boo
 dependency:
 
 ```xml
-
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-spring-boot</artifactId>
@@ -105,7 +103,6 @@ The dependency is compatible with Spring Boot 3.
 For both Java and Spring Boot dependencies, a testing dependency is available to facilitate testing:
 
 ```xml
-
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core-test</artifactId>
