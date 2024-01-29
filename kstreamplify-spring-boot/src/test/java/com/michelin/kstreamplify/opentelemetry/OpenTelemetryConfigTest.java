@@ -15,7 +15,7 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCusto
  * The OpenTelemetry configuration test class.
  */
 @ExtendWith(MockitoExtension.class)
-public class OpenTelemetryConfigTest {
+class OpenTelemetryConfigTest {
     private final OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig();
 
     @Test
