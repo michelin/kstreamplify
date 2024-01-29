@@ -119,13 +119,13 @@
         <java.version>17</java.version>
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <kafka.version>3.4.0</kafka.version>
-        <kafka-streams-avro-serde.version>7.5.2</kafka-streams-avro-serde.version>
+        <kafka-streams-avro-serde.version>7.5.3</kafka-streams-avro-serde.version>
         <lombok.version>1.18.30</lombok.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <mockito.version>5.8.0</mockito.version>
+        <mockito.version>5.9.0</mockito.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <spring-boot.version>3.2.0</spring-boot.version>
+        <spring-boot.version>3.2.2</spring-boot.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
@@ -254,7 +254,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.3</version>
+                <version>3.2.5</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.junit.jupiter</groupId>
@@ -306,7 +306,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>10.12.6</version>
+                        <version>10.12.7</version>
                     </dependency>
                 </dependencies>
                 <configuration>
