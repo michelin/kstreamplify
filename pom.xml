@@ -122,7 +122,7 @@
         <kafka-streams-avro-serde.version>7.5.3</kafka-streams-avro-serde.version>
         <lombok.version>1.18.30</lombok.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.java.version>17</maven.compiler.java.version>
         <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
@@ -231,7 +231,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <release>${maven.compiler.release}</release>
+                    <release>${maven.compiler.java.version}</release>
                 </configuration>
             </plugin>
 
