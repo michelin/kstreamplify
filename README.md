@@ -63,7 +63,7 @@ need to do:
 
 ## Dependencies
 
-Kstreamplify offers three dependencies, all compatible with Java 17.
+Kstreamplify offers three dependencies, all compatible with Java 17 and 21.
 
 ### Java
 
