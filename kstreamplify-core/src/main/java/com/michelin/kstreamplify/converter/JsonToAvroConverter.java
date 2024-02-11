@@ -33,7 +33,7 @@ public class JsonToAvroConverter {
      * @return the record in avro
      */
     public static SpecificRecordBase jsonToAvro(String file, Schema schema) {
-        return jsonToAvro((JsonObject) new JsonParser().parse(file), schema);
+        return jsonToAvro(JsonParser.parseString(file).getAsJsonObject(), schema);
     }
 
     /**
