@@ -117,10 +117,11 @@
         <commons-io.version>2.15.1</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <gson.version>2.10.1</gson.version>
-        <junit-jupiter.version>5.10.1</junit-jupiter.version>
-        <kafka.version>3.4.0</kafka.version>
+        <junit-jupiter.version>5.10.2</junit-jupiter.version>
+        <kafka.version>3.6.1</kafka.version>
         <kafka-streams-avro-serde.version>7.5.3</kafka-streams-avro-serde.version>
         <lombok.version>1.18.30</lombok.version>
+        <mockito.version>5.10.0</mockito.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
         <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
@@ -128,7 +129,6 @@
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <mockito.version>5.9.0</mockito.version>
         <jacoco.version>0.8.11</jacoco.version>
         <spring-boot.version>3.2.2</spring-boot.version>
         <testcontainers.version>1.19.3</testcontainers.version>
