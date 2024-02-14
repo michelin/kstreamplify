@@ -2,6 +2,8 @@ package com.michelin.kstreamplify.initializer;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.properties.KafkaProperties;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
@@ -19,13 +21,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
-public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer
-    implements ApplicationRunner {
+public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
     /**
      * The application context.
      */
     @Autowired
     private ConfigurableApplicationContext applicationContext;
+
+    /**
+     * The meter registry.
+     */
+    @Autowired
+    private MeterRegistry registry;
 
     /**
      * The server port.
@@ -60,7 +67,7 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer
      */
     @Override
     protected void initHttpServer() {
-        // Nothing to do here, Spring Boot is running its own HTTP server
+        // Nothing to do here as the server is already started by Spring Boot
     }
 
     /**
@@ -94,13 +101,24 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void registerMetrics(KafkaStreams kafkaStreams) {
+        // As the Kafka Streams metrics are not picked up by the OpenTelemetry Java agent automatically,
+        // register them manually to the Spring Boot registry as the agent will pick metrics up from there
+        KafkaStreamsMetrics kafkaStreamsMetrics = new KafkaStreamsMetrics(kafkaStreams);
+        kafkaStreamsMetrics.bindTo(registry);
+    }
+
+    /**
      * Close the application context.
      */
     private void closeApplicationContext() {
         if (applicationContext != null) {
             applicationContext.close();
         } else {
-            log.warn("No Spring context set");
+            log.warn("Spring Boot context is not set, cannot close it");
         }
     }
 }

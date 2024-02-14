@@ -2,12 +2,14 @@ package com.michelin.kstreamplify.integrations;
 
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +42,9 @@ import org.testcontainers.utility.DockerImageName;
 class SpringKafkaStreamsInitializerIntegrationTest {
     @Autowired
     private KafkaStreamsInitializer initializer;
+
+    @Autowired
+    private MeterRegistry registry;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -89,7 +94,6 @@ class SpringKafkaStreamsInitializerIntegrationTest {
             KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-
         ResponseEntity<Void> responseReady = restTemplate
             .getForEntity("http://localhost:8081/ready", Void.class);
 
@@ -113,6 +117,32 @@ class SpringKafkaStreamsInitializerIntegrationTest {
                   <-- KSTREAM-SOURCE-0000000000
 
             """, responseTopology.getBody());
+    }
+
+    @Test
+    void shouldRegisterKafkaMetrics() throws InterruptedException {
+        waitingForKafkaStreamsToRun();
+
+        // Kafka Streams metrics are registered
+        assertFalse(registry.getMeters()
+            .stream()
+            .filter(metric -> metric.getId().getName().startsWith("kafka.stream"))
+            .toList()
+            .isEmpty());
+
+        // Kafka producer metrics are registered
+        assertFalse(registry.getMeters()
+            .stream()
+            .filter(metric -> metric.getId().getName().startsWith("kafka.producer"))
+            .toList()
+            .isEmpty());
+
+        // Kafka consumer metrics are registered
+        assertFalse(registry.getMeters()
+            .stream()
+            .filter(metric -> metric.getId().getName().startsWith("kafka.consumer"))
+            .toList()
+            .isEmpty());
     }
 
     private void waitingForKafkaStreamsToRun() throws InterruptedException {

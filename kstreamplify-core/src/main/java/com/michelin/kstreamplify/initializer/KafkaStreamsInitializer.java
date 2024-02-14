@@ -90,6 +90,8 @@ public class KafkaStreamsInitializer {
 
         kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
 
+        registerMetrics(kafkaStreams);
+
         kafkaStreamsStarter.onStart(kafkaStreams);
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
@@ -128,8 +130,7 @@ public class KafkaStreamsInitializer {
      * Init the host information.
      */
     private void initHostInfo() {
-        String ipEnvVarName =
-            (String) kafkaProperties.get(InitializerConstants.IP_SYSTEM_VARIABLE_PROPERTY);
+        String ipEnvVarName = (String) kafkaProperties.get(InitializerConstants.IP_SYSTEM_VARIABLE_PROPERTY);
         if (StringUtils.isBlank(ipEnvVarName)) {
             ipEnvVarName = InitializerConstants.IP_SYSTEM_VARIABLE_DEFAULT;
         }
@@ -159,11 +160,8 @@ public class KafkaStreamsInitializer {
      */
     protected void initProperties() {
         properties = PropertiesUtils.loadProperties();
-
         serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);
-
         kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
-
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
 
@@ -192,5 +190,12 @@ public class KafkaStreamsInitializer {
                 kafkaProperties.get(StreamsConfig.APPLICATION_ID_CONFIG));
             System.exit(3);
         }
+    }
+
+    /**
+     * Register metrics.
+     */
+    protected void registerMetrics(KafkaStreams kafkaStreams) {
+        // Nothing to do here
     }
 }
