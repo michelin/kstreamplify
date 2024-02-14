@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.properties;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
+import org.apache.kafka.streams.StreamsConfig;
 import org.junit.jupiter.api.Test;
 
 class KafkaPropertiesTest {
@@ -11,9 +12,7 @@ class KafkaPropertiesTest {
 
     @Test
     void shouldLoadProperties() {
-        Map<String, String> props = Map.of(
-            "application.id", "appId"
-        );
+        Map<String, String> props = Map.of(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
 
         kafkaProperties.setProperties(props);
 

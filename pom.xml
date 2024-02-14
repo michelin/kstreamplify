@@ -119,7 +119,7 @@
         <gson.version>2.10.1</gson.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <kafka.version>3.6.1</kafka.version>
-        <kafka-streams-avro-serde.version>7.5.3</kafka-streams-avro-serde.version>
+        <kafka-streams-avro-serde.version>7.6.0</kafka-streams-avro-serde.version>
         <lombok.version>1.18.30</lombok.version>
         <mockito.version>5.10.0</mockito.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
@@ -131,7 +131,7 @@
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <jacoco.version>0.8.11</jacoco.version>
         <spring-boot.version>3.2.2</spring-boot.version>
-        <testcontainers.version>1.19.3</testcontainers.version>
+        <testcontainers.version>1.19.5</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>

@@ -19,7 +19,7 @@ of additional advanced features.
 With Kstreamplify, you can declare your KafkaStreams class and define your topology with minimal effort. Here's all you
 need to do:
 
-<img src=".readme/gif/topology.gif" />
+<img src=".readme/gif/topology.gif" alt="topology"/>
 
 ## Table of Contents
 
@@ -43,6 +43,7 @@ need to do:
         * [By Key and Value](#by-key-and-value)
         * [By Predicate](#by-predicate)
     * [Interactive Queries](#interactive-queries)
+    * [Open Telemetry](#open-telemetry)
     * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
@@ -118,11 +119,39 @@ overriding the `topology` method.
 
 For instance, you can start by creating a class annotated with `@Component`:
 
-![](.readme/gif/topology.gif "Topology gif")
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) {
+        // Your topology
+    }
+
+    @Override
+    public String dlqTopic() {
+        return "dlqTopic";
+    }
+}
+```
 
 Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
 
-![](.readme/gif/topology-bean.gif "Topology bean gif")
+```java
+@Bean
+public KafkaStreamsStarter kafkaStreamsStarter() {
+    return new KafkaStreamsStarter() {
+        @Override
+        public void topology(StreamsBuilder streamsBuilder) {
+            // Your topology
+        }
+
+        @Override
+        public String dlqTopic() {
+            return "dlqTopic";
+        }
+    };
+}
+```
 
 ### Properties Injection
 
@@ -157,9 +186,19 @@ or
 SerdesUtils.<MyAvroValue>getSerdesForKey()
 ```
 
-Here's an example of using these methods in your topology:
+Here is an example of using these methods in your topology:
 
-![](.readme/gif/serdes.gif "Serdes gif")
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) {
+        streamsBuilder
+            .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getSerdesForValue()))
+            .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getSerdesForValue()));
+    }
+}
+```
 
 ### Error Handling
 
@@ -168,7 +207,18 @@ deserialization of records and route them to a dead-letter queue (DLQ) topic.
 
 To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
 
-![](.readme/gif/dlq.gif "DLQ topic gif")
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) { }
+
+    @Override
+    public String dlqTopic() {
+        return "dlqTopic";
+    }
+}
+```
 
 #### Topology
 
@@ -181,12 +231,39 @@ further processing.
 
 Here is a complete example of how to do this:
 
-![](.readme/gif/full-topology.gif "Full topology example gif")
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) {
+        KStream<String, KafkaPerson> stream = streamsBuilder
+                .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+
+        TopologyErrorHandler
+                .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
+                .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+    }
+
+    @Override
+    public String dlqTopic() {
+        return "dlqTopic";
+    }
+
+    private static ProcessingResult<KafkaPerson, KafkaPerson> toUpperCase(KafkaPerson value) {
+        try {
+            value.setLastName(value.getLastName().toUpperCase());
+            return ProcessingResult.success(value);
+        } catch (Exception e) {
+            return ProcessingResult.fail(e, value, "Something bad happened...");
+        }
+    }
+}
+```
 
 The first step is during the map values processing. The operation should return a new value of
 type `ProcessingResult<V, V2>`.
-The first templatized parameter is the type of the new value after a successful transformation.
-The second templatized parameter is the type of the current value for which the transformation failed.
+- The first templatized parameter is the type of the new value after a successful transformation.
+- The second templatized parameter is the type of the current value for which the transformation failed.
 
 You can use the following to mark the result as successful:
 
@@ -197,7 +274,7 @@ return ProcessingResult.success(value);
 Or the following in a catch clause to mark the result as failed:
 
 ```java
-return ProcessingResult.fail(ex,value,"An error occurred during the upper case map values process");
+return ProcessingResult.fail(e, value, "Something bad happened...");
 ```
 
 The `ProcessingResult.fail()` method takes the exception, the record that failed and a custom error message.
@@ -251,7 +328,15 @@ specific methods.
 The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka
 Streams instance as a parameter.
 
-![](.readme/gif/on-start.gif)
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void onStart(KafkaStreams kafkaStreams) {
+        // Do something before starting the Kafka Streams instance
+    }
+}
+```
 
 You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
 
@@ -277,11 +362,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("myTopic");
+            .stream("inputTopic");
 
         DeduplicationUtils
             .deduplicateKeys(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("myTopicDeduplicated");
+            .to("outputTopicDeduplicated");
     }
 }
 ```
@@ -295,11 +380,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("myTopic");
+            .stream("inputTopic");
 
         DeduplicationUtils
             .deduplicateKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("myTopicDeduplicated");
+            .to("outputTopicDeduplicated");
     }
 }
 ```
@@ -313,12 +398,12 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("myTopic");
+            .stream("inputTopic");
 
         DeduplicationUtils
             .deduplicateWithPredicate(streamsBuilder, myStream, Duration.ofDays(60),
                 value -> value.getFirstName() + "#" + value.getLastName())
-            .to("myTopicDeduplicated");
+            .to("outputTopicDeduplicated");
     }
 }
 ```
@@ -365,14 +450,69 @@ containers:
 - If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify
   sets `application.server` to the default value `localhost`.
 
+### Open Telemetry
+
+The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) into your Kafka Streams application 
+by binding all the metrics of the Kafka Streams instance to the Spring Boot registry which is used by the Open Telemetry Java agent.
+
+You can run your application with the Open Telemetry Java agent by including the following JVM options:
+
+```shell
+-javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
+```
+
+It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in your Grafana dashboard.
+
+```shell
+-Dotel.resource.attributes=environment=production,service.name=myNamespace,service.name=myKafkaStreams,category=orders
+```
+
+All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in the logs 
+during the application startup.
+
 ### Testing
 
-For testing, you can create a test class that implements `KafkaStreamsStarterTest` and override the `topology` method.
-Then, apply the topology of your Kafka Streams on the given `streamsBuilders`.
+For testing, you can create a test class that extends `KafkaStreamsStarterTest` and override the `getKafkaStreamsStarter` method to return your `KafkaStreamsStarter` class.
 
 Here is an example:
 
-![](.readme/gif/test.gif "Test class gif")
+```java
+public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
+    private TestInputTopic<String, KafkaPerson> inputTopic;
+    private TestOutputTopic<String, KafkaPerson> outputTopic;
+    
+    @Override
+    protected KafkaStreamsStarter getKafkaStreamsStarter() {
+        return new MyKafkaStreams();
+    }
+
+    @BeforeEach
+    void setUp() {
+        inputTopic = testDriver.createInputTopic("inputTopic", new StringSerializer(),
+            SerdesUtils.<KafkaPerson>getSerdesForValue().serializer());
+
+        outputTopic = testDriver.createOutputTopic("outputTopic", new StringDeserializer(),
+            SerdesUtils.<KafkaPerson>getSerdesForValue().deserializer());
+    }
+
+    @Test
+    void shouldUpperCase() {
+        inputTopic.pipeInput("1", person);
+        List<KeyValue<String, KafkaPerson>> results = outputTopic.readKeyValuesToList();
+        assertThat(results.get(0).value.getFirstName()).isEqualTo("FIRST NAME");
+        assertThat(results.get(0).value.getLastName()).isEqualTo("LAST NAME");
+    }
+
+    @Test
+    void shouldFailAndRouteToDlqTopic() {
+        inputTopic.pipeInput("1", person);
+        List<KeyValue<String, KafkaError>> errors = dlqTopic.readKeyValuesToList();
+        assertThat(errors.get(0).key).isEqualTo("1");
+        assertThat(errors.get(0).value.getContextMessage()).isEqualTo("Something bad happened...");
+        assertThat(errors.get(0).value.getOffset()).isZero();
+    }
+}
+```
 
 ## Motivation
 
