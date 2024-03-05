@@ -29,7 +29,7 @@ public class OpenTelemetryConfig {
     /**
      * The OpenTelemetry resource attributes.
      */
-    @Value("${otel.resource.attributes:}")
+    @Value("${otel.resource.attributes}")
     private String otelResourceAttributes;
 
     /**
