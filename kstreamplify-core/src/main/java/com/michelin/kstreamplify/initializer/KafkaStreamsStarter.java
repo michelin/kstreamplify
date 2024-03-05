@@ -2,6 +2,7 @@ package com.michelin.kstreamplify.initializer;
 
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 
 /**
  * The Kafka Streams starter interface.
@@ -28,5 +29,14 @@ public abstract class KafkaStreamsStarter {
      * @param kafkaStreams The Kafka Streams instance
      */
     public void onStart(KafkaStreams kafkaStreams) {
+    }
+
+    /**
+     * Register a custom / "Bring Your Own" uncaught exception handler.
+     *
+     * @return StreamsUncaughtExceptionHandler - "Bring Your Own" uncaught exception handler
+     */
+    public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
+        return null;
     }
 }
