@@ -113,7 +113,7 @@
 
     <properties>
         <avro.version>1.11.3</avro.version>
-        <checkstyle.version>10.14.0</checkstyle.version>
+        <checkstyle.version>10.14.1</checkstyle.version>
         <commons-io.version>2.15.1</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <gson.version>2.10.1</gson.version>
