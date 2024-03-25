@@ -1,6 +1,7 @@
 package com.michelin.kstreamplify.initializer;
 
 import static com.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
+import static java.util.Optional.ofNullable;
 
 import com.michelin.kstreamplify.constants.InitializerConstants;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -96,7 +97,10 @@ public class KafkaStreamsInitializer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
-        kafkaStreams.setUncaughtExceptionHandler(this::onStreamsUncaughtException);
+        // Inject a BYO (Bring Your Own) uncaught exception handler if it is provided
+        kafkaStreams.setUncaughtExceptionHandler(
+                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
+                        .orElse(this::onStreamsUncaughtException));
 
         kafkaStreams.setStateListener(this::onStateChange);
 

@@ -218,7 +218,34 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
         return "dlqTopic";
     }
 }
+```   
+
+Additionally, you may bring your own uncaught exception handler if you choose to do so. This provides an ability to
+override the default behavior - for instance, there might be a special requirement to treat and handle certain
+exception types differently.
+
+To do this, simply override the `uncaughtExceptionHandler` method and return the your own custom uncaught
+exception handler that implements the standard `StreamsUncaughtExceptionHandler` interface.
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) {
+    }
+
+    @Override
+    public String dlqTopic() {
+        return "dlqTopic";
+    }
+    
+    @Override
+    public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
+        return new MyStreamsUncaughtExceptionHandler();
+    }
+}
 ```
+
 
 #### Topology
 
