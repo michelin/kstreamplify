@@ -3,10 +3,22 @@
   "type": "record",
   "name": "KafkaTestAvro",
   "fields": [
-    {"name": "stringField", "type" : ["null","string"], "default": null},
+    {"name": "stringField", "type" : "string"},
     {"name": "booleanField","type" : "boolean", "default": false},
-    {"name": "quantityField", "type" : ["null",{"type":"bytes","logicalType": "decimal", "precision": 17, "scale": 4}], "default": null},
-    {"name": "dateField", "type" : ["null",{"type": "long", "logicalType": "timestamp-millis"}], "default": null},
+    {"name": "decimalField", "type" : {"type":"bytes","logicalType": "decimal", "precision": 17, "scale": 4}},
+    {"name": "intField", "type" : "int"},
+    {"name": "uuidField", "type": ["null", {"type": "string", "logicalType": "uuid"}]},
+    {"name": "dateField", "type": {"type": "int", "logicalType": "date"}},
+    {"name": "timestampMillisField", "type" : {"type": "long", "logicalType": "timestamp-millis"}},
+    { "name": "timestampMicrosField", "type": { "type": "long", "logicalType": "timestamp-micros"}},
+    { "name": "localTimestampMillisField", "type": { "type": "long", "logicalType": "local-timestamp-millis"}},
+    { "name": "localTimestampMicrosField", "type": { "type": "long", "logicalType": "local-timestamp-micros"}},
+    { "name": "timeMillisField", "type": { "type": "int", "logicalType": "time-millis"}},
+    { "name": "timeMicrosField", "type": { "type": "long", "logicalType": "time-micros"}},
+    { "name": "enumField", "type": { "type": "enum", "name": "EnumField", "symbols": [ "a", "b", "c" ],
+        "default": "c"
+      }
+    },
     {
       "name": "members",
       "type": [ "null" ,{
