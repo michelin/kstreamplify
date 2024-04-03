@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.opentelemetry;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,6 +18,32 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCusto
 @ExtendWith(MockitoExtension.class)
 class OpenTelemetryConfigTest {
     private final OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig();
+
+    @Test
+    void shouldNotAddTagsToMetricsWhenNull() {
+        openTelemetryConfig.setOtelResourceAttributes(null);
+        MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
+
+        MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
+        customizer.customize(meterRegistry);
+        meterRegistry.counter("fakeCounterMetric");
+
+        assertEquals("fakeCounterMetric", meterRegistry.getMeters().get(0).getId().getName());
+        assertTrue(meterRegistry.getMeters().get(0).getId().getTags().isEmpty());
+    }
+
+    @Test
+    void shouldNotAddTagsToMetricsWhenEmpty() {
+        openTelemetryConfig.setOtelResourceAttributes(EMPTY);
+        MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
+
+        MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
+        customizer.customize(meterRegistry);
+        meterRegistry.counter("fakeCounterMetric");
+
+        assertEquals("fakeCounterMetric", meterRegistry.getMeters().get(0).getId().getName());
+        assertTrue(meterRegistry.getMeters().get(0).getId().getTags().isEmpty());
+    }
 
     @Test
     void shouldAddTagsToMetricsWhenOpenTelemetryRegistry() {

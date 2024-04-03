@@ -113,25 +113,25 @@
 
     <properties>
         <avro.version>1.11.3</avro.version>
-        <checkstyle.version>10.14.0</checkstyle.version>
-        <commons-io.version>2.15.1</commons-io.version>
+        <checkstyle.version>10.15.0</checkstyle.version>
+        <commons-io.version>2.16.0</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <gson.version>2.10.1</gson.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <kafka.version>3.6.1</kafka.version>
         <kafka-streams-avro-serde.version>7.6.0</kafka-streams-avro-serde.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.32</lombok.version>
         <mockito.version>5.11.0</mockito.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
-        <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
-        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-gpg-plugin.version>3.2.2</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <spring-boot.version>3.2.3</spring-boot.version>
-        <testcontainers.version>1.19.6</testcontainers.version>
+        <spring-boot.version>3.2.4</spring-boot.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
