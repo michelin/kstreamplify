@@ -35,6 +35,7 @@ need to do:
         * [Topology](#topology)
         * [Production and Deserialization](#production-and-deserialization)
         * [Avro Schema](#avro-schema)
+        * [Uncaught Exception Handler](#uncaught-exception-handler)
     * [REST Endpoints](#rest-endpoints)
     * [Hooks](#hooks)
         * [On Start](#on-start)
@@ -309,6 +310,26 @@ kafka:
 
 An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is
 available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
+
+#### Uncaught Exception Handler
+
+You may bring your own uncaught exception handler if you choose to do so. This provides an ability to
+override the default behavior - for instance, there might be a special requirement to treat and handle certain
+exception types differently.
+
+To do this, simply override the `uncaughtExceptionHandler` method and return the your own custom uncaught
+exception handler that implements the standard `StreamsUncaughtExceptionHandler` interface.
+
+```java
+@Override
+public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
+        return throwable -> {
+            // Do something when an uncaught exception occurs
+            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+        };
+}
+```
+
 
 ### REST endpoints
 
