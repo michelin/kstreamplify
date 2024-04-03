@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.initializer;
 
+import static org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.REPLACE_THREAD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,10 +18,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.Test;
 
 class KafkaStreamsStarterTest {
@@ -37,6 +40,26 @@ class KafkaStreamsStarterTest {
 
         assertNotNull(builder.build().describe());
         assertEquals("dlqTopicUnitTests", starter.dlqTopic());
+
+        starter.onStart(null);
+        assertTrue(starter.isStarted());
+    }
+
+    @Test
+    void shouldStartWithCustomUncaughtExceptionHandler() {
+        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.setSerdesConfig(
+                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+
+        StreamsBuilder builder = new StreamsBuilder();
+        KafkaStreamsStarterImpl starter = new KafkaStreamsStarterImpl();
+        starter.topology(builder);
+
+        assertNotNull(builder.build().describe());
+        assertEquals("dlqTopicUnitTests", starter.dlqTopic());
+        assertEquals(starter.uncaughtExceptionHandler()
+                        .handle(new Exception("Register a custom uncaught exception handler test.")),
+                REPLACE_THREAD);
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
@@ -79,6 +102,11 @@ class KafkaStreamsStarterTest {
             started = true;
         }
 
+        @Override
+        public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
+            return new CustomUncaughtExceptionHandler();
+        }
+
         private static ProcessingResult<String, String> enrichValue(KafkaError input) {
             if (input != null) {
                 String output = "output field";
@@ -117,6 +145,16 @@ class KafkaStreamsStarterTest {
         public static TopicWithSerdesTestHelper<String, KafkaError> inputTopicWithSerdes() {
             return new TopicWithSerdesTestHelper<>("INPUT_TOPIC", "APP_NAME",
                 Serdes.String(), SerdesUtils.getSerdesForValue());
+        }
+    }
+
+
+    @Slf4j
+    static class CustomUncaughtExceptionHandler implements StreamsUncaughtExceptionHandler {
+        @Override
+        public StreamThreadExceptionResponse handle(final Throwable t) {
+            log.error("!Custom uncaught exception handler test!");
+            return REPLACE_THREAD;
         }
     }
 }
