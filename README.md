@@ -317,19 +317,18 @@ You may bring your own uncaught exception handler if you choose to do so. This p
 override the default behavior - for instance, there might be a special requirement to treat and handle certain
 exception types differently.
 
-To do this, simply override the `uncaughtExceptionHandler` method and return the your own custom uncaught
+To do this, simply override the `uncaughtExceptionHandler` method and return your own custom uncaught
 exception handler that implements the standard `StreamsUncaughtExceptionHandler` interface.
 
 ```java
 @Override
 public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
-        return throwable -> {
-            // Do something when an uncaught exception occurs
-            return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
-        };
+    return throwable -> {
+        // Do something when an uncaught exception occurs
+        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+    };
 }
 ```
-
 
 ### REST endpoints
 
