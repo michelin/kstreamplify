@@ -129,7 +129,7 @@
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <jacoco.version>0.8.11</jacoco.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <spring-boot.version>3.2.4</spring-boot.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
