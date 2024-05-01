@@ -15,7 +15,7 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <V> The type of the value
  */
 public class DedupKeyProcessor<V extends SpecificRecord>
-        implements Processor<String, V, String, ProcessingResult<V, V>> {
+    implements Processor<String, V, String, ProcessingResult<V, V>> {
 
     /**
      * Kstream context for this transformer.
@@ -33,14 +33,14 @@ public class DedupKeyProcessor<V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
-     * Retention window for the statestore. Used for fetching data.
+     * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
 
     /**
      * Constructor.
      *
-     * @param windowStoreName          The name of the constructor
+     * @param windowStoreName         The name of the constructor
      * @param retentionWindowDuration The retentionWindow Duration
      */
     public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration) {
@@ -56,15 +56,14 @@ public class DedupKeyProcessor<V extends SpecificRecord>
 
     @Override
     public void process(Record<String, V> message) {
-
         try {
             // Get the record timestamp
             var currentInstant = Instant.ofEpochMilli(message.timestamp());
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
             try (var resultIterator = dedupWindowStore.backwardFetch(message.key(),
-                    currentInstant.minus(retentionWindowDuration),
-                    currentInstant.plus(retentionWindowDuration))) {
+                currentInstant.minus(retentionWindowDuration),
+                currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (message.key().equals(currentKeyValue.value)) {
@@ -78,8 +77,8 @@ public class DedupKeyProcessor<V extends SpecificRecord>
             processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                    "Couldn't figure out what to do with the current payload: "
-                            + "An unlikely error occurred during deduplication transform"));
+                "Could not figure out what to do with the current payload: "
+                    + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

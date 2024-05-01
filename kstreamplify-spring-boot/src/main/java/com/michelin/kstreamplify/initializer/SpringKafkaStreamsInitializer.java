@@ -66,7 +66,7 @@ public class SpringKafkaStreamsInitializer extends KafkaStreamsInitializer imple
      * {@inheritDoc}
      */
     @Override
-    protected void initHttpServer() {
+    protected void startHttpServer() {
         // Nothing to do here as the server is already started by Spring Boot
     }
 

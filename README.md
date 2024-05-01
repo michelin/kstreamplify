@@ -59,7 +59,7 @@ need to do:
 - **Error Handling**: A strong error handling mechanism is provided for topology, production, and deserialization
   errors, and it also allows routing them into a dead letter queue (DLQ) topic.
 
-- **REST endpoints**: Some useful REST endpoints, including Kubernetes liveness and readiness probes.
+- **REST httpEndpoints**: Some useful REST httpEndpoints, including Kubernetes liveness and readiness probes.
 
 - **Testing**: The library eases the use of Topology Test Driver, making it easier to write your tests.
 
@@ -332,11 +332,11 @@ public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
 
 ### REST endpoints
 
-The Kstreamplify library provides several REST endpoints, which are listed below:
+The Kstreamplify library provides several REST httpEndpoints, which are listed below:
 
-- `GET /ready`: This endpoint is used as a readiness probe for Kubernetes deployment.
-- `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
-- `GET /topology`: This endpoint returns the Kafka Streams topology as JSON.
+- `GET /ready`: This httpEndpoint is used as a readiness probe for Kubernetes deployment.
+- `GET /liveness`: This httpEndpoint is used as a liveness probe for Kubernetes deployment.
+- `GET /topology`: This httpEndpoint returns the Kafka Streams topology as JSON.
 
 ### Hooks
 

@@ -35,6 +35,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
@@ -42,10 +44,8 @@ import org.apache.avro.util.Utf8;
 /**
  * The class to convert Avro to Json.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AvroToJsonConverter {
-    private AvroToJsonConverter() {
-    }
-
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())

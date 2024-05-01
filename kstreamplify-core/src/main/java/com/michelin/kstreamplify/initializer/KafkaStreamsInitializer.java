@@ -3,10 +3,9 @@ package com.michelin.kstreamplify.initializer;
 import static com.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
 import static java.util.Optional.ofNullable;
 
-import com.michelin.kstreamplify.constants.InitializerConstants;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import com.michelin.kstreamplify.http.KafkaStreamsHttpServer;
 import com.michelin.kstreamplify.properties.PropertiesUtils;
-import com.michelin.kstreamplify.rest.DefaultProbeController;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -26,6 +25,9 @@ import org.apache.kafka.streams.state.HostInfo;
 @Slf4j
 @Getter
 public class KafkaStreamsInitializer {
+    public static final String IP_VARIABLE_NAME = "ip.env.var.name";
+    public static final String DEFAULT_IP_VARIABLE_NAME = "MY_POD_IP";
+
     /**
      * The Kafka Streams instance.
      */
@@ -97,15 +99,14 @@ public class KafkaStreamsInitializer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
-        // Inject a BYO (Bring Your Own) uncaught exception handler if it is provided
         kafkaStreams.setUncaughtExceptionHandler(
-                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
-                        .orElse(this::onStreamsUncaughtException));
+            ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
+                .orElse(this::onStreamsUncaughtException));
 
         kafkaStreams.setStateListener(this::onStateChange);
 
         kafkaStreams.start();
-        initHttpServer();
+        startHttpServer();
     }
 
     /**
@@ -113,8 +114,9 @@ public class KafkaStreamsInitializer {
      */
     private void initSerdesConfig() {
         KafkaStreamsExecutionContext.setSerdesConfig(
-            kafkaProperties.entrySet().stream().collect(
-                Collectors.toMap(
+            kafkaProperties.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
                     e -> String.valueOf(e.getKey()),
                     e -> String.valueOf(e.getValue()),
                     (prev, next) -> next, HashMap::new
@@ -134,12 +136,10 @@ public class KafkaStreamsInitializer {
      * Init the host information.
      */
     private void initHostInfo() {
-        String ipEnvVarName = (String) kafkaProperties.get(InitializerConstants.IP_SYSTEM_VARIABLE_PROPERTY);
-        if (StringUtils.isBlank(ipEnvVarName)) {
-            ipEnvVarName = InitializerConstants.IP_SYSTEM_VARIABLE_DEFAULT;
-        }
-        String myIp = System.getenv(ipEnvVarName);
-        String host = StringUtils.isNotBlank(myIp) ? myIp : InitializerConstants.LOCALHOST;
+        String ipVariableName = (String) kafkaProperties.getOrDefault(IP_VARIABLE_NAME, DEFAULT_IP_VARIABLE_NAME);
+
+        String kafkaStreamsIp = System.getenv(ipVariableName);
+        String host = StringUtils.isNotBlank(kafkaStreamsIp) ? kafkaStreamsIp : "localhost";
 
         hostInfo = new HostInfo(host, serverPort);
 
@@ -155,8 +155,9 @@ public class KafkaStreamsInitializer {
     /**
      * Init the HTTP server.
      */
-    protected void initHttpServer() {
-        new DefaultProbeController(this);
+    protected void startHttpServer() {
+        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(this);
+        server.start();
     }
 
     /**

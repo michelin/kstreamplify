@@ -1,0 +1,17 @@
+package com.michelin.kstreamplify.http;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import org.junit.jupiter.api.Test;
+
+class KafkaStreamsHttpServerTest {
+    @Test
+    void shouldCreateServerWithDefaultHostAndPort() {
+        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer());
+
+        assertNotNull(server.server.getAddress().getAddress().getHostName());
+        assertNotEquals(0, server.server.getAddress().getPort());
+    }
+}

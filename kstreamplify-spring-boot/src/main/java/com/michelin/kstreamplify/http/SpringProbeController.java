@@ -1,9 +1,9 @@
-package com.michelin.kstreamplify.rest;
+package com.michelin.kstreamplify.http;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.initializer.SpringKafkaStreamsInitializer;
 import com.michelin.kstreamplify.model.RestServiceResponse;
-import com.michelin.kstreamplify.services.ProbeService;
+import com.michelin.kstreamplify.kubernetes.KubernetesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +29,7 @@ public class SpringProbeController {
      */
     @GetMapping("/${readiness_path:ready}")
     public ResponseEntity<String> readinessProbe() {
-        return convertToResponseEntity(ProbeService.readinessProbe(kafkaStreamsInitializer));
+        return convertToResponseEntity(KubernetesService.getReadiness(kafkaStreamsInitializer));
     }
 
     /**
@@ -39,7 +39,7 @@ public class SpringProbeController {
      */
     @GetMapping("/${liveness_path:liveness}")
     public ResponseEntity<String> livenessProbe() {
-        return convertToResponseEntity(ProbeService.livenessProbe(kafkaStreamsInitializer));
+        return convertToResponseEntity(KubernetesService.getLiveness(kafkaStreamsInitializer));
     }
 
     /**
@@ -49,7 +49,7 @@ public class SpringProbeController {
      */
     @GetMapping("/${expose_topology_path:topology}")
     public ResponseEntity<String> exposeTopology() {
-        return convertToResponseEntity(ProbeService.exposeTopology(kafkaStreamsInitializer));
+        return convertToResponseEntity(KubernetesService.exposeTopology(kafkaStreamsInitializer));
     }
 
     /**

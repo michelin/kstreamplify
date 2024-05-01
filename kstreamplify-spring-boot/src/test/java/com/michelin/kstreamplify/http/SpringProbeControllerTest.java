@@ -1,11 +1,11 @@
-package com.michelin.kstreamplify.rest;
+package com.michelin.kstreamplify.http;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
 import com.michelin.kstreamplify.model.RestServiceResponse;
-import com.michelin.kstreamplify.services.ProbeService;
+import com.michelin.kstreamplify.kubernetes.KubernetesService;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.HttpStatus;
@@ -16,8 +16,8 @@ class SpringProbeControllerTest {
 
     @Test
     void shouldGetReadinessProbe() {
-        try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
-            probeService.when(() -> ProbeService.readinessProbe(any()))
+        try (MockedStatic<KubernetesService> probeService = mockStatic(KubernetesService.class)) {
+            probeService.when(() -> KubernetesService.getReadiness(any()))
                 .thenReturn(new RestServiceResponse<>(200, "Ready"));
 
             ResponseEntity<String> response = controller.readinessProbe();
@@ -29,8 +29,8 @@ class SpringProbeControllerTest {
 
     @Test
     void shouldGetLivenessProbe() {
-        try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
-            probeService.when(() -> ProbeService.livenessProbe(any()))
+        try (MockedStatic<KubernetesService> probeService = mockStatic(KubernetesService.class)) {
+            probeService.when(() -> KubernetesService.getLiveness(any()))
                 .thenReturn(new RestServiceResponse<>(200, "Alive"));
 
             ResponseEntity<String> response = controller.livenessProbe();
@@ -42,8 +42,8 @@ class SpringProbeControllerTest {
 
     @Test
     void shouldGetTopology() {
-        try (MockedStatic<ProbeService> probeService = mockStatic(ProbeService.class)) {
-            probeService.when(() -> ProbeService.exposeTopology(any()))
+        try (MockedStatic<KubernetesService> probeService = mockStatic(KubernetesService.class)) {
+            probeService.when(() -> KubernetesService.exposeTopology(any()))
                 .thenReturn(new RestServiceResponse<>(200, "Topology"));
 
             ResponseEntity<String> response = controller.exposeTopology();
