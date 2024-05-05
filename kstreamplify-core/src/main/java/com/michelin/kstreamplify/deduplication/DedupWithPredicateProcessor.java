@@ -68,7 +68,6 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
     @Override
     public void process(Record<K, V> message) {
-
         try {
             // Get the record timestamp
             var currentInstant = Instant.ofEpochMilli(message.timestamp());
@@ -92,7 +91,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Couldn't figure out what to do with the current payload: "
+                "Could not figure out what to do with the current payload: "
                     + "An unlikely error occurred during deduplication transform"));
         }
     }

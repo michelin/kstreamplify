@@ -13,7 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TopologyService {
-    public static final String TOPOLOGY_PROPERTY = "expose_topology_path";
+    /**
+     * The topology path property.
+     */
+    public static final String TOPOLOGY_PROPERTY = "topology_path";
+
+    /**
+     * The default topology path.
+     */
     public static final String TOPOLOGY_DEFAULT_PATH = "topology";
 
     /**

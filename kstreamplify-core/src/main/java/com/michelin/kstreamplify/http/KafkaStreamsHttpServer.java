@@ -23,6 +23,10 @@ import java.util.List;
  */
 public class KafkaStreamsHttpServer {
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * The HTTP server.
+     */
     protected HttpServer server;
 
     /**
@@ -66,12 +70,14 @@ public class KafkaStreamsHttpServer {
      */
     private void exposeEndpoint(KafkaStreamsInitializer kafkaStreamsInitializer, HttpEndpoint httpEndpoint) {
         server.createContext("/" + httpEndpoint.getPath(), (exchange -> {
-            RestServiceResponse<String> restServiceResponse = httpEndpoint.getRestService()
+            RestServiceResponse<?> restServiceResponse = httpEndpoint.getRestService()
                 .apply(kafkaStreamsInitializer);
             exchange.sendResponseHeaders(restServiceResponse.getStatus(), 0);
 
             OutputStream output = exchange.getResponseBody();
-            output.write((restServiceResponse.getBody()).getBytes());
+            if (restServiceResponse.getBody() != null) {
+                output.write(((String) restServiceResponse.getBody()).getBytes());
+            }
             output.close();
             exchange.close();
         }));

@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
-import com.michelin.kstreamplify.utils.SerdesUtils;
+import com.michelin.kstreamplify.serde.SerdeUtils;
 import java.time.Duration;
 import java.util.function.Function;
 import lombok.NoArgsConstructor;
@@ -71,7 +71,7 @@ public final class DeduplicationUtils {
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
                 .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration),
             storeName);
@@ -119,11 +119,11 @@ public final class DeduplicationUtils {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
             Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdesUtils.getSerdesForValue());
+            Serdes.String(), SerdeUtils.getSerdeForValue());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
                 .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyValueProcessor<>(storeName, windowDuration),
             storeName);
@@ -189,11 +189,11 @@ public final class DeduplicationUtils {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
             Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdesUtils.getSerdesForValue());
+            Serdes.String(), SerdeUtils.getSerdeForValue());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
                 .withName(repartitionName));
         return repartitioned.process(
             () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,

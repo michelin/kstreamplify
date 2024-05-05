@@ -10,8 +10,8 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.deduplication.DeduplicationUtils;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
-import com.michelin.kstreamplify.utils.SerdesUtils;
-import com.michelin.kstreamplify.utils.TopicWithSerde;
+import com.michelin.kstreamplify.serde.SerdeUtils;
+import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import java.io.IOException;
 import java.time.Duration;
@@ -31,7 +31,7 @@ class KafkaStreamsStarterTest {
     @Test
     void shouldInstantiateKafkaStreamsStarter() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
-        KafkaStreamsExecutionContext.setSerdesConfig(
+        KafkaStreamsExecutionContext.setSerdeConfig(
             Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
@@ -48,8 +48,8 @@ class KafkaStreamsStarterTest {
     @Test
     void shouldStartWithCustomUncaughtExceptionHandler() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
-        KafkaStreamsExecutionContext.setSerdesConfig(
-                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+        KafkaStreamsExecutionContext.setSerdeConfig(
+            Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
         KafkaStreamsStarterImpl starter = new KafkaStreamsStarterImpl();
@@ -58,8 +58,8 @@ class KafkaStreamsStarterTest {
         assertNotNull(builder.build().describe());
         assertEquals("dlqTopicUnitTests", starter.dlqTopic());
         assertEquals(starter.uncaughtExceptionHandler()
-                        .handle(new Exception("Register a custom uncaught exception handler test.")),
-                REPLACE_THREAD);
+                .handle(new Exception("Register a custom uncaught exception handler test.")),
+            REPLACE_THREAD);
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
@@ -144,7 +144,7 @@ class KafkaStreamsStarterTest {
 
         public static TopicWithSerdesTestHelper<String, KafkaError> inputTopicWithSerdes() {
             return new TopicWithSerdesTestHelper<>("INPUT_TOPIC", "APP_NAME",
-                Serdes.String(), SerdesUtils.getSerdesForValue());
+                Serdes.String(), SerdeUtils.getSerdeForValue());
         }
     }
 

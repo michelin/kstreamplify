@@ -1,8 +1,8 @@
 package com.michelin.kstreamplify.context;
 
-import static com.michelin.kstreamplify.constants.PropertyConstants.PREFIX_PROPERTY_NAME;
-import static com.michelin.kstreamplify.constants.PropertyConstants.PROPERTY_SEPARATOR;
-import static com.michelin.kstreamplify.constants.PropertyConstants.SELF;
+import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
+import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
+import static com.michelin.kstreamplify.util.TopicUtils.PREFIX_PROPERTY_NAME;
 
 import java.util.Map;
 import java.util.Properties;
@@ -33,7 +33,7 @@ public class KafkaStreamsExecutionContext {
      */
     @Getter
     @Setter
-    private static Map<String, String> serdesConfig;
+    private static Map<String, String> serdeConfig;
 
     /**
      * The properties of the stream execution context.

@@ -3,8 +3,8 @@ package com.michelin.kstreamplify;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.utils.SerdesUtils;
-import com.michelin.kstreamplify.utils.TopicWithSerde;
+import com.michelin.kstreamplify.serde.SerdeUtils;
+import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public abstract class KafkaStreamsStarterTest {
         properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getName());
 
         KafkaStreamsExecutionContext.registerProperties(properties);
-        KafkaStreamsExecutionContext.setSerdesConfig(Collections
+        KafkaStreamsExecutionContext.setSerdeConfig(Collections
             .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 "mock://" + getClass().getName()));
 
@@ -65,7 +65,7 @@ public abstract class KafkaStreamsStarterTest {
             new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
 
         dlqTopic = testDriver.createOutputTopic(KafkaStreamsExecutionContext.getDlqTopicName(),
-            new StringDeserializer(), SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+            new StringDeserializer(), SerdeUtils.<KafkaError>getSerdeForValue().deserializer());
     }
 
     /**

@@ -13,5 +13,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class HttpEndpoint {
     private String path;
-    private Function<KafkaStreamsInitializer, RestServiceResponse<String>> restService;
+    private Function<KafkaStreamsInitializer, RestServiceResponse<?>> restService;
 }

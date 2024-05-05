@@ -26,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DedupWithPredicateProcessorTest {
-
     private DedupWithPredicateProcessor<String, KafkaError> processor;
 
     @Mock
@@ -51,11 +50,7 @@ class DedupWithPredicateProcessorTest {
 
     @Test
     void shouldProcessNewRecord() {
-
-        // Create a KafkaError
         final KafkaError kafkaError = new KafkaError();
-
-        // Create a test record
         final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0);
 
         processor.process(record);
@@ -67,10 +62,7 @@ class DedupWithPredicateProcessorTest {
 
     @Test
     void shouldProcessDuplicate() {
-
-        // Create a KafkaError
         final KafkaError kafkaError = new KafkaError();
-        // Create a test record
         final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0L);
 
         // Simulate hasNext() returning true once and then false
@@ -91,22 +83,18 @@ class DedupWithPredicateProcessorTest {
 
     @Test
     void shouldThrowException() {
-
-        // Create a KafkaError
-        final KafkaError kafkaError = new KafkaError();
-        // Create a test record
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(null)
-                .thenThrow(new RuntimeException("Exception..."));
+            .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
         processor.process(record);
 
         verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
-                .equals("Couldn't figure out what to do with the current payload: "
-                        + "An unlikely error occurred during deduplication transform")));
+            .equals("Could not figure out what to do with the current payload: "
+                + "An unlikely error occurred during deduplication transform")));
     }
 
     public static class TestKeyExtractor {

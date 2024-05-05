@@ -10,8 +10,9 @@ class KafkaStreamsHttpServerTest {
     @Test
     void shouldCreateServerWithDefaultHostAndPort() {
         KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer());
+        server.start();
 
-        assertNotNull(server.server.getAddress().getAddress().getHostName());
+        assertNotNull(server.server.getAddress().getHostName());
         assertNotEquals(0, server.server.getAddress().getPort());
     }
 }

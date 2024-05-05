@@ -1,11 +1,10 @@
 package com.michelin.kstreamplify.initializer;
 
-import static com.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
 import static java.util.Optional.ofNullable;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.http.KafkaStreamsHttpServer;
-import com.michelin.kstreamplify.properties.PropertiesUtils;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -25,7 +24,19 @@ import org.apache.kafka.streams.state.HostInfo;
 @Slf4j
 @Getter
 public class KafkaStreamsInitializer {
-    public static final String IP_VARIABLE_NAME = "ip.env.var.name";
+    /**
+     * The IP variable property name.
+     */
+    public static final String IP_VARIABLE_PROPERTY_NAME = "ip.env.var.name";
+
+    /**
+     * The server port property name.
+     */
+    public static final String SERVER_PORT_PROPERTY_NAME = "server.port";
+
+    /**
+     * The default IP variable name.
+     */
     public static final String DEFAULT_IP_VARIABLE_NAME = "MY_POD_IP";
 
     /**
@@ -113,7 +124,7 @@ public class KafkaStreamsInitializer {
      * Init the Kafka Streams execution context.
      */
     private void initSerdesConfig() {
-        KafkaStreamsExecutionContext.setSerdesConfig(
+        KafkaStreamsExecutionContext.setSerdeConfig(
             kafkaProperties.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
@@ -136,7 +147,8 @@ public class KafkaStreamsInitializer {
      * Init the host information.
      */
     private void initHostInfo() {
-        String ipVariableName = (String) kafkaProperties.getOrDefault(IP_VARIABLE_NAME, DEFAULT_IP_VARIABLE_NAME);
+        String ipVariableName =
+            (String) kafkaProperties.getOrDefault(IP_VARIABLE_PROPERTY_NAME, DEFAULT_IP_VARIABLE_NAME);
 
         String kafkaStreamsIp = System.getenv(ipVariableName);
         String host = StringUtils.isNotBlank(kafkaStreamsIp) ? kafkaStreamsIp : "localhost";
@@ -165,7 +177,7 @@ public class KafkaStreamsInitializer {
      */
     protected void initProperties() {
         properties = PropertiesUtils.loadProperties();
-        serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);
+        serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY_NAME);
         kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
@@ -198,7 +210,9 @@ public class KafkaStreamsInitializer {
     }
 
     /**
-     * Register metrics.
+     * Register the metrics.
+     *
+     * @param kafkaStreams The Kafka Streams instance
      */
     protected void registerMetrics(KafkaStreams kafkaStreams) {
         // Nothing to do here
