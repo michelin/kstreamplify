@@ -28,7 +28,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
  */
 @Slf4j
 @AllArgsConstructor
-public class StoreService {
+public class InteractiveQueriesService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
 
@@ -87,7 +87,7 @@ public class StoreService {
             log.info("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return getRecordOnOtherInstance(host, "/store/" + store + "/" + key);
+            return requestOtherInstance(host, "/store/" + store + "/" + key);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
@@ -123,7 +123,7 @@ public class StoreService {
         hosts.forEach(host -> {
             if (isNotCurrentHost(host)) {
                 log.debug("Fetching data on other instance ({}:{})", host.host(), host.port());
-                values.addAll(getAllOnOtherInstance(host, "api/v1/rpc/persons/instance"));
+                values.addAll(requestOtherInstance(host, "/store/" + store));
             } else {
                 log.debug("Fetching data on this instance ({}:{})", host.host(), host.port());
                 values.addAll(getAllOnCurrentInstance(store)
@@ -169,30 +169,7 @@ public class StoreService {
         return metadata.activeHost();
     }
 
-    private List<Object> getAllOnOtherInstance(HostInfo host, String endpointPath) {
-        return null;
-        /*try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .header("Accept", "application/json")
-                .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
-                .GET()
-                .build();
-
-            return httpClient
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .get();
-        } catch (URISyntaxException | ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        if (persons == null) {
-            return Collections.emptyList();
-        }
-
-        return Arrays.asList(persons);*/
-    }
-
-    private String getRecordOnOtherInstance(HostInfo host, String endpointPath) {
+    private String requestOtherInstance(HostInfo host, String endpointPath) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                 .header("Accept", "application/json")

@@ -2,7 +2,7 @@ package com.michelin.kstreamplify.controller;
 
 import static com.michelin.kstreamplify.converter.AvroToJsonConverter.convertToJson;
 
-import com.michelin.kstreamplify.http.service.StoreService;
+import com.michelin.kstreamplify.http.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.util.List;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -21,12 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/store")
 @ConditionalOnBean(KafkaStreamsStarter.class)
-public class StoreController {
+public class InteractiveQueriesController {
     /**
      * The store service.
      */
     @Autowired
-    private StoreService storeService;
+    private InteractiveQueriesService interactiveQueriesService;
 
     /**
      * Get the stores.
@@ -38,7 +38,7 @@ public class StoreController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(storeService.getStores());
+            .body(interactiveQueriesService.getStores());
     }
 
     /**
@@ -52,7 +52,7 @@ public class StoreController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(storeService.getHostsByStore(store)
+            .body(interactiveQueriesService.getHostsByStore(store)
                 .stream()
                 .map(host -> host.host() + ":" + host.port())
                 .toList());
@@ -69,7 +69,7 @@ public class StoreController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(convertToJson(storeService.getAll(store)));
+            .body(convertToJson(interactiveQueriesService.getAll(store)));
     }
 
     /**
@@ -84,6 +84,6 @@ public class StoreController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(convertToJson(storeService.getByKey(store, key, new StringSerializer())));
+            .body(convertToJson(interactiveQueriesService.getByKey(store, key, new StringSerializer())));
     }
 }

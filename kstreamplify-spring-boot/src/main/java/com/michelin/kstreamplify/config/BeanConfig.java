@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.config;
 
+import com.michelin.kstreamplify.http.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.http.service.KubernetesService;
-import com.michelin.kstreamplify.http.service.StoreService;
 import com.michelin.kstreamplify.http.service.TopologyService;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.initializer.SpringBootKafkaStreamsInitializer;
@@ -44,7 +44,7 @@ public class BeanConfig {
      * @return The Store service
      */
     @Bean
-    StoreService storeService(SpringBootKafkaStreamsInitializer initializer) {
-        return new StoreService(initializer);
+    InteractiveQueriesService interactiveQueriesService(SpringBootKafkaStreamsInitializer initializer) {
+        return new InteractiveQueriesService(initializer);
     }
 }

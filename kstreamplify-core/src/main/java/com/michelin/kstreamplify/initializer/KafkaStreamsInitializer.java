@@ -25,9 +25,9 @@ import org.apache.kafka.streams.state.HostInfo;
 @Getter
 public class KafkaStreamsInitializer {
     /**
-     * The IP variable property name.
+     * The application server property name.
      */
-    public static final String IP_VARIABLE_PROPERTY_NAME = "ip.env.var.name";
+    public static final String APPLICATION_SERVER_PROPERTY_NAME = "application.server.var.name";
 
     /**
      * The server port property name.
@@ -35,9 +35,9 @@ public class KafkaStreamsInitializer {
     public static final String SERVER_PORT_PROPERTY_NAME = "server.port";
 
     /**
-     * The default IP variable name.
+     * The default application server variable name.
      */
-    public static final String DEFAULT_IP_VARIABLE_NAME = "MY_POD_IP";
+    public static final String DEFAULT_APPLICATION_SERVER_VARIABLE_NAME = "APPLICATION_SERVER";
 
     /**
      * The Kafka Streams instance.
@@ -147,11 +147,12 @@ public class KafkaStreamsInitializer {
      * Init the host information.
      */
     private void initHostInfo() {
-        String ipVariableName =
-            (String) kafkaProperties.getOrDefault(IP_VARIABLE_PROPERTY_NAME, DEFAULT_IP_VARIABLE_NAME);
+        String applicationServerVarName =
+            (String) kafkaProperties.getOrDefault(APPLICATION_SERVER_PROPERTY_NAME,
+                DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
 
-        String kafkaStreamsIp = System.getenv(ipVariableName);
-        String host = StringUtils.isNotBlank(kafkaStreamsIp) ? kafkaStreamsIp : "localhost";
+        String applicationServer = System.getenv(applicationServerVarName);
+        String host = StringUtils.isNotBlank(applicationServer) ? applicationServer : "localhost";
 
         hostInfo = new HostInfo(host, serverPort);
 
