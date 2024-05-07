@@ -32,6 +32,10 @@ import org.apache.avro.specific.SpecificRecordBase;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonToAvroConverter {
+    public static Object jsonToObject(String json) {
+        return JsonParser.parseString(json);
+    }
+
     /**
      * Convert a file in json to avro.
      *

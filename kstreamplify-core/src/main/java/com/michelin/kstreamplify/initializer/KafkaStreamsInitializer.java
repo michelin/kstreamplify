@@ -218,4 +218,13 @@ public class KafkaStreamsInitializer {
     protected void registerMetrics(KafkaStreams kafkaStreams) {
         // Nothing to do here
     }
+
+    /**
+     * Check if the Kafka Streams is running.
+     *
+     * @return True if the Kafka Streams is running
+     */
+    public boolean isRunning() {
+        return kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
+    }
 }

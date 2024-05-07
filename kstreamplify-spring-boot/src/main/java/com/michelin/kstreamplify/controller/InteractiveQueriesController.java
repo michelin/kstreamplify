@@ -2,10 +2,12 @@ package com.michelin.kstreamplify.controller;
 
 import static com.michelin.kstreamplify.converter.AvroToJsonConverter.convertToJson;
 
+import com.michelin.kstreamplify.http.exception.InstanceNotReadyException;
 import com.michelin.kstreamplify.http.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.util.List;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KafkaStreams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
@@ -35,6 +37,11 @@ public class InteractiveQueriesController {
      */
     @GetMapping
     public ResponseEntity<List<String>> getStores() {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -49,6 +56,11 @@ public class InteractiveQueriesController {
      */
     @GetMapping(value = "/info/{store}")
     public ResponseEntity<List<String>> getHostsInfoForStore(@PathVariable("store") final String store) {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -66,6 +78,11 @@ public class InteractiveQueriesController {
      */
     @GetMapping(value = "/{store}")
     public ResponseEntity<String> getAll(@PathVariable("store") String store) {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -81,6 +98,11 @@ public class InteractiveQueriesController {
     @GetMapping("/{store}/{key}")
     public ResponseEntity<String> getByKey(@PathVariable("store") String store,
                                            @PathVariable("key") String key) {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)

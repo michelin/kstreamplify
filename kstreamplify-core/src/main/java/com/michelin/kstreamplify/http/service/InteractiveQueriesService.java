@@ -1,5 +1,8 @@
 package com.michelin.kstreamplify.http.service;
 
+import static com.michelin.kstreamplify.converter.JsonToAvroConverter.jsonToObject;
+
+import com.michelin.kstreamplify.http.exception.StoreNotFoundException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
@@ -30,6 +34,8 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 @AllArgsConstructor
 public class InteractiveQueriesService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    @Getter
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
 
     /**
@@ -83,6 +89,10 @@ public class InteractiveQueriesService {
     public <K> Object getByKey(String store, K key, Serializer<K> serializer) {
         final HostInfo host = getHostByStoreAndKey(store, key, serializer);
 
+        if (host == null) {
+            throw new StoreNotFoundException(store);
+        }
+
         if (isNotCurrentHost(host)) {
             log.info("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
@@ -123,7 +133,7 @@ public class InteractiveQueriesService {
         hosts.forEach(host -> {
             if (isNotCurrentHost(host)) {
                 log.debug("Fetching data on other instance ({}:{})", host.host(), host.port());
-                values.addAll(requestOtherInstance(host, "/store/" + store));
+                values.addAll((List<Object>) jsonToObject(requestOtherInstance(host, "/store/" + store)));
             } else {
                 log.debug("Fetching data on this instance ({}:{})", host.host(), host.port());
                 values.addAll(getAllOnCurrentInstance(store)
@@ -169,6 +179,13 @@ public class InteractiveQueriesService {
         return metadata.activeHost();
     }
 
+    /**
+     * Request other instance.
+     *
+     * @param host        The host instance
+     * @param endpointPath The endpoint path to request
+     * @return The response
+     */
     private String requestOtherInstance(HostInfo host, String endpointPath) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
