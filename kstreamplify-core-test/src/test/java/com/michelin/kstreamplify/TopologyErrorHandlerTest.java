@@ -56,14 +56,14 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
                 KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream =
                     streamsBuilder
                         .stream(AVRO_TOPIC, Consumed.with(Serdes.String(),
-                            SerdeUtils.<KafkaError>getSerdeForValue()))
+                            SerdeUtils.<KafkaError>getValueSerde()))
                         .mapValues(value -> value == null
                             ? ProcessingResult.fail(new NullPointerException(), null) :
                             ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(avroStream)
                     .to(OUTPUT_AVRO_TOPIC,
-                        Produced.with(Serdes.String(), SerdeUtils.getSerdeForValue()));
+                        Produced.with(Serdes.String(), SerdeUtils.getValueSerde()));
             }
         };
     }
@@ -73,16 +73,16 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(),
             new StringSerializer());
         avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(),
-            SerdeUtils.<KafkaError>getSerdeForValue().serializer());
+            SerdeUtils.<KafkaError>getValueSerde().serializer());
 
         stringOutputTopic =
             testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(),
                 new StringDeserializer());
         avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(),
-            SerdeUtils.<KafkaError>getSerdeForValue().deserializer());
+            SerdeUtils.<KafkaError>getValueSerde().deserializer());
 
         dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(),
-            SerdeUtils.<KafkaError>getSerdeForValue().deserializer());
+            SerdeUtils.<KafkaError>getValueSerde().deserializer());
     }
 
     @Test

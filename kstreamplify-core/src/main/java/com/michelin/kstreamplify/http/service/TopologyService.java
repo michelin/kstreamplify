@@ -1,17 +1,15 @@
-package com.michelin.kstreamplify.topology;
+package com.michelin.kstreamplify.http.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.RestServiceResponse;
 import java.net.HttpURLConnection;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Kafka Streams topology service.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class TopologyService {
     /**
      * The topology path property.
@@ -24,17 +22,21 @@ public class TopologyService {
     public static final String TOPOLOGY_DEFAULT_PATH = "topology";
 
     /**
+     * The Kafka Streams initializer.
+     */
+    private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
      * Get the Kafka Streams topology.
      *
-     * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @return The Kafka Streams topology
      */
-    public static RestServiceResponse<String> getTopology(KafkaStreamsInitializer kafkaStreamsInitializer) {
+    public RestResponse<String> getTopology() {
         if (kafkaStreamsInitializer.getTopology() != null) {
-            return RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_OK)
+            return RestResponse.<String>builder().status(HttpURLConnection.HTTP_OK)
                 .body(kafkaStreamsInitializer.getTopology().describe().toString()).build();
         }
-        return RestServiceResponse.<String>builder().status(HttpURLConnection.HTTP_NO_CONTENT)
+        return RestResponse.<String>builder().status(HttpURLConnection.HTTP_NO_CONTENT)
             .build();
     }
 }

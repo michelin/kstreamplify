@@ -37,7 +37,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
-     * Retention window for the statestore. Used for fetching data.
+     * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
 

@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.error;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdeUtils;
 import java.util.Map;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
@@ -16,11 +17,9 @@ import org.apache.kafka.streams.kstream.Produced;
  * The topology error handler class.
  */
 @Slf4j
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class TopologyErrorHandler {
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
-
-    private TopologyErrorHandler() {
-    }
 
     /**
      * Catch the errors from the given stream.
@@ -82,16 +81,14 @@ public class TopologyErrorHandler {
      */
     private static <K, V> void handleErrors(KStream<K, ProcessingError<V>> errorsStream) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
-            log.warn(
-                "Failed to route topology error to the designated DLQ (Dead Letter Queue) topic. "
-                    +
-                    "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
+            log.warn("Failed to route topology error to the designated DLQ (Dead Letter Queue) topic. "
+                + "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
             return;
         }
         errorsStream
             .map((key, value) -> new KeyValue<>(key == null ? "null" : key.toString(), value))
             .processValues(GenericErrorProcessor<V>::new)
             .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(),
-                SerdeUtils.getSerdeForValue()));
+                SerdeUtils.getValueSerde()));
     }
 }

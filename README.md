@@ -74,6 +74,7 @@ Kstreamplify offers three dependencies, all compatible with Java 17 and 21.
 To include the core Kstreamplify library in your project, add the following dependency:
 
 ```xml
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core</artifactId>
@@ -89,6 +90,7 @@ If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boo
 dependency:
 
 ```xml
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-spring-boot</artifactId>
@@ -105,6 +107,7 @@ The dependency is compatible with Spring Boot 3.
 For both Java and Spring Boot dependencies, a testing dependency is available to facilitate testing:
 
 ```xml
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-core-test</artifactId>
@@ -121,6 +124,7 @@ overriding the `topology` method.
 For instance, you can start by creating a class annotated with `@Component`:
 
 ```java
+
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
@@ -139,19 +143,19 @@ Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` wi
 
 ```java
 @Bean
-public KafkaStreamsStarter kafkaStreamsStarter() {
-    return new KafkaStreamsStarter() {
-        @Override
-        public void topology(StreamsBuilder streamsBuilder) {
-            // Your topology
-        }
+public KafkaStreamsStarter kafkaStreamsStarter(){
+    return new KafkaStreamsStarter(){
+@Override
+public void topology(StreamsBuilder streamsBuilder){
+    // Your topology
+    }
 
-        @Override
-        public String dlqTopic() {
-            return "dlqTopic";
-        }
+@Override
+public String dlqTopic(){
+    return"dlqTopic";
+    }
     };
-}
+    }
 ```
 
 ### Properties Injection
@@ -190,6 +194,7 @@ SerdesUtils.<MyAvroValue>getSerdesForKey()
 Here is an example of using these methods in your topology:
 
 ```java
+
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
@@ -209,10 +214,12 @@ deserialization of records and route them to a dead-letter queue (DLQ) topic.
 To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
 
 ```java
+
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
-    public void topology(StreamsBuilder streamsBuilder) { }
+    public void topology(StreamsBuilder streamsBuilder) {
+    }
 
     @Override
     public String dlqTopic() {
@@ -233,16 +240,17 @@ further processing.
 Here is a complete example of how to do this:
 
 ```java
+
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = streamsBuilder
-                .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+            .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
 
         TopologyErrorHandler
-                .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
-                .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+            .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
+            .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
     }
 
     @Override
@@ -263,6 +271,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 The first step is during the map values processing. The operation should return a new value of
 type `ProcessingResult<V, V2>`.
+
 - The first templatized parameter is the type of the new value after a successful transformation.
 - The second templatized parameter is the type of the current value for which the transformation failed.
 
@@ -275,7 +284,7 @@ return ProcessingResult.success(value);
 Or the following in a catch clause to mark the result as failed:
 
 ```java
-return ProcessingResult.fail(e, value, "Something bad happened...");
+return ProcessingResult.fail(e,value,"Something bad happened...");
 ```
 
 The `ProcessingResult.fail()` method takes the exception, the record that failed and a custom error message.
@@ -300,10 +309,8 @@ Here's how to use them:
 ```yml
 kafka:
   properties:
-    ...
     default.production.exception.handler: com.michelin.kstreamplify.error.DlqProductionExceptionHandler
     default.deserialization.exception.handler: com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler
-    ...
 ```
 
 #### Avro Schema
@@ -322,12 +329,12 @@ exception handler that implements the standard `StreamsUncaughtExceptionHandler`
 
 ```java
 @Override
-public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
-    return throwable -> {
-        // Do something when an uncaught exception occurs
-        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+public StreamsUncaughtExceptionHandler uncaughtExceptionHandler(){
+    return throwable->{
+    // Do something when an uncaught exception occurs
+    return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     };
-}
+    }
 ```
 
 ### REST endpoints
@@ -349,6 +356,7 @@ The `On Start` hook allows you to execute code right after the Kafka Streams ins
 Streams instance as a parameter.
 
 ```java
+
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
@@ -472,8 +480,10 @@ containers:
 
 ### Open Telemetry
 
-The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) into your Kafka Streams application 
-by binding all the metrics of the Kafka Streams instance to the Spring Boot registry which is used by the Open Telemetry Java agent.
+The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) into your
+Kafka Streams application
+by binding all the metrics of the Kafka Streams instance to the Spring Boot registry which is used by the Open Telemetry
+Java agent.
 
 You can run your application with the Open Telemetry Java agent by including the following JVM options:
 
@@ -481,18 +491,21 @@ You can run your application with the Open Telemetry Java agent by including the
 -javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
 ```
 
-It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in your Grafana dashboard.
+It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in
+your Grafana dashboard.
 
 ```shell
 -Dotel.resource.attributes=environment=production,service.name=myNamespace,service.name=myKafkaStreams,category=orders
 ```
 
-All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in the logs 
+All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in
+the logs
 during the application startup.
 
 ### Testing
 
-For testing, you can create a test class that extends `KafkaStreamsStarterTest` and override the `getKafkaStreamsStarter` method to return your `KafkaStreamsStarter` class.
+For testing, you can create a test class that extends `KafkaStreamsStarterTest` and override
+the `getKafkaStreamsStarter` method to return your `KafkaStreamsStarter` class.
 
 Here is an example:
 
@@ -500,7 +513,7 @@ Here is an example:
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     private TestInputTopic<String, KafkaPerson> inputTopic;
     private TestOutputTopic<String, KafkaPerson> outputTopic;
-    
+
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
         return new MyKafkaStreams();

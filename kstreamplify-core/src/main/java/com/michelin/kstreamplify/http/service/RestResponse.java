@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.model;
+package com.michelin.kstreamplify.http.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @Builder
-public class RestServiceResponse<T> {
+public class RestResponse<T> {
     /**
      * The HTTP status.
      */

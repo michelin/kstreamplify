@@ -1,23 +1,27 @@
-package com.michelin.kstreamplify.serde;
+package com.michelin.kstreamplify.utils;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
 /**
  * The Serdes utils class.
+ *
+ * @deprecated Use {@link com.michelin.kstreamplify.serde.SerdeUtils}.
  */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public final class SerdeUtils {
+@Deprecated(forRemoval = true, since = "1.0.3")
+public final class SerdesUtils {
+    private SerdesUtils() {
+    }
+
     /**
      * Return a key serdes for a requested class.
      *
      * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
-    public static <T extends SpecificRecord> SpecificAvroSerde<T> getKeySerde() {
-        return getSerde(true);
+    public static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdesForKey() {
+        return getSerdes(true);
     }
 
     /**
@@ -26,8 +30,8 @@ public final class SerdeUtils {
      * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
-    public static <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
-        return getSerde(false);
+    public static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdesForValue() {
+        return getSerdes(false);
     }
 
     /**
@@ -37,7 +41,7 @@ public final class SerdeUtils {
      * @param <T>           The class of requested serdes
      * @return a serdes for requested class
      */
-    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerde(
+    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(
         boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();
         serde.configure(KafkaStreamsExecutionContext.getSerdeConfig(), isSerdeForKey);

@@ -144,7 +144,7 @@ class KafkaStreamsStarterTest {
 
         public static TopicWithSerdesTestHelper<String, KafkaError> inputTopicWithSerdes() {
             return new TopicWithSerdesTestHelper<>("INPUT_TOPIC", "APP_NAME",
-                Serdes.String(), SerdeUtils.getSerdeForValue());
+                Serdes.String(), SerdeUtils.getValueSerde());
         }
     }
 

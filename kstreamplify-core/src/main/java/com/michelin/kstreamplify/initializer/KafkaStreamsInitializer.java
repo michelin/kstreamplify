@@ -3,7 +3,7 @@ package com.michelin.kstreamplify.initializer;
 import static java.util.Optional.ofNullable;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.http.KafkaStreamsHttpServer;
+import com.michelin.kstreamplify.http.server.KafkaStreamsHttpServer;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.HashMap;
 import java.util.Properties;

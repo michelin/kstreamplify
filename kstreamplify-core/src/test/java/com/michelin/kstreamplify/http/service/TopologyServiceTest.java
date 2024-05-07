@@ -1,15 +1,15 @@
-package com.michelin.kstreamplify.topology;
+package com.michelin.kstreamplify.http.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.model.RestServiceResponse;
 import java.net.HttpURLConnection;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,6 +21,9 @@ public class TopologyServiceTest {
     @Mock
     private KafkaStreamsInitializer kafkaStreamsInitializer;
 
+    @InjectMocks
+    private TopologyService topologyService;
+
     @Test
     void shouldExposeTopologyWithNonNullTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
@@ -29,7 +32,7 @@ public class TopologyServiceTest {
 
         when(kafkaStreamsInitializer.getTopology()).thenReturn(streamsBuilder.build());
 
-        RestServiceResponse<String> response = TopologyService.getTopology(kafkaStreamsInitializer);
+        RestResponse<String> response = topologyService.getTopology();
 
         assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
         assertEquals("""
@@ -47,7 +50,7 @@ public class TopologyServiceTest {
     void shouldExposeTopologyWithNullTopology() {
         when(kafkaStreamsInitializer.getTopology()).thenReturn(null);
 
-        RestServiceResponse<String> response = TopologyService.getTopology(kafkaStreamsInitializer);
+        RestResponse<String> response = topologyService.getTopology();
 
         assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.getStatus());
     }

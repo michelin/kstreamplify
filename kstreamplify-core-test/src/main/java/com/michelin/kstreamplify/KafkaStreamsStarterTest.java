@@ -65,7 +65,7 @@ public abstract class KafkaStreamsStarterTest {
             new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
 
         dlqTopic = testDriver.createOutputTopic(KafkaStreamsExecutionContext.getDlqTopicName(),
-            new StringDeserializer(), SerdeUtils.<KafkaError>getSerdeForValue().deserializer());
+            new StringDeserializer(), SerdeUtils.<KafkaError>getValueSerde().deserializer());
     }
 
     /**

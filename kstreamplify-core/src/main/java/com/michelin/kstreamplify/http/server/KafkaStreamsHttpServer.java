@@ -1,16 +1,16 @@
-package com.michelin.kstreamplify.http;
+package com.michelin.kstreamplify.http.server;
 
-import static com.michelin.kstreamplify.kubernetes.KubernetesService.DEFAULT_LIVENESS_PATH;
-import static com.michelin.kstreamplify.kubernetes.KubernetesService.DEFAULT_READINESS_PATH;
-import static com.michelin.kstreamplify.kubernetes.KubernetesService.LIVENESS_PATH_PROPERTY_NAME;
-import static com.michelin.kstreamplify.kubernetes.KubernetesService.READINESS_PATH_PROPERTY_NAME;
-import static com.michelin.kstreamplify.topology.TopologyService.TOPOLOGY_DEFAULT_PATH;
-import static com.michelin.kstreamplify.topology.TopologyService.TOPOLOGY_PROPERTY;
+import static com.michelin.kstreamplify.http.service.KubernetesService.DEFAULT_LIVENESS_PATH;
+import static com.michelin.kstreamplify.http.service.KubernetesService.DEFAULT_READINESS_PATH;
+import static com.michelin.kstreamplify.http.service.KubernetesService.LIVENESS_PATH_PROPERTY_NAME;
+import static com.michelin.kstreamplify.http.service.KubernetesService.READINESS_PATH_PROPERTY_NAME;
+import static com.michelin.kstreamplify.http.service.TopologyService.TOPOLOGY_DEFAULT_PATH;
+import static com.michelin.kstreamplify.http.service.TopologyService.TOPOLOGY_PROPERTY;
 
+import com.michelin.kstreamplify.http.service.KubernetesService;
+import com.michelin.kstreamplify.http.service.RestResponse;
+import com.michelin.kstreamplify.http.service.TopologyService;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.kubernetes.KubernetesService;
-import com.michelin.kstreamplify.model.RestServiceResponse;
-import com.michelin.kstreamplify.topology.TopologyService;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class KafkaStreamsHttpServer {
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+    private final KubernetesService kubernetesService;
+    private final TopologyService topologyService;
 
     /**
      * The HTTP server.
@@ -36,6 +38,8 @@ public class KafkaStreamsHttpServer {
      */
     public KafkaStreamsHttpServer(KafkaStreamsInitializer kafkaStreamsInitializer) {
         this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+        this.kubernetesService = new KubernetesService(kafkaStreamsInitializer);
+        this.topologyService = new TopologyService(kafkaStreamsInitializer);
     }
 
     /**
@@ -50,13 +54,13 @@ public class KafkaStreamsHttpServer {
 
         List<HttpEndpoint> httpEndpoints = new ArrayList<>();
         httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH), KubernetesService::getReadiness));
+            .getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH), kubernetesService::getReadiness));
         httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH), KubernetesService::getLiveness));
+            .getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH), kubernetesService::getLiveness));
         httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH), TopologyService::getTopology));
+            .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH), topologyService::getTopology));
 
-        httpEndpoints.forEach(httpEndpoint -> exposeEndpoint(kafkaStreamsInitializer, httpEndpoint));
+        httpEndpoints.forEach(this::exposeEndpoint);
 
         addEndpoint(kafkaStreamsInitializer);
         server.start();
@@ -65,18 +69,16 @@ public class KafkaStreamsHttpServer {
     /**
      * Expose an endpoint.
      *
-     * @param kafkaStreamsInitializer The Kafka Streams initializer
-     * @param httpEndpoint            The endpoint
+     * @param httpEndpoint The endpoint
      */
-    private void exposeEndpoint(KafkaStreamsInitializer kafkaStreamsInitializer, HttpEndpoint httpEndpoint) {
+    private void exposeEndpoint(HttpEndpoint httpEndpoint) {
         server.createContext("/" + httpEndpoint.getPath(), (exchange -> {
-            RestServiceResponse<?> restServiceResponse = httpEndpoint.getRestService()
-                .apply(kafkaStreamsInitializer);
-            exchange.sendResponseHeaders(restServiceResponse.getStatus(), 0);
+            RestResponse<?> restResponse = httpEndpoint.getRestService().get();
+            exchange.sendResponseHeaders(restResponse.getStatus(), 0);
 
             OutputStream output = exchange.getResponseBody();
-            if (restServiceResponse.getBody() != null) {
-                output.write(((String) restServiceResponse.getBody()).getBytes());
+            if (restResponse.getBody() != null) {
+                output.write(((String) restResponse.getBody()).getBytes());
             }
             output.close();
             exchange.close();

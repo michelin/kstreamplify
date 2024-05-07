@@ -71,7 +71,7 @@ public final class DeduplicationUtils {
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getValueSerde())
                 .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration),
             storeName);
@@ -119,11 +119,11 @@ public final class DeduplicationUtils {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
             Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdeUtils.getSerdeForValue());
+            Serdes.String(), SerdeUtils.getValueSerde());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getValueSerde())
                 .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyValueProcessor<>(storeName, windowDuration),
             storeName);
@@ -169,7 +169,7 @@ public final class DeduplicationUtils {
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
-     * @param storeName                 Statestore name
+     * @param storeName                 State store name
      * @param repartitionName           Repartition topic name
      * @param windowDuration            Window of time to keep in the window store
      * @param deduplicationKeyExtractor Function that should extract a deduplication key in String format.
@@ -189,11 +189,11 @@ public final class DeduplicationUtils {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
             Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdeUtils.getSerdeForValue());
+            Serdes.String(), SerdeUtils.getValueSerde());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getSerdeForValue())
+            Repartitioned.with(Serdes.String(), SerdeUtils.<V>getValueSerde())
                 .withName(repartitionName));
         return repartitioned.process(
             () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,
