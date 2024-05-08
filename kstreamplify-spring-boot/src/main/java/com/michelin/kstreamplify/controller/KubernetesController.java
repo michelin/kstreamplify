@@ -26,7 +26,7 @@ public class KubernetesController {
      *
      * @return An HTTP response based on the Kafka Streams state
      */
-    @GetMapping("/${readiness_path:ready}")
+    @GetMapping("/${kubernetes.readiness-path:ready}")
     public ResponseEntity<Void> readiness() {
         RestResponse<Void> response = kubernetesService.getReadiness();
         return ResponseEntity
@@ -39,7 +39,7 @@ public class KubernetesController {
      *
      * @return An HTTP response based on the Kafka Streams state
      */
-    @GetMapping("/${liveness_path:liveness}")
+    @GetMapping("/${kubernetes.liveness-path:liveness}")
     public ResponseEntity<Void> liveness() {
         RestResponse<Void> response = kubernetesService.getLiveness();
         return ResponseEntity

@@ -18,12 +18,12 @@ public final class KubernetesService {
     /**
      * The readiness path property name.
      */
-    public static final String READINESS_PATH_PROPERTY_NAME = "readiness_path";
+    public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness-path";
 
     /**
      * The liveness path property name.
      */
-    public static final String LIVENESS_PATH_PROPERTY_NAME = "liveness_path";
+    public static final String LIVENESS_PATH_PROPERTY_NAME = "kubernetes.liveness-path";
 
     /**
      * The default readiness path.

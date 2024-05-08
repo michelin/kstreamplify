@@ -23,45 +23,52 @@ need to do:
 
 ## Table of Contents
 
-* [Features](#features)
+* [Overview](#overview)
 * [Dependencies](#dependencies)
     * [Java](#java)
     * [Spring Boot](#spring-boot)
     * [Unit Test](#unit-test)
-* [Getting Started](#getting-started)
+* [Features](#features)
+  * [Bootstrapping](#bootstrapping)
+    * [Create your first Kstreamplify application](#create-your-first-kstreamplify-application) 
     * [Properties Injection](#properties-injection)
-    * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
-    * [Error Handling](#error-handling)
-        * [Topology](#topology)
-        * [Production and Deserialization](#production-and-deserialization)
-        * [Avro Schema](#avro-schema)
-        * [Uncaught Exception Handler](#uncaught-exception-handler)
-    * [REST Endpoints](#rest-endpoints)
-    * [Hooks](#hooks)
-        * [On Start](#on-start)
-    * [Deduplication](#deduplication)
-        * [By Key](#by-key)
-        * [By Key and Value](#by-key-and-value)
-        * [By Predicate](#by-predicate)
-    * [Interactive Queries](#interactive-queries)
-    * [Open Telemetry](#open-telemetry)
-    * [Testing](#testing)
+  * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
+  * [Error Handling](#error-handling)
+    * [Topology](#topology)
+    * [Production and Deserialization](#production-and-deserialization)
+    * [Avro Schema](#avro-schema)
+    * [Uncaught Exception Handler](#uncaught-exception-handler)
+  * [Kubernetes](#kubernetes)
+  * [Hooks](#hooks)
+    * [On Start](#on-start)
+  * [Interactive Queries](#interactive-queries)
+    * [Application Server Configuration](#application-server-configuration)
+  * [REST API](#rest-api)
+  * [Deduplication](#deduplication)
+    * [By Key](#by-key)
+    * [By Key and Value](#by-key-and-value)
+    * [By Predicate](#by-predicate)
+  * [Open Telemetry](#open-telemetry)
+  * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
-## Features
+## Overview
 
-- **Easy bootstrapping**: Kafka Streams application bootstrapping is handled for you, allowing you to focus on topology
-  implementation.
+Wondering what makes Kstreamplify stand out? Here are some of the key features that make it a must-have for Kafka Streams:
 
-- **Avro Schema Serializer and Deserializer**: Common serializers and deserializers for all your Avro specific records.
+- **🚀 Bootstrapping**: Automatic startup, configuration, and initialization of Kafka Streams is handled for you. Focus on
+business implementation rather than the setup.
 
-- **Error Handling**: A strong error handling mechanism is provided for topology, production, and deserialization
-  errors, and it also allows routing them into a dead letter queue (DLQ) topic.
+- **📝 Avro Serializer and Deserializer**: Common serializers and deserializers for Avro.
 
-- **REST Endpoints**: Some useful REST endpoints, including Kubernetes liveness and readiness probes.
+- **⛑️ Error Handling**: Catch and route errors to a dead-letter queue (DLQ) topic
 
-- **Testing**: The library eases the use of Topology Test Driver, making it easier to write your tests.
+- **☸️ Kubernetes**: Accurate readiness and liveness probes for Kubernetes deployment.
+
+- **🤿 Interactive Queries**: Dive into Kafka Streams state stores.
+
+- **🧪 Testing**: Automatic Topology Test Driver setup. Start writing your tests with minimal effort.
 
 ## Dependencies
 
@@ -113,9 +120,18 @@ For both Java and Spring Boot dependencies, a testing dependency is available to
 </dependency>
 ```
 
-## Getting Started
+## Features
 
-To begin using Kstreamplify, you need to define a `KafkaStreamsStarter` bean within your Spring Boot context and
+Kstreamplify offers a wide range of features to simplify the development of Kafka Streams applications.
+
+### Bootstrapping
+
+Kstreamplify simplifies the bootstrapping of Kafka Streams applications by handling the startup, configuration, and
+initialization of Kafka Streams for you.
+
+#### Create your first Kstreamplify application
+
+To create a Kstreamplify application, define a `KafkaStreamsStarter` bean within your Spring Boot context and
 override the `KafkaStreamsStarter#topology()` method:
 
 ```java
@@ -133,7 +149,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### Properties Injection
+#### Properties Injection
 
 You can define all your Kafka Streams properties directly from the `application.yml` file as follows:
 
@@ -291,13 +307,19 @@ public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
 }
 ```
 
-### REST Endpoints
+### Kubernetes
 
-The Kstreamplify library provides several REST endpoints, which are listed below:
+Kstreamplify provides readiness and liveness probes for Kubernetes deployment based on the Kafka Streams state.
 
-- `GET /ready`: readiness probe for Kubernetes deployment.
-- `GET /liveness`: liveness probe for Kubernetes deployment.
-- `GET /topology`: returns the Kafka Streams topology as JSON.
+By default, the endpoints are available at `/ready` and `/liveness`.
+
+The path can be customized by setting the following properties:
+
+```yml
+kubernetes:
+  readiness-path: custom-readiness
+  liveness-path: custom-liveness
+```
 
 ### Hooks
 
@@ -317,6 +339,33 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
+### Interactive Queries
+
+Kstreamplify wants to ease the use of [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) in Kafka Streams application.
+
+#### Application Server Configuration
+
+The "[application.server](https://docs.confluent.io/platform/current/streams/developer-guide/config-streams.html#application-server)" property value is determined from different sources by the following order of priority:
+
+1. The value of an environment variable whose name is defined by the `application.server.var.name` property.
+
+```yml
+kafka:
+  properties:
+    application.server.var.name: MY_APPLICATION_SERVER
+```
+
+2. The value of a default environment variable named `APPLICATION_SERVER`.
+3. `localhost`.
+
+### REST API
+
+The Kstreamplify library provides several REST endpoints, which are listed below:
+
+- `GET /ready`: readiness probe for Kubernetes deployment.
+- `GET /liveness`: liveness probe for Kubernetes deployment.
+- `GET /topology`: returns the Kafka Streams topology as JSON.
+- 
 ### Deduplication
 
 Kstreamplify facilitates deduplication of a stream through the `DeduplicationUtils` class, based on various criteria
@@ -380,24 +429,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 ```
 
 The given predicate will be used as a key in the window store. The stream will be deduplicated based on the predicate.
-
-### Interactive Queries
-
-Kstreamplify wants to ease the use of [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) in Kafka Streams application.
-
-The "[application.server](https://docs.confluent.io/platform/current/streams/developer-guide/config-streams.html#application-server)" 
-property value is determined from different sources by the following order of priority:
-
-1. The value of an environment variable whose name is defined by the `application.server.var.name` property.
-
-```yml
-kafka:
-  properties:
-    application.server.var.name: MY_APPLICATION_SERVER
-```
-
-2. The value of a default environment variable named `APPLICATION_SERVER`.
-3. `localhost`.
 
 ### Open Telemetry
 

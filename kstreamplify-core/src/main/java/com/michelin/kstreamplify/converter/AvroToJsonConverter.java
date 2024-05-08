@@ -60,6 +60,10 @@ public class AvroToJsonConverter {
      * @return The JSON
      */
     public static String convertToJson(Object value) {
+        if (value == null) {
+            return null;
+        }
+
         if (value instanceof GenericRecord genericRecord) {
             return convertRecord(genericRecord);
         }
