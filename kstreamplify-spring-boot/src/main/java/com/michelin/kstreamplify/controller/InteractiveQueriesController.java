@@ -4,10 +4,11 @@ import static com.michelin.kstreamplify.converter.AvroToJsonConverter.convertToJ
 
 import com.michelin.kstreamplify.http.exception.InstanceNotReadyException;
 import com.michelin.kstreamplify.http.service.InteractiveQueriesService;
+import com.michelin.kstreamplify.http.service.RestKeyValue;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.util.List;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
@@ -71,13 +72,57 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get all the values from the store.
+     * Get all the keys-values from the store.
      *
      * @param store The store
      * @return The values
      */
     @GetMapping(value = "/{store}")
-    public ResponseEntity<String> getAll(@PathVariable("store") String store) {
+    public ResponseEntity<List<RestKeyValue>> getAll(@PathVariable("store") String store) {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
+        List<KeyValue<Object, Object>> keyValues = interactiveQueriesService.getAll(store);
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(keyValues.stream()
+                .map(kv -> new RestKeyValue(kv.key, kv.value))
+                .toList());
+    }
+
+    /**
+     * Get all the values from the store.
+     *
+     * @param store The store
+     * @return The values
+     */
+    @GetMapping(value = "/{store}/value")
+    public ResponseEntity<String> getAllValues(@PathVariable("store") String store) {
+        if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
+            throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
+                .getKafkaStreams().state());
+        }
+
+        List<KeyValue<Object, Object>> keyValues = interactiveQueriesService.getAll(store);
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(convertToJson(keyValues.stream()
+                .map(kv -> kv.value)
+                .toList()));
+    }
+
+    /**
+     * Get the key-value by key from the store.
+     *
+     * @param key The key
+     * @return The value
+     */
+    @GetMapping("/{store}/{key}")
+    public ResponseEntity<RestKeyValue> getByKey(@PathVariable("store") String store, @PathVariable("key") String key) {
         if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
             throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
                 .getKafkaStreams().state());
@@ -86,7 +131,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(convertToJson(interactiveQueriesService.getAll(store)));
+            .body(new RestKeyValue(key, interactiveQueriesService.getByKey(store, key, new StringSerializer())));
     }
 
     /**
@@ -95,9 +140,8 @@ public class InteractiveQueriesController {
      * @param key The key
      * @return The value
      */
-    @GetMapping("/{store}/{key}")
-    public ResponseEntity<String> getByKey(@PathVariable("store") String store,
-                                           @PathVariable("key") String key) {
+    @GetMapping("/{store}/{key}/value")
+    public ResponseEntity<String> getValueByKey(@PathVariable("store") String store, @PathVariable("key") String key) {
         if (!interactiveQueriesService.getKafkaStreamsInitializer().isRunning()) {
             throw new InstanceNotReadyException(interactiveQueriesService.getKafkaStreamsInitializer()
                 .getKafkaStreams().state());

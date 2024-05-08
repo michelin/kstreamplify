@@ -2,6 +2,10 @@ package com.michelin.kstreamplify.http.service;
 
 import static com.michelin.kstreamplify.converter.JsonToAvroConverter.jsonToObject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.http.exception.StoreNotFoundException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.URI;
@@ -14,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -121,7 +126,7 @@ public class InteractiveQueriesService {
      * @param store The store
      * @return The values
      */
-    public List<Object> getAll(String store) {
+    public List<KeyValue<Object, Object>> getAll(String store) {
         final List<HostInfo> hosts = getHostsByStore(store);
 
         if (hosts.isEmpty()) {
@@ -129,29 +134,33 @@ public class InteractiveQueriesService {
             return null;
         }
 
-        List<Object> values = new ArrayList<>();
+        List<KeyValue<Object, Object>> values = new ArrayList<>();
         hosts.forEach(host -> {
             if (isNotCurrentHost(host)) {
                 log.debug("Fetching data on other instance ({}:{})", host.host(), host.port());
-                values.addAll((List<Object>) jsonToObject(requestOtherInstance(host, "/store/" + store)));
+                List<RestKeyValue> restKeyValues = requestOtherInstance(host, "/store/" + store);
+                List<KeyValue<Object, Object>> convertedKeyValues = restKeyValues
+                    .stream()
+                    .map(restKeyValue -> new KeyValue<>(jsonToObject(restKeyValue.getKey()),
+                        jsonToObject(restKeyValue.getValue())))
+                    .toList();
+
+                values.addAll(convertedKeyValues);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", host.host(), host.port());
-                values.addAll(getAllOnCurrentInstance(store)
-                    .stream()
-                    .map(entry -> entry.value)
-                    .toList());
+                values.addAll(getAllOnCurrentInstance(store));
             }
         });
 
         return values;
     }
 
-    private <K> List<KeyValue<K, Object>> getAllOnCurrentInstance(String storeName) {
-        final ReadOnlyKeyValueStore<K, Object> store = kafkaStreamsInitializer.getKafkaStreams().store(
+    private List<KeyValue<Object, Object>> getAllOnCurrentInstance(String storeName) {
+        final ReadOnlyKeyValueStore<Object, Object> store = kafkaStreamsInitializer.getKafkaStreams().store(
             StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore()));
 
-        List<KeyValue<K, Object>> results = new ArrayList<>();
-        try (KeyValueIterator<K, Object> iterator = store.all()) {
+        List<KeyValue<Object, Object>> results = new ArrayList<>();
+        try (KeyValueIterator<Object, Object> iterator = store.all()) {
             while (iterator.hasNext()) {
                 results.add(iterator.next());
             }
@@ -186,7 +195,7 @@ public class InteractiveQueriesService {
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    private String requestOtherInstance(HostInfo host, String endpointPath) {
+    private List<RestKeyValue> requestOtherInstance(HostInfo host, String endpointPath) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                 .header("Accept", "application/json")
@@ -194,11 +203,14 @@ public class InteractiveQueriesService {
                 .GET()
                 .build();
 
-            return httpClient
+            String json = httpClient
                 .sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .get();
-        } catch (URISyntaxException | ExecutionException | InterruptedException e) {
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (URISyntaxException | ExecutionException | InterruptedException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
