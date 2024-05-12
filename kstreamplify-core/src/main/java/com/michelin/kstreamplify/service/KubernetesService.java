@@ -1,7 +1,8 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.model.RestResponse;
 import java.net.HttpURLConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +19,12 @@ public final class KubernetesService {
     /**
      * The readiness path property name.
      */
-    public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness-path";
+    public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness.path";
 
     /**
      * The liveness path property name.
      */
-    public static final String LIVENESS_PATH_PROPERTY_NAME = "kubernetes.liveness-path";
+    public static final String LIVENESS_PATH_PROPERTY_NAME = "kubernetes.liveness.path";
 
     /**
      * The default readiness path.

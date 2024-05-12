@@ -1,6 +1,6 @@
-package com.michelin.kstreamplify.http.server;
+package com.michelin.kstreamplify.server;
 
-import com.michelin.kstreamplify.http.service.RestResponse;
+import com.michelin.kstreamplify.model.RestResponse;
 import java.util.function.Supplier;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

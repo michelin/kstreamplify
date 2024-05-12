@@ -1,10 +1,11 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.model.RestResponse;
 import java.net.HttpURLConnection;
 import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;
@@ -34,7 +35,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_OK, response.status());
     }
 
     @Test
@@ -46,7 +47,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.status());
     }
 
     @Test
@@ -55,7 +56,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.status());
     }
 
     @Test
@@ -65,7 +66,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_OK, response.status());
     }
 
     @Test
@@ -75,7 +76,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.status());
     }
 
     @Test
@@ -84,7 +85,7 @@ class KubernetesServiceTest {
 
         RestResponse<Void> response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
     }
 }
 

@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.serde;
 
 
-import com.michelin.kstreamplify.util.TopicUtils;
+import com.michelin.kstreamplify.topic.TopicUtils;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

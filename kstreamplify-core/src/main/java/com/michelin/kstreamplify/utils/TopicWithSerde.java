@@ -2,6 +2,7 @@ package com.michelin.kstreamplify.utils;
 
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 
+import com.michelin.kstreamplify.topic.TopicUtils;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -99,7 +100,7 @@ public class TopicWithSerde<K, V> {
      */
     @Override
     public String toString() {
-        return com.michelin.kstreamplify.util.TopicUtils.remapAndPrefix(topicName, prefixPropertyKey);
+        return TopicUtils.remapAndPrefix(topicName, prefixPropertyKey);
     }
 
     /**

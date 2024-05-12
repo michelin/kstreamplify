@@ -1,8 +1,8 @@
 package com.michelin.kstreamplify.controller;
 
-import com.michelin.kstreamplify.http.service.KubernetesService;
-import com.michelin.kstreamplify.http.service.RestResponse;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.service.KubernetesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +26,12 @@ public class KubernetesController {
      *
      * @return An HTTP response based on the Kafka Streams state
      */
-    @GetMapping("/${kubernetes.readiness-path:ready}")
+    @GetMapping("/${kubernetes.readiness.path:ready}")
     public ResponseEntity<Void> readiness() {
         RestResponse<Void> response = kubernetesService.getReadiness();
         return ResponseEntity
-            .status(response.getStatus())
-            .body(response.getBody());
+            .status(response.status())
+            .body(response.body());
     }
 
     /**
@@ -39,11 +39,11 @@ public class KubernetesController {
      *
      * @return An HTTP response based on the Kafka Streams state
      */
-    @GetMapping("/${kubernetes.liveness-path:liveness}")
+    @GetMapping("/${kubernetes.liveness.path:liveness}")
     public ResponseEntity<Void> liveness() {
         RestResponse<Void> response = kubernetesService.getLiveness();
         return ResponseEntity
-            .status(response.getStatus())
-            .body(response.getBody());
+            .status(response.status())
+            .body(response.body());
     }
 }

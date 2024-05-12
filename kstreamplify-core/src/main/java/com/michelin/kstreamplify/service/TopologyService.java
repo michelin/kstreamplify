@@ -1,6 +1,7 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.model.RestResponse;
 import java.net.HttpURLConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ public class TopologyService {
     /**
      * The topology path property.
      */
-    public static final String TOPOLOGY_PROPERTY = "topology_path";
+    public static final String TOPOLOGY_PROPERTY = "topology.topology-path";
 
     /**
      * The default topology path.

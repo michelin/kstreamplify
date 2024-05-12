@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.util;
+package com.michelin.kstreamplify.topic;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 
@@ -42,8 +42,8 @@ public final class TopicUtils {
      * <pre>{@code
      * kafka:
      *   properties:
-     *     prefix:
-     *       topic:
+     *     topic:
+     *       remap:
      *          myInitialTopicName: "myRemappedTopicName"
      * }</pre>
      * <p>It can be applied to both input and output topics</p>

@@ -2,7 +2,7 @@ package com.michelin.kstreamplify.context;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
-import static com.michelin.kstreamplify.util.TopicUtils.PREFIX_PROPERTY_NAME;
+import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
 
 import java.util.Map;
 import java.util.Properties;

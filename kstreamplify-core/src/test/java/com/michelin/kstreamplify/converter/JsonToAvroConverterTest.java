@@ -2,9 +2,11 @@ package com.michelin.kstreamplify.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.michelin.kstreamplify.avro.EnumField;
 import com.michelin.kstreamplify.avro.KafkaTestAvro;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +34,17 @@ class JsonToAvroConverterTest {
             + "\"members\":{\"key1\":{\"mapQuantityField\":1}},"
             + "\"listString\":[\"val1\",\"val2\"]"
             + "}";
+
+    @Test
+    void shouldConvertJsonToObject() {
+        assertEquals(Map.of("firstName", "John", "lastName", "Doe"),
+            JsonToAvroConverter.jsonToObject("{\"firstName\":\"John\",\"lastName\":\"Doe\"}"));
+    }
+
+    @Test
+    void shouldConvertJsonToObjectNull() {
+        assertNull(JsonToAvroConverter.jsonToObject(null));
+    }
 
     @Test
     void shouldConvertJsonToAvro() {

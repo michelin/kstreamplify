@@ -22,7 +22,7 @@ public class ControllerExceptionHandler {
      * @return The response entity
      */
     @ExceptionHandler(UnknownStateStoreException.class)
-    public ResponseEntity<String> handleStoreNotFoundException(UnknownStateStoreException e) {
+    public ResponseEntity<String> handleUnknownStateStoreException(UnknownStateStoreException e) {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)

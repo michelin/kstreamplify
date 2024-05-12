@@ -3,8 +3,8 @@ package com.michelin.kstreamplify.initializer;
 import static java.util.Optional.ofNullable;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.http.server.KafkaStreamsHttpServer;
 import com.michelin.kstreamplify.property.PropertiesUtils;
+import com.michelin.kstreamplify.server.KafkaStreamsHttpServer;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -224,7 +224,7 @@ public class KafkaStreamsInitializer {
      *
      * @return True if the Kafka Streams is running
      */
-    public boolean isRunning() {
-        return kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
+    public boolean isNotRunning() {
+        return !kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
     }
 }

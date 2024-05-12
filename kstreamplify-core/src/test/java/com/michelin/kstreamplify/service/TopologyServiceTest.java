@@ -1,10 +1,11 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import com.michelin.kstreamplify.model.RestResponse;
 import java.net.HttpURLConnection;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
@@ -13,11 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Test class for TopologyService.
- */
 @ExtendWith(MockitoExtension.class)
-public class TopologyServiceTest {
+class TopologyServiceTest {
     @Mock
     private KafkaStreamsInitializer kafkaStreamsInitializer;
 
@@ -34,7 +32,7 @@ public class TopologyServiceTest {
 
         RestResponse<String> response = topologyService.getTopology();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_OK, response.status());
         assertEquals("""
             Topologies:
                Sub-topology: 0
@@ -43,7 +41,7 @@ public class TopologyServiceTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: outputTopic)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """, response.getBody());
+            """, response.body());
     }
 
     @Test
@@ -52,7 +50,7 @@ public class TopologyServiceTest {
 
         RestResponse<String> response = topologyService.getTopology();
 
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.getStatus());
+        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
     }
 
     static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {

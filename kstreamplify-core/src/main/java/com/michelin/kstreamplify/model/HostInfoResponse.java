@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.model;
 
 /**
  * Host info response.

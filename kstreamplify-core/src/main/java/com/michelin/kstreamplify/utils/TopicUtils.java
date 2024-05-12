@@ -1,16 +1,16 @@
 package com.michelin.kstreamplify.utils;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
-import static com.michelin.kstreamplify.util.TopicUtils.PREFIX_PROPERTY_NAME;
-import static com.michelin.kstreamplify.util.TopicUtils.REMAP_PROPERTY_NAME;
-import static com.michelin.kstreamplify.util.TopicUtils.TOPIC_PROPERTY_NAME;
+import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
+import static com.michelin.kstreamplify.topic.TopicUtils.REMAP_PROPERTY_NAME;
+import static com.michelin.kstreamplify.topic.TopicUtils.TOPIC_PROPERTY_NAME;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 
 /**
  * The topic utils class.
  *
- * @deprecated Use {@link com.michelin.kstreamplify.util.TopicUtils}.
+ * @deprecated Use {@link com.michelin.kstreamplify.topic.TopicUtils}.
  */
 @Deprecated(forRemoval = true, since = "1.0.3")
 public final class TopicUtils {

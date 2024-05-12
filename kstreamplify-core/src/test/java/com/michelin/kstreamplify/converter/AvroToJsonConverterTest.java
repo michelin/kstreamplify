@@ -1,9 +1,8 @@
 package com.michelin.kstreamplify.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.michelin.kstreamplify.avro.EnumField;
 import com.michelin.kstreamplify.avro.KafkaTestAvro;
 import com.michelin.kstreamplify.avro.MapElement;
@@ -17,46 +16,87 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 class AvroToJsonConverterTest {
     @Test
+    void shouldConvertObjectNull() {
+        assertNull(AvroToJsonConverter.convertObject((Object) null));
+    }
+
+    @Test
+    void shouldConvertObject() {
+        String json = AvroToJsonConverter.convertObject(new PersonTest("John", "Doe"));
+        assertEquals("""
+            {
+              "firstName": "John",
+              "lastName": "Doe"
+            }""", json);
+    }
+
+    @Test
+    void shouldConvertListObject() {
+        String json = AvroToJsonConverter.convertObject(List.of(new PersonTest("John", "Doe")));
+        assertEquals("""
+            [{
+              "firstName": "John",
+              "lastName": "Doe"
+            }]""", json);
+    }
+
+    @Test
     void shouldConvertAvroToJson() {
-        KafkaTestAvro avro = getKafkaTest();
+        String jsonString = AvroToJsonConverter.convertRecord(buildKafkaTestAvro());
 
-        String jsonString = AvroToJsonConverter.convertRecord(avro);
-
-        var gson = new Gson();
-        var jsonObject = gson.fromJson(jsonString, JsonObject.class);
-
-        assertEquals("false", jsonObject.get("booleanField").getAsString());
-        assertEquals("2024-03-27", jsonObject.get("dateField").getAsString());
-        assertEquals("10", jsonObject.get("decimalField").getAsString());
-        assertEquals("test", jsonObject.get("stringField").getAsString());
-        assertEquals("20:51:01.815", jsonObject.get("timeMillisField").getAsString());
-        assertEquals("20:51:01.815832", jsonObject.get("timeMicrosField").getAsString());
-        assertEquals("2024-03-27T20:51:01.815832", jsonObject.get("localTimestampMillisField").getAsString());
-        assertEquals("2024-03-27T20:51:01.815832123", jsonObject.get("localTimestampMicrosField").getAsString());
-        assertEquals("2024-03-27T19:51:01.815Z", jsonObject.get("timestampMillisField").getAsString());
-        assertEquals("2024-03-27T19:51:01.815832Z", jsonObject.get("timestampMicrosField").getAsString());
-        assertEquals(EnumField.b.toString(), jsonObject.get("enumField").getAsString());
-        assertEquals("1970-01-01T00:00:00.002Z",
-                jsonObject.getAsJsonArray("split").get(0).getAsJsonObject().getAsJsonArray("subSplit")
-                        .get(0).getAsJsonObject().get("subSubDateField").getAsString());
-        assertEquals("1970-01-01T00:00:00.003Z",
-                jsonObject.getAsJsonObject("members").getAsJsonObject("key1").get("mapDateField")
-                        .getAsString());
-        assertEquals("val1", jsonObject.getAsJsonObject("membersString").get("key1").getAsString());
-        assertEquals("val1", jsonObject.getAsJsonArray("listString").get(0).getAsString());
-        assertEquals("val2", jsonObject.getAsJsonArray("listString").get(1).getAsString());
-
-        log.info(jsonString);
+        assertEquals("""
+            {
+              "localTimestampMillisField": "2024-03-27T20:51:01.815832",
+              "membersString": {
+                "key1": "val1"
+              },
+              "decimalField": 10,
+              "timeMillisField": "20:51:01.815",
+              "booleanField": false,
+              "dateField": "2024-03-27",
+              "timestampMillisField": "2024-03-27T19:51:01.815Z",
+              "intField": 5,
+              "localTimestampMicrosField": "2024-03-27T20:51:01.815832123",
+              "listString": [
+                "val1",
+                "val2"
+              ],
+              "timestampMicrosField": "2024-03-27T19:51:01.815832Z",
+              "uuidField": "dc306935-d720-427f-9ecd-ff87c0b15189",
+              "split": [
+                {
+                  "subSplit": [
+                    {
+                      "subSubIntField": 8,
+                      "subSubDateField": "1970-01-01T00:00:00.002Z",
+                      "subSubField": "subSubTest"
+                    }
+                  ],
+                  "subField": "subTest"
+                }
+              ],
+              "members": {
+                "key1": {
+                  "mapDateField": "1970-01-01T00:00:00.003Z",
+                  "mapQuantityField": 1
+                }
+              },
+              "timeMicrosField": "20:51:01.815832",
+              "stringField": "test",
+              "enumField": "b"
+            }""", jsonString);
     }
 
 
-    private KafkaTestAvro getKafkaTest() {
+    private KafkaTestAvro buildKafkaTestAvro() {
         return KafkaTestAvro.newBuilder()
                 .setDecimalField(BigDecimal.TEN)
                 .setIntField(5)
@@ -88,5 +128,12 @@ class AvroToJsonConverterTest {
                                                 .build()))
                                 .build()))
                 .build();
+    }
+
+    @Getter
+    @AllArgsConstructor
+    static class PersonTest {
+        private String firstName;
+        private String lastName;
     }
 }

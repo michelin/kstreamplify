@@ -1,22 +1,16 @@
 package com.michelin.kstreamplify.integration;
 
-import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -27,38 +21,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-class SpringBootKafkaStreamsInitializerIntegrationTest {
-    @Autowired
-    private KafkaStreamsInitializer initializer;
-
+class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @Autowired
     private MeterRegistry registry;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Container
-    static KafkaContainer kafka = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:7.4.0"))
-        .withKraft();
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG,
-            kafka::getBootstrapServers);
-    }
 
     @BeforeAll
     static void setUp() {
@@ -67,7 +39,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest {
 
     @Test
     void shouldInitAndRun() throws InterruptedException {
-        waitingForKafkaStreamsToRun();
+        waitingForKafkaStreamsToStart();
 
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
@@ -121,7 +93,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest {
 
     @Test
     void shouldRegisterKafkaMetrics() throws InterruptedException {
-        waitingForKafkaStreamsToRun();
+        waitingForKafkaStreamsToStart();
 
         // Kafka Streams metrics are registered
         assertFalse(registry.getMeters()
@@ -145,22 +117,10 @@ class SpringBootKafkaStreamsInitializerIntegrationTest {
             .isEmpty());
     }
 
-    private void waitingForKafkaStreamsToRun() throws InterruptedException {
-        while (!initializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)) {
-            log.info("Waiting for Kafka Streams to start...");
-            Thread.sleep(2000);
-        }
-    }
-
-    private static void createTopics(String... topics) {
-        var newTopics = Arrays.stream(topics)
-            .map(topic -> new NewTopic(topic, 1, (short) 1))
-            .toList();
-        try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
-            admin.createTopics(newTopics);
-        }
-    }
-
+    /**
+     * Kafka Streams starter implementation for integration tests.
+     * The topology simply forwards messages from inputTopic to outputTopic.
+     */
     @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {

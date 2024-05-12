@@ -1,9 +1,11 @@
-package com.michelin.kstreamplify.http.service;
+package com.michelin.kstreamplify.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.model.HostInfoResponse;
+import com.michelin.kstreamplify.model.QueryResponse;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -39,10 +41,21 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 @AllArgsConstructor
 public class InteractiveQueriesService {
     private static final String UNKNOWN_STATE_STORE = "State store %s not found";
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient;
 
     @Getter
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     */
+    public InteractiveQueriesService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+        this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+        this.httpClient = HttpClient.newHttpClient();
+    }
 
     /**
      * Get the stores.
@@ -86,8 +99,7 @@ public class InteractiveQueriesService {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadata(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
-            log.debug("No host found for the given state store {}", store);
-            return Collections.emptyList();
+            throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
         }
 
         List<QueryResponse> values = new ArrayList<>();
@@ -95,7 +107,8 @@ public class InteractiveQueriesService {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                List<QueryResponse> queryResponses = requestAllOtherInstance(metadata.hostInfo(), "/store/" + store);
+                List<QueryResponse> queryResponses = requestAllOtherInstance(metadata.hostInfo(),
+                    "/store/" + store + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata);
                 values.addAll(queryResponses);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
@@ -129,7 +142,7 @@ public class InteractiveQueriesService {
                             queryResponse = new QueryResponse(includeKey ? kv.key : null,
                                 kv.value.value(),
                                 kv.value.timestamp(),
-                                new HostInfoResponse(metadata.host(), metadata.port()),
+                                new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
                                 positions);
                         } else {
                             queryResponse = new QueryResponse(includeKey ? kv.key : null,
@@ -166,7 +179,8 @@ public class InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return requestOtherInstance(host, "/store/" + store + "/" + key);
+            return requestOtherInstance(host, "/store/" + store + "/" + key
+                + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
@@ -224,20 +238,9 @@ public class InteractiveQueriesService {
      */
     private List<QueryResponse> requestAllOtherInstance(HostInfo host, String endpointPath) {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .header("Accept", "application/json")
-                .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
-                .GET()
-                .build();
-
-            String json = httpClient
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .get();
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(json, new TypeReference<>() {});
-        } catch (URISyntaxException | ExecutionException | InterruptedException | JsonProcessingException e) {
+            String jsonResponse = sendRequest(host, endpointPath);
+            return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
@@ -251,20 +254,26 @@ public class InteractiveQueriesService {
      */
     private QueryResponse requestOtherInstance(HostInfo host, String endpointPath) {
         try {
+            String jsonResponse = sendRequest(host, endpointPath);
+            return objectMapper.readValue(jsonResponse, QueryResponse.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String sendRequest(HostInfo host, String endpointPath) {
+        try {
             HttpRequest request = HttpRequest.newBuilder()
                 .header("Accept", "application/json")
                 .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
                 .GET()
                 .build();
 
-            String json = httpClient
+            return httpClient
                 .sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .get();
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(json, QueryResponse.class);
-        } catch (URISyntaxException | ExecutionException | InterruptedException | JsonProcessingException e) {
+        } catch (URISyntaxException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,8 +1,8 @@
 package com.michelin.kstreamplify.controller;
 
-import com.michelin.kstreamplify.http.service.RestResponse;
-import com.michelin.kstreamplify.http.service.TopologyService;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.service.TopologyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +26,11 @@ public class TopologyController {
      *
      * @return The Kafka Streams topology
      */
-    @GetMapping("/${topology_path:topology}")
+    @GetMapping("/${topology.path:topology}")
     public ResponseEntity<String> topology() {
         RestResponse<String> response = topologyService.getTopology();
         return ResponseEntity
-            .status(response.getStatus())
-            .body(response.getBody());
+            .status(response.status())
+            .body(response.body());
     }
 }

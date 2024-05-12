@@ -43,7 +43,7 @@ need to do:
     * [On Start](#on-start)
   * [Interactive Queries](#interactive-queries)
     * [Application Server Configuration](#application-server-configuration)
-  * [REST API](#rest-api)
+  * [Topology](#topology-2)
   * [Deduplication](#deduplication)
     * [By Key](#by-key)
     * [By Key and Value](#by-key-and-value)
@@ -317,8 +317,10 @@ The path can be customized by setting the following properties:
 
 ```yml
 kubernetes:
-  readiness-path: custom-readiness
-  liveness-path: custom-liveness
+  readiness:
+    path: custom-readiness
+  liveness:
+    path: custom-liveness
 ```
 
 ### Hooks
@@ -358,14 +360,19 @@ kafka:
 2. The value of a default environment variable named `APPLICATION_SERVER`.
 3. `localhost`.
 
-### REST API
+<h3 id="topology-2">Topology</h4>
 
-The Kstreamplify library provides several REST endpoints, which are listed below:
+Kstreamplify provides a REST endpoint to retrieve the Kafka Streams topology as JSON.
 
-- `GET /ready`: readiness probe for Kubernetes deployment.
-- `GET /liveness`: liveness probe for Kubernetes deployment.
-- `GET /topology`: returns the Kafka Streams topology as JSON.
-- 
+By default, the endpoint is available at `/topology`.
+
+The path can be customized by setting the following properties:
+
+```yml
+topology:
+  path: custom-topology
+```
+
 ### Deduplication
 
 Kstreamplify facilitates deduplication of a stream through the `DeduplicationUtils` class, based on various criteria

@@ -59,7 +59,7 @@ public class AvroToJsonConverter {
      * @param value The value
      * @return The JSON
      */
-    public static String convertToJson(Object value) {
+    public static String convertObject(Object value) {
         if (value == null) {
             return null;
         }
@@ -77,9 +77,9 @@ public class AvroToJsonConverter {
      * @param values The values
      * @return The JSON
      */
-    public static String convertToJson(List<Object> values) {
+    public static String convertObject(List<Object> values) {
         return values.stream()
-            .map(AvroToJsonConverter::convertToJson)
+            .map(AvroToJsonConverter::convertObject)
             .toList()
             .toString();
     }
