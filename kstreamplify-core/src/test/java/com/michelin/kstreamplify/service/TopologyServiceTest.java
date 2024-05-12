@@ -25,7 +25,7 @@ class TopologyServiceTest {
     @Test
     void shouldExposeTopologyWithNonNullTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        KafkaStreamsStarter starter = new KafkaStreamsStarterImpl();
+        KafkaStreamsStarter starter = new KafkaStreamsStarterStub();
         starter.topology(streamsBuilder);
 
         when(kafkaStreamsInitializer.getTopology()).thenReturn(streamsBuilder.build());
@@ -36,9 +36,9 @@ class TopologyServiceTest {
         assertEquals("""
             Topologies:
                Sub-topology: 0
-                Source: KSTREAM-SOURCE-0000000000 (topics: [inputTopic])
+                Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> KSTREAM-SINK-0000000001
-                Sink: KSTREAM-SINK-0000000001 (topic: outputTopic)
+                Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
             """, response.body());
@@ -53,17 +53,17 @@ class TopologyServiceTest {
         assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
     }
 
-    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder
-                .stream("inputTopic")
-                .to("outputTopic");
+                .stream("INPUT_TOPIC")
+                .to("OUTPUT_TOPIC");
         }
 
         @Override
         public String dlqTopic() {
-            return "dlqTopic";
+            return "DLQ_TOPIC";
         }
     }
 }

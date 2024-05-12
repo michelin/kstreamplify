@@ -89,7 +89,7 @@ public class KafkaStreamsInitializer {
 
         initProperties();
 
-        initSerdesConfig();
+        initSerdeConfig();
 
         initDlq();
 
@@ -123,7 +123,7 @@ public class KafkaStreamsInitializer {
     /**
      * Init the Kafka Streams execution context.
      */
-    private void initSerdesConfig() {
+    private void initSerdeConfig() {
         KafkaStreamsExecutionContext.setSerdeConfig(
             kafkaProperties.entrySet()
                 .stream()

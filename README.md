@@ -144,7 +144,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 }
 ```
@@ -190,8 +190,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("inputTopic", Consumed.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()))
-            .to("outputTopic", Produced.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()));
     }
 }
 ```
@@ -212,7 +212,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 }
 ```
@@ -231,16 +231,16 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = streamsBuilder
-            .stream("inputTopic", Consumed.with(Serdes.String(), SerdeUtils.getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.getValueSerde()));
 
         TopologyErrorHandler
             .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
-            .to("outputTopic", Produced.with(Serdes.String(), SerdeUtils.getValueSerde()));
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.getValueSerde()));
     }
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 
     private static ProcessingResult<KafkaPerson, KafkaPerson> toUpperCase(KafkaPerson value) {
@@ -391,11 +391,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateKeys(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
@@ -408,11 +408,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
@@ -425,12 +425,12 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateWithPredicate(streamsBuilder, myStream, Duration.ofDays(60),
                 value -> value.getFirstName() + "#" + value.getLastName())
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
@@ -478,10 +478,10 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
 
     @BeforeEach
     void setUp() {
-        inputTopic = testDriver.createInputTopic("inputTopic", new StringSerializer(),
+        inputTopic = testDriver.createInputTopic("INPUT_TOPIC", new StringSerializer(),
             SerdeUtils.<KafkaPerson>getValueSerde().serializer());
 
-        outputTopic = testDriver.createOutputTopic("outputTopic", new StringDeserializer(),
+        outputTopic = testDriver.createOutputTopic("OUTPUT_TOPIC", new StringDeserializer(),
             SerdeUtils.<KafkaPerson>getValueSerde().deserializer());
     }
 

@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
 /**
- * The Serdes utils class.
+ * The Serde utils class.
  */
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class SerdeUtils {
     /**
-     * Return a key serdes for a requested class.
+     * Return a key serde for a requested class.
      *
      * @param <T> The class of requested serdes
      * @return a serdes for requested class

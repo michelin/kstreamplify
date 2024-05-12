@@ -62,7 +62,7 @@ class DlqDeserializationExceptionHandlerTest {
     @Test
     void shouldReturnFailOnExceptionDuringHandle() {
         handler = new DlqDeserializationExceptionHandler(producer);
-        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
             handler.handle(processorContext, record, new KafkaException("Exception..."));
 
@@ -72,7 +72,7 @@ class DlqDeserializationExceptionHandlerTest {
     @Test
     void shouldReturnContinueOnKafkaException() {
         handler = new DlqDeserializationExceptionHandler(producer);
-        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
         when(record.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));

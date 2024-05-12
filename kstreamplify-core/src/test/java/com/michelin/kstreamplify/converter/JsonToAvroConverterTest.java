@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.michelin.kstreamplify.avro.EnumField;
-import com.michelin.kstreamplify.avro.KafkaTestAvro;
+import com.michelin.kstreamplify.avro.KafkaRecordStub;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,8 @@ class JsonToAvroConverterTest {
 
     @Test
     void shouldConvertJsonToAvro() {
-        KafkaTestAvro kafkaTest = (KafkaTestAvro) JsonToAvroConverter.jsonToAvro(JSON, KafkaTestAvro.getClassSchema());
+        KafkaRecordStub kafkaTest = (KafkaRecordStub) JsonToAvroConverter
+            .jsonToAvro(JSON, KafkaRecordStub.getClassSchema());
         assertEquals("val1", kafkaTest.getMembersString().get("key1"));
         assertEquals(8, kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubIntField());
         assertEquals("subSubTest", kafkaTest.getSplit().get(0).getSubSplit().get(0).getSubSubField());

@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.michelin.kstreamplify.avro.EnumField;
-import com.michelin.kstreamplify.avro.KafkaTestAvro;
+import com.michelin.kstreamplify.avro.KafkaRecordStub;
 import com.michelin.kstreamplify.avro.MapElement;
-import com.michelin.kstreamplify.avro.SubKafkaTestAvro;
-import com.michelin.kstreamplify.avro.SubSubKafkaTestAvro;
+import com.michelin.kstreamplify.avro.SubKafkaRecordStub;
+import com.michelin.kstreamplify.avro.SubSubKafkaRecordStub;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,8 +16,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +28,7 @@ class AvroToJsonConverterTest {
 
     @Test
     void shouldConvertObject() {
-        String json = AvroToJsonConverter.convertObject(new PersonTest("John", "Doe"));
+        String json = AvroToJsonConverter.convertObject(new PersonStub("John", "Doe"));
         assertEquals("""
             {
               "firstName": "John",
@@ -40,7 +38,7 @@ class AvroToJsonConverterTest {
 
     @Test
     void shouldConvertListObject() {
-        String json = AvroToJsonConverter.convertObject(List.of(new PersonTest("John", "Doe")));
+        String json = AvroToJsonConverter.convertObject(List.of(new PersonStub("John", "Doe")));
         assertEquals("""
             [{
               "firstName": "John",
@@ -50,7 +48,7 @@ class AvroToJsonConverterTest {
 
     @Test
     void shouldConvertAvroToJson() {
-        String jsonString = AvroToJsonConverter.convertRecord(buildKafkaTestAvro());
+        String jsonString = AvroToJsonConverter.convertRecord(buildKafkaRecordStub());
 
         assertEquals("""
             {
@@ -95,9 +93,8 @@ class AvroToJsonConverterTest {
             }""", jsonString);
     }
 
-
-    private KafkaTestAvro buildKafkaTestAvro() {
-        return KafkaTestAvro.newBuilder()
+    private KafkaRecordStub buildKafkaRecordStub() {
+        return KafkaRecordStub.newBuilder()
                 .setDecimalField(BigDecimal.TEN)
                 .setIntField(5)
                 .setStringField("test")
@@ -118,10 +115,10 @@ class AvroToJsonConverterTest {
                 .setMembersString(Map.of("key1", "val1"))
                 .setListString(List.of("val1", "val2"))
                 .setSplit(List.of(
-                        SubKafkaTestAvro.newBuilder()
+                        SubKafkaRecordStub.newBuilder()
                                 .setSubField("subTest")
                                 .setSubSplit(List.of(
-                                        SubSubKafkaTestAvro.newBuilder()
+                                        SubSubKafkaRecordStub.newBuilder()
                                                 .setSubSubField("subSubTest")
                                                 .setSubSubDateField(Instant.ofEpochMilli(2))
                                                 .setSubSubIntField(8)
@@ -130,10 +127,5 @@ class AvroToJsonConverterTest {
                 .build();
     }
 
-    @Getter
-    @AllArgsConstructor
-    static class PersonTest {
-        private String firstName;
-        private String lastName;
-    }
+    record PersonStub(String firstName, String lastName) { }
 }

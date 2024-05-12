@@ -40,7 +40,7 @@ class DedupWithPredicateProcessorTest {
     @BeforeEach
     void setUp() {
         // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupWithPredicateProcessor<>("testStore", Duration.ofHours(1), TestKeyExtractor::extract);
+        processor = new DedupWithPredicateProcessor<>("testStore", Duration.ofHours(1), KeyExtractorStub::extract);
 
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
@@ -97,9 +97,10 @@ class DedupWithPredicateProcessorTest {
                 + "An unlikely error occurred during deduplication transform")));
     }
 
-    public static class TestKeyExtractor {
+    static class KeyExtractorStub {
         public static <V extends SpecificRecord> String extract(V v) {
             return "";
         }
     }
 }
+

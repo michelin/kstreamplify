@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.model.HostInfoResponse;
 import com.michelin.kstreamplify.model.QueryResponse;
@@ -93,6 +94,8 @@ public class InteractiveQueriesService {
      * Get all values from the store.
      *
      * @param store The store
+     * @param includeKey Include the key
+     * @param includeMetadata Include the metadata
      * @return The values
      */
     public List<QueryResponse> getAll(String store, boolean includeKey, boolean includeMetadata) {
@@ -145,8 +148,7 @@ public class InteractiveQueriesService {
                                 new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
                                 positions);
                         } else {
-                            queryResponse = new QueryResponse(includeKey ? kv.key : null,
-                                kv.value.value());
+                            queryResponse = new QueryResponse(includeKey ? kv.key : null, kv.value.value());
                         }
 
                         partitionsResult.add(queryResponse);
@@ -164,6 +166,10 @@ public class InteractiveQueriesService {
      *
      * @param store The store name
      * @param key   The key
+     * @param serializer The serializer
+     * @param includeKey Include the key
+     * @param includeMetadata Include the metadata
+     * @param <K> The key type
      * @return The value
      */
     public <K> QueryResponse getByKey(String store, K key, Serializer<K> serializer, boolean includeKey,
@@ -193,6 +199,10 @@ public class InteractiveQueriesService {
                 .inStore(store)
                 .withQuery(keyQuery)
                 .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+
+        if (result.getOnlyPartitionResult() == null) {
+            throw new UnknownKeyException(key.toString());
+        }
 
         if (includeMetadata) {
             Set<String> topics = result.getOnlyPartitionResult().getPosition().getTopics();

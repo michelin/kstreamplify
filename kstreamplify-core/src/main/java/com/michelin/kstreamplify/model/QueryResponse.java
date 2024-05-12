@@ -42,6 +42,8 @@ public class QueryResponse {
      * @param key The key
      * @param value The value
      * @param timestamp The timestamp
+     * @param hostInfo The host info
+     * @param positionVectors The position vectors
      */
     public QueryResponse(Object key, Object value, Long timestamp, HostInfoResponse hostInfo,
                          List<PositionVector> positionVectors) {
@@ -54,14 +56,11 @@ public class QueryResponse {
     }
 
     /**
-     * Query response position.
+     * Position vector.
+     *
+     * @param topic The topic
+     * @param partition The partition
+     * @param offset The offset
      */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PositionVector {
-        private String topic;
-        private Integer partition;
-        private Long offset;
-    }
+    public record PositionVector(String topic, Integer partition, Long offset) { }
 }

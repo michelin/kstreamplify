@@ -1,7 +1,7 @@
 {
   "namespace": "com.michelin.kstreamplify.avro",
   "type": "record",
-  "name": "KafkaTestAvro",
+  "name": "KafkaRecordStub",
   "fields": [
     {
       "name": "stringField",
@@ -165,7 +165,7 @@
         "type": "array",
         "items": {
           "type": "record",
-          "name": "SubKafkaTestAvro",
+          "name": "SubKafkaRecordStub",
           "fields": [
             {
               "name": "subField",
@@ -181,7 +181,7 @@
                 "type": "array",
                 "items": {
                   "type": "record",
-                  "name": "SubSubKafkaTestAvro",
+                  "name": "SubSubKafkaRecordStub",
                   "fields": [
                     {
                       "name": "subSubDateField",

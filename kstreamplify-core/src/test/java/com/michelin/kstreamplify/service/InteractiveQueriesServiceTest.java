@@ -149,7 +149,7 @@ class InteractiveQueriesServiceTest {
             .thenReturn(false);
 
         when(iterator.next())
-            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonTest("John", "Doe"), 150L)));
+            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
         List<QueryResponse> responses = interactiveQueriesService.getAll("store", false, false);
 
@@ -181,7 +181,7 @@ class InteractiveQueriesServiceTest {
             .thenReturn(false);
 
         when(iterator.next())
-            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonTest("John", "Doe"), 150L)));
+            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
         List<QueryResponse> responses = interactiveQueriesService.getAll("store", true, true);
 
@@ -190,9 +190,9 @@ class InteractiveQueriesServiceTest {
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
-        assertEquals("topic", responses.get(0).getPositionVectors().get(0).getTopic());
-        assertEquals(0, responses.get(0).getPositionVectors().get(0).getPartition());
-        assertEquals(15L, responses.get(0).getPositionVectors().get(0).getOffset());
+        assertEquals("topic", responses.get(0).getPositionVectors().get(0).topic());
+        assertEquals(0, responses.get(0).getPositionVectors().get(0).partition());
+        assertEquals(15L, responses.get(0).getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -270,9 +270,9 @@ class InteractiveQueriesServiceTest {
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
-        assertEquals("topic", responses.get(0).getPositionVectors().get(0).getTopic());
-        assertEquals(0, responses.get(0).getPositionVectors().get(0).getPartition());
-        assertEquals(15L, responses.get(0).getPositionVectors().get(0).getOffset());
+        assertEquals("topic", responses.get(0).getPositionVectors().get(0).topic());
+        assertEquals(0, responses.get(0).getPositionVectors().get(0).partition());
+        assertEquals(15L, responses.get(0).getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -297,7 +297,7 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<ValueAndTimestamp<Object>>>any()))
             .thenReturn(stateKeyQueryResult);
         when(stateKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonTest("John", "Doe"), 150L)));
+            .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
         QueryResponse response = interactiveQueriesService
             .getByKey("store", "key", new StringSerializer(), false, false);
@@ -322,7 +322,7 @@ class InteractiveQueriesServiceTest {
             .thenReturn(stateKeyQueryResult);
 
         QueryResult<ValueAndTimestamp<Object>> queryResult = QueryResult
-            .forResult(ValueAndTimestamp.make(new PersonTest("John", "Doe"), 150L));
+            .forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L));
         queryResult.setPosition(Position.fromMap(Map.of("topic", Map.of(0, 15L))));
 
         when(stateKeyQueryResult.getOnlyPartitionResult())
@@ -336,9 +336,9 @@ class InteractiveQueriesServiceTest {
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());
-        assertEquals("topic", response.getPositionVectors().get(0).getTopic());
-        assertEquals(0, response.getPositionVectors().get(0).getPartition());
-        assertEquals(15L, response.getPositionVectors().get(0).getOffset());
+        assertEquals("topic", response.getPositionVectors().get(0).topic());
+        assertEquals(0, response.getPositionVectors().get(0).partition());
+        assertEquals(15L, response.getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -412,15 +412,10 @@ class InteractiveQueriesServiceTest {
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());
-        assertEquals("topic", response.getPositionVectors().get(0).getTopic());
-        assertEquals(0, response.getPositionVectors().get(0).getPartition());
-        assertEquals(15L, response.getPositionVectors().get(0).getOffset());
+        assertEquals("topic", response.getPositionVectors().get(0).topic());
+        assertEquals(0, response.getPositionVectors().get(0).partition());
+        assertEquals(15L, response.getPositionVectors().get(0).offset());
     }
 
-    @Getter
-    @AllArgsConstructor
-    static class PersonTest {
-        private String firstName;
-        private String lastName;
-    }
+    record PersonStub(String firstName, String lastName) { }
 }

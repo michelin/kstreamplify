@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.controller;
 
+import com.michelin.kstreamplify.exception.UnknownKeyException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
@@ -40,6 +41,20 @@ public class ControllerExceptionHandler {
         log.error(e.getMessage(), e);
         return ResponseEntity
             .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(e.getMessage());
+    }
+
+    /**
+     * Handle the unknown key exception.
+     *
+     * @param e The exception
+     * @return The response entity
+     */
+    @ExceptionHandler(UnknownKeyException.class)
+    public ResponseEntity<String> handleUnknownKeyException(UnknownKeyException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
             .body(e.getMessage());
     }
 }

@@ -13,43 +13,27 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
-class KafkaStreamsInitializerIntegrationTest {
-    private final KafkaStreamsInitializer initializer = new KafkaStreamInitializerImpl();
-
-    private final HttpClient httpClient = HttpClient.newBuilder().build();
-
-    @Container
-    static KafkaContainer kafka = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:7.4.0"))
-        .withKraft();
-
+class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @BeforeAll
-    static void setUp() {
-        createTopics("inputTopic", "outputTopic");
+    static void globalSetUp() {
+        createTopics("INPUT_TOPIC", "OUTPUT_TOPIC");
     }
 
     @Test
     void shouldInitAndRun() throws InterruptedException, IOException {
-        initializer.init(new KafkaStreamsStarterImpl());
+        initializer.init(new KafkaStreamsStarterStub());
 
         waitingForKafkaStreamsToRun();
 
@@ -65,10 +49,10 @@ class KafkaStreamsInitializerIntegrationTest {
 
         List<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions().stream().toList();
 
-        assertEquals("inputTopic", topicPartitions.get(0).topic());
+        assertEquals("INPUT_TOPIC", topicPartitions.get(0).topic());
         assertEquals(0, topicPartitions.get(0).partition());
 
-        assertEquals("dlqTopic", KafkaStreamsExecutionContext.getDlqTopicName());
+        assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
             KafkaStreamsExecutionContext.getSerdeConfig().get("default.key.serde"));
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
@@ -107,51 +91,26 @@ class KafkaStreamsInitializerIntegrationTest {
         assertEquals("""
             Topologies:
                Sub-topology: 0
-                Source: KSTREAM-SOURCE-0000000000 (topics: [inputTopic])
+                Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> KSTREAM-SINK-0000000001
-                Sink: KSTREAM-SINK-0000000001 (topic: outputTopic)
+                Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
             """, responseTopology.body());
     }
 
-    private void waitingForKafkaStreamsToRun() throws InterruptedException {
-        while (!initializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)) {
-            log.info("Waiting for Kafka Streams to start...");
-            Thread.sleep(2000);
-        }
-    }
-
-    private static void createTopics(String... topics) {
-        var newTopics = Arrays.stream(topics)
-            .map(topic -> new NewTopic(topic, 1, (short) 1))
-            .toList();
-        try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
-            admin.createTopics(newTopics);
-        }
-    }
-
-    static class KafkaStreamInitializerImpl extends KafkaStreamsInitializer {
-        @Override
-        protected void initProperties() {
-            super.initProperties();
-            KafkaStreamsExecutionContext.getProperties()
-                .setProperty(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        }
-    }
-
     @Slf4j
-    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder
-                .stream("inputTopic")
-                .to("outputTopic");
+                .stream("INPUT_TOPIC")
+                .to("OUTPUT_TOPIC");
         }
 
         @Override
         public String dlqTopic() {
-            return "dlqTopic";
+            return "DLQ_TOPIC";
         }
 
         @Override

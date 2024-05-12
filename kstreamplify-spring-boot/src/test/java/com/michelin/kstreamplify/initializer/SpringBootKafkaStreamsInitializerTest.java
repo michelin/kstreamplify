@@ -62,7 +62,7 @@ class SpringBootKafkaStreamsInitializerTest {
 
         initializer.initProperties();
         StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response = initializer
-            .onStreamsUncaughtException(new RuntimeException("Test Exception"));
+            .onStreamsUncaughtException(new RuntimeException("Unexpected test exception"));
 
         assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         verify(applicationContext).close();
