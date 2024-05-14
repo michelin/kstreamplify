@@ -39,15 +39,48 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
+    @Container
+    static KafkaContainer broker = new KafkaContainer(DockerImageName
+        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+        .withNetwork(NETWORK)
+        .withNetworkAliases("broker")
+        .withKraft();
+
+    @DynamicPropertySource
+    static void kafkaProperties(DynamicPropertyRegistry registry) {
+        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG,
+            broker::getBootstrapServers);
+    }
+
+    @Container
+    static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
+        .parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
+        .dependsOn(broker)
+        .withNetwork(NETWORK)
+        .withNetworkAliases("schema-registry")
+        .withExposedPorts(8081)
+        .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
+        .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
+        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
+        .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
+
     @BeforeAll
     static void globalSetUp() {
-        createTopics("STRING_TOPIC", "JAVA_TOPIC", "AVRO_TOPIC");
+        createTopics(broker.getBootstrapServers(),
+            "STRING_TOPIC", "JAVA_TOPIC", "AVRO_TOPIC");
     }
 
     @BeforeEach
@@ -80,19 +113,17 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKey() throws InterruptedException {
         try (KafkaProducer<String, String> stringKafkaProducer = new KafkaProducer<>(
-            Map.of(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
+            Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
                 KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName(),
                 VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName()))) {
             stringKafkaProducer.send(new ProducerRecord<>("STRING_TOPIC", "key", "value"));
         }
 
-        // SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort())
-
         try (KafkaProducer<String, KafkaPersonStub> avroKafkaProducer = new KafkaProducer<>(
-            Map.of(BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
+            Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
                 KEY_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
-                VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName()
-                ))) {
+                VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
+                SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
             avroKafkaProducer.send(new ProducerRecord<>("AVRO_TOPIC", "person1", KafkaPersonStub.newBuilder()
                 .setId(1L)
                 .setFirstName("John")
@@ -159,9 +190,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
      */
     @Slf4j
     @SpringBootApplication
-    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         public static void main(String[] args) {
-            SpringApplication.run(SpringBootKafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterImpl.class, args);
+            SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }
 
         @Override

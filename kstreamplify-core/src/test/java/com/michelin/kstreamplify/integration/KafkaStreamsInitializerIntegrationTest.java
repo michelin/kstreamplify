@@ -1,15 +1,12 @@
 package com.michelin.kstreamplify.integration;
 
-import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -21,18 +18,29 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
 class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
+    @Container
+    static KafkaContainer broker = new KafkaContainer(DockerImageName
+        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+        .withNetworkAliases("broker")
+        .withKraft();
+
     @BeforeAll
     static void globalSetUp() {
-        createTopics("INPUT_TOPIC", "OUTPUT_TOPIC");
+        createTopics(broker.getBootstrapServers(),
+            "INPUT_TOPIC", "OUTPUT_TOPIC");
     }
 
     @Test
     void shouldInitAndRun() throws InterruptedException, IOException {
+        initializer = new KafkaStreamInitializerStub(broker.getBootstrapServers());
         initializer.init(new KafkaStreamsStarterStub());
 
         waitingForKafkaStreamsToRun();

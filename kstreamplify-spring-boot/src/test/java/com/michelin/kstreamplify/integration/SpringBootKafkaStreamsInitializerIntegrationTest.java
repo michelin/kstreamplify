@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.integration;
 
+import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,18 +24,37 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
+    @Container
+    static KafkaContainer broker = new KafkaContainer(DockerImageName
+        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+        .withNetwork(NETWORK)
+        .withNetworkAliases("broker")
+        .withKraft();
+
+    @DynamicPropertySource
+    static void kafkaProperties(DynamicPropertyRegistry registry) {
+        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG,
+            broker::getBootstrapServers);
+    }
+
     @Autowired
     private MeterRegistry registry;
 
     @BeforeAll
     static void globalSetUp() {
-        createTopics("INPUT_TOPIC", "OUTPUT_TOPIC");
+        createTopics(broker.getBootstrapServers(),
+            "INPUT_TOPIC", "OUTPUT_TOPIC");
     }
 
     @BeforeEach
@@ -124,9 +144,9 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
      */
     @Slf4j
     @SpringBootApplication
-    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         public static void main(String[] args) {
-            SpringApplication.run(KafkaStreamsStarterImpl.class, args);
+            SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }
 
         @Override

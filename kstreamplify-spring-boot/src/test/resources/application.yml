@@ -1,5 +1,3 @@
-server:
-  port: 8085
 kafka:
   properties:
     application.id: appId

@@ -7,6 +7,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -16,21 +17,16 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
-public abstract class KafkaIntegrationTest {
-    protected final KafkaStreamsInitializer initializer = new KafkaStreamInitializerStub();
+abstract class KafkaIntegrationTest {
+    protected static final String CONFLUENT_PLATFORM_VERSION = "7.6.1";
     protected final HttpClient httpClient = HttpClient.newBuilder().build();
+    protected KafkaStreamsInitializer initializer;
 
-    @Container
-    static KafkaContainer broker = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:7.6.1"))
-        .withNetworkAliases("broker")
-        .withKraft();
-
-    protected static void createTopics(String... topics) {
+    protected static void createTopics(String bootstrapServers, String... topics) {
         var newTopics = Arrays.stream(topics)
             .map(topic -> new NewTopic(topic, 1, (short) 1))
             .toList();
-        try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()))) {
+        try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
         }
     }
@@ -42,12 +38,15 @@ public abstract class KafkaIntegrationTest {
         }
     }
 
+    @AllArgsConstructor
     static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
+        private String bootstrapServers;
+
         @Override
         protected void initProperties() {
             super.initProperties();
             KafkaStreamsExecutionContext.getProperties()
-                .setProperty(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
+                .setProperty(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         }
     }
 }
