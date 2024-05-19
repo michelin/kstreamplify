@@ -15,18 +15,22 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.model.HostInfoResponse;
 import com.michelin.kstreamplify.model.QueryResponse;
+import com.michelin.kstreamplify.serde.SerdesUtils;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
@@ -39,6 +43,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
@@ -50,6 +55,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 @Testcontainers
+@ActiveProfiles("interactive-queries")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Container
@@ -58,12 +64,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         .withNetwork(NETWORK)
         .withNetworkAliases("broker")
         .withKraft();
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG,
-            broker::getBootstrapServers);
-    }
 
     @Container
     static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
@@ -76,6 +76,13 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
         .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
         .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
+
+    @DynamicPropertySource
+    static void kafkaProperties(DynamicPropertyRegistry registry) {
+        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG, broker::getBootstrapServers);
+        registry.add("kafka.properties." + SCHEMA_REGISTRY_URL_CONFIG,
+            () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
+    }
 
     @BeforeAll
     static void globalSetUp() {
@@ -121,7 +128,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         try (KafkaProducer<String, KafkaPersonStub> avroKafkaProducer = new KafkaProducer<>(
             Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
-                KEY_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
+                KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName(),
                 VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
                 SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
             avroKafkaProducer.send(new ProducerRecord<>("AVRO_TOPIC", "person1", KafkaPersonStub.newBuilder()
@@ -171,10 +178,29 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("STRING_TOPIC", recordByKeyWithMetadata.getBody().getPositionVectors().get(0).topic());
         assertEquals(0, recordByKeyWithMetadata.getBody().getPositionVectors().get(0).partition());
         assertEquals(0, recordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
+
+        // Get Avro by key with metadata
+        waitForStoreToCatchKey("AVRO_STORE", "person1");
+
+        ResponseEntity<QueryResponse> avroRecordByKeyWithMetadata = restTemplate
+            .getForEntity("http://localhost:8085/store/AVRO_STORE/person1?includeKey=true&includeMetadata=true", QueryResponse.class);
+
+        assertEquals(200, avroRecordByKeyWithMetadata.getStatusCode().value());
+        assertNotNull(avroRecordByKeyWithMetadata.getBody());
+        assertEquals("person1", avroRecordByKeyWithMetadata.getBody().getKey());
+        assertEquals("John", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getBody().getValue()).get("firstName"));
+        assertEquals("Doe", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getBody().getValue()).get("lastName"));
+        assertNotNull(avroRecordByKeyWithMetadata.getBody().getTimestamp());
+        assertEquals("localhost", avroRecordByKeyWithMetadata.getBody().getHostInfo().host());
+        assertEquals(8085, avroRecordByKeyWithMetadata.getBody().getHostInfo().port());
+        assertEquals("AVRO_TOPIC", avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).topic());
+        assertEquals(0, avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).partition());
+        assertEquals(0, avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
+
     }
 
     private void waitForStoreToCatchKey(String storeName, String key) throws InterruptedException {
-        final ReadOnlyKeyValueStore<String, String> store = initializer.getKafkaStreams().store(
+        final ReadOnlyKeyValueStore<String, Object> store = initializer.getKafkaStreams().store(
             StoreQueryParameters.fromNameAndType(storeName, QueryableStoreTypes.keyValueStore()));
 
         while (store.get(key) == null) {
@@ -204,7 +230,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                 .table("JAVA_TOPIC", Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("JAVA_STORE"));
 
             streamsBuilder
-                .table("AVRO_TOPIC", Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("AVRO_STORE"));
+                .table("AVRO_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()),
+                    Materialized.<String, KafkaPersonStub, KeyValueStore<Bytes, byte[]>>as("AVRO_STORE"));
         }
 
         @Override

@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.serde.SerdeUtils;
+import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.util.Map;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +89,6 @@ public class TopologyErrorHandler {
             .map((key, value) -> new KeyValue<>(key == null ? "null" : key.toString(), value))
             .processValues(GenericErrorProcessor<V>::new)
             .to(KafkaStreamsExecutionContext.getDlqTopicName(), Produced.with(Serdes.String(),
-                SerdeUtils.getValueSerde()));
+                SerdesUtils.getValueSerdes()));
     }
 }

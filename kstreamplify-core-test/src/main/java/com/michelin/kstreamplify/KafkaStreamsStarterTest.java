@@ -3,7 +3,7 @@ package com.michelin.kstreamplify;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.serde.SerdeUtils;
+import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -65,7 +65,7 @@ public abstract class KafkaStreamsStarterTest {
             new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
 
         dlqTopic = testDriver.createOutputTopic(KafkaStreamsExecutionContext.getDlqTopicName(),
-            new StringDeserializer(), SerdeUtils.<KafkaError>getValueSerde().deserializer());
+            new StringDeserializer(), SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
     /**
