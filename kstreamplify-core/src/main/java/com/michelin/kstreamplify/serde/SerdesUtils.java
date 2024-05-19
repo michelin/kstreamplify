@@ -9,15 +9,15 @@ import org.apache.avro.specific.SpecificRecord;
  * The Serde utils class.
  */
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public final class SerdeUtils {
+public final class SerdesUtils {
     /**
      * Return a key serde for a requested class.
      *
      * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
-    public static <T extends SpecificRecord> SpecificAvroSerde<T> getKeySerde() {
-        return getSerde(true);
+    public static <T extends SpecificRecord> SpecificAvroSerde<T> getKeySerdes() {
+        return getSerdes(true);
     }
 
     /**
@@ -26,8 +26,8 @@ public final class SerdeUtils {
      * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
-    public static <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerde() {
-        return getSerde(false);
+    public static <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerdes() {
+        return getSerdes(false);
     }
 
     /**
@@ -37,7 +37,7 @@ public final class SerdeUtils {
      * @param <T>           The class of requested serdes
      * @return a serdes for requested class
      */
-    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerde(
+    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(
         boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();
         serde.configure(KafkaStreamsExecutionContext.getSerdeConfig(), isSerdeForKey);

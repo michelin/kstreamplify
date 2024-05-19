@@ -10,7 +10,7 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.deduplication.DeduplicationUtils;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
-import com.michelin.kstreamplify.serde.SerdeUtils;
+import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import java.io.IOException;
@@ -138,7 +138,7 @@ class KafkaStreamsStarterTest {
 
         public static TopicWithSerdeStub<String, KafkaError> inputTopicWithSerde() {
             return new TopicWithSerdeStub<>("INPUT_TOPIC", "APP_NAME",
-                Serdes.String(), SerdeUtils.getValueSerde());
+                Serdes.String(), SerdesUtils.getValueSerdes());
         }
     }
 
