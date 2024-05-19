@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.integration;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
@@ -11,6 +12,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
@@ -74,10 +76,12 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
         assertEquals(8086, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
-        List<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions().stream().toList();
+        Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
 
-        assertEquals("INPUT_TOPIC", topicPartitions.get(0).topic());
-        assertEquals(0, topicPartitions.get(0).partition());
+        assertTrue(Set.of(
+            new TopicPartition("INPUT_TOPIC", 0),
+            new TopicPartition("INPUT_TOPIC", 1)
+        ).containsAll(topicPartitions));
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",

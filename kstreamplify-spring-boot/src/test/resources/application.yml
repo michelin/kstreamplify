@@ -6,3 +6,4 @@ kafka:
     default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
     default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
     state.dir: /tmp/kstreamplify-test/initializer
+    auto.offset.reset: earliest
