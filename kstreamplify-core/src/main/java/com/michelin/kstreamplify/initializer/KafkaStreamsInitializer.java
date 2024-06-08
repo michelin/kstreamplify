@@ -124,7 +124,7 @@ public class KafkaStreamsInitializer {
      * Init the Kafka Streams execution context.
      */
     private void initSerdeConfig() {
-        KafkaStreamsExecutionContext.setSerdeConfig(
+        KafkaStreamsExecutionContext.setSerdesConfig(
             kafkaProperties.entrySet()
                 .stream()
                 .collect(Collectors.toMap(

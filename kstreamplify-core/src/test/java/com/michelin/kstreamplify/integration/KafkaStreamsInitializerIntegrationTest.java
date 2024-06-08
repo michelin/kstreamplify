@@ -62,9 +62,9 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdeConfig().get("default.key.serde"));
+            KafkaStreamsExecutionContext.getSerdesConfig().get("default.key.serde"));
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdeConfig().get("default.value.serde"));
+            KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
         assertEquals("localhost:8080",
             KafkaStreamsExecutionContext.getProperties().get("application.server"));

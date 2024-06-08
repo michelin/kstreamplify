@@ -50,7 +50,7 @@ public abstract class KafkaStreamsStarterTest {
         properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getName());
 
         KafkaStreamsExecutionContext.registerProperties(properties);
-        KafkaStreamsExecutionContext.setSerdeConfig(Collections
+        KafkaStreamsExecutionContext.setSerdesConfig(Collections
             .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 "mock://" + getClass().getName()));
 
