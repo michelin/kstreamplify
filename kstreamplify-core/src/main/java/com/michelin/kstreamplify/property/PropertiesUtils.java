@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.property;
 
+import com.michelin.kstreamplify.exception.PropertiesFileException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -42,7 +43,7 @@ public final class PropertiesUtils {
             LinkedHashMap<String, Object> propsMap = yaml.load(inputStream);
             return parsePropertiesMap(propsMap);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new PropertiesFileException(e);
         }
     }
 

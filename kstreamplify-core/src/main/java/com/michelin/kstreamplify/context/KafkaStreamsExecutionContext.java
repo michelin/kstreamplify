@@ -33,7 +33,7 @@ public class KafkaStreamsExecutionContext {
      */
     @Getter
     @Setter
-    private static Map<String, String> serdeConfig;
+    private static Map<String, String> serdesConfig;
 
     /**
      * The properties of the stream execution context.

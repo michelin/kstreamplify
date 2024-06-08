@@ -30,7 +30,7 @@ class KafkaStreamsStarterTest {
     @Test
     void shouldInstantiateKafkaStreamsStarter() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
-        KafkaStreamsExecutionContext.setSerdeConfig(
+        KafkaStreamsExecutionContext.setSerdesConfig(
             Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
@@ -47,7 +47,7 @@ class KafkaStreamsStarterTest {
     @Test
     void shouldStartWithCustomUncaughtExceptionHandler() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
-        KafkaStreamsExecutionContext.setSerdeConfig(
+        KafkaStreamsExecutionContext.setSerdesConfig(
             Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();

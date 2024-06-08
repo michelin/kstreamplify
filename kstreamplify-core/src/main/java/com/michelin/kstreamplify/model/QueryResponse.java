@@ -4,10 +4,7 @@ import static com.michelin.kstreamplify.converter.JsonToAvroConverter.jsonToObje
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.michelin.kstreamplify.converter.AvroToJsonConverter;
-import com.michelin.kstreamplify.model.HostInfoResponse;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

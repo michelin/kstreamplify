@@ -3,6 +3,7 @@ package com.michelin.kstreamplify.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.model.HostInfoResponse;
@@ -116,49 +117,55 @@ public class InteractiveQueriesService {
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                RangeQuery<Object, ValueAndTimestamp<Object>> rangeQuery = RangeQuery.withNoBounds();
-                StateQueryResult<KeyValueIterator<Object, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
-                    .getKafkaStreams()
-                    .query(StateQueryRequest
-                        .inStore(store)
-                        .withQuery(rangeQuery)
-                        .withPartitions(metadata.topicPartitions()
-                            .stream()
-                            .map(TopicPartition::partition)
-                            .collect(Collectors.toSet())));
-
-                List<QueryResponse> partitionsResult = new ArrayList<>();
-                result.getPartitionResults().forEach((key, queryResult) ->
-                    queryResult.getResult().forEachRemaining(kv -> {
-                        QueryResponse queryResponse;
-                        if (includeMetadata) {
-                            Set<String> topics = queryResult.getPosition().getTopics();
-                            List<QueryResponse.PositionVector> positions = topics
-                                .stream()
-                                .flatMap(topic -> queryResult.getPosition().getPartitionPositions(topic)
-                                    .entrySet()
-                                    .stream()
-                                    .map(partitionOffset -> new QueryResponse.PositionVector(topic,
-                                        partitionOffset.getKey(), partitionOffset.getValue())))
-                                .toList();
-
-                            queryResponse = new QueryResponse(includeKey ? kv.key : null,
-                                kv.value.value(),
-                                kv.value.timestamp(),
-                                new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
-                                positions);
-                        } else {
-                            queryResponse = new QueryResponse(includeKey ? kv.key : null, kv.value.value());
-                        }
-
-                        partitionsResult.add(queryResponse);
-                    }));
-
+                List<QueryResponse> partitionsResult = executeRangeQuery(store, metadata, includeKey, includeMetadata);
                 values.addAll(partitionsResult);
             }
         });
 
         return values;
+    }
+
+    private List<QueryResponse> executeRangeQuery(String store, StreamsMetadata metadata, boolean includeKey,
+                                                  boolean includeMetadata) {
+        RangeQuery<Object, ValueAndTimestamp<Object>> rangeQuery = RangeQuery.withNoBounds();
+        StateQueryResult<KeyValueIterator<Object, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
+            .getKafkaStreams()
+            .query(StateQueryRequest
+                .inStore(store)
+                .withQuery(rangeQuery)
+                .withPartitions(metadata.topicPartitions()
+                    .stream()
+                    .map(TopicPartition::partition)
+                    .collect(Collectors.toSet())));
+
+        List<QueryResponse> partitionsResult = new ArrayList<>();
+        result.getPartitionResults().forEach((key, queryResult) ->
+            queryResult.getResult().forEachRemaining(kv -> {
+                QueryResponse queryResponse;
+                if (includeMetadata) {
+                    Set<String> topics = queryResult.getPosition().getTopics();
+                    List<QueryResponse.PositionVector> positions = topics
+                        .stream()
+                        .flatMap(topic -> queryResult.getPosition().getPartitionPositions(topic)
+                            .entrySet()
+                            .stream()
+                            .map(partitionOffset -> new QueryResponse.PositionVector(topic,
+                                partitionOffset.getKey(), partitionOffset.getValue())))
+                        .toList();
+
+                    queryResponse = new QueryResponse(includeKey ? kv.key : null,
+                        kv.value.value(),
+                        kv.value.timestamp(),
+                        new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
+                        positions);
+                } else {
+                    queryResponse = new QueryResponse(includeKey ? kv.key : null, kv.value.value());
+                }
+
+                partitionsResult.add(queryResponse);
+            }));
+
+        return partitionsResult;
     }
 
     /**
@@ -250,8 +257,8 @@ public class InteractiveQueriesService {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new OtherInstanceResponseException(e);
         }
     }
 
@@ -266,26 +273,23 @@ public class InteractiveQueriesService {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, QueryResponse.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new OtherInstanceResponseException(e);
         }
     }
 
-    private String sendRequest(HostInfo host, String endpointPath) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .header("Accept", "application/json")
-                .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
-                .GET()
-                .build();
+    private String sendRequest(HostInfo host, String endpointPath)
+        throws URISyntaxException, ExecutionException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .header("Accept", "application/json")
+            .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
+            .GET()
+            .build();
 
-            return httpClient
-                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .get();
-        } catch (URISyntaxException | ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return httpClient
+            .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+            .thenApply(HttpResponse::body)
+            .get();
     }
 
     private boolean isNotCurrentHost(HostInfo compareHostInfo) {

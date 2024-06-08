@@ -84,14 +84,14 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldThrowException() {
-        final Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
+        final Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
 
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(null)
             .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
-        processor.process(record);
+        processor.process(message);
 
         verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
             .equals("Could not figure out what to do with the current payload: "

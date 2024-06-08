@@ -37,7 +37,7 @@ abstract class KafkaIntegrationTest {
     protected void waitingForKafkaStreamsToStart() throws InterruptedException {
         while (!initializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)) {
             log.info("Waiting for Kafka Streams to start...");
-            Thread.sleep(2000);
+            Thread.sleep(2000); // NOSONAR
         }
     }
 
@@ -46,7 +46,7 @@ abstract class KafkaIntegrationTest {
 
         while (hasLag(topicPartitionOffset)) {
             log.info("Waiting for local stores {} to reach offsets", topicPartitionOffset.keySet().stream().toList());
-            Thread.sleep(5000);
+            Thread.sleep(5000); // NOSONAR
         }
     }
 

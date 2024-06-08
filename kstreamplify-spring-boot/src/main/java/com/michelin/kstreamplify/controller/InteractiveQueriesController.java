@@ -84,9 +84,9 @@ public class InteractiveQueriesController {
     @GetMapping(value = "/{store}")
     public ResponseEntity<List<QueryResponse>> getAll(@PathVariable("store") String store,
                                                       @RequestParam(value = "includeKey", required = false)
-                                                      boolean includeKey,
+                                                      Boolean includeKey,
                                                       @RequestParam(value = "includeMetadata", required = false)
-                                                      boolean includeMetadata) {
+                                                      Boolean includeMetadata) {
         if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
             KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
             throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
@@ -111,9 +111,9 @@ public class InteractiveQueriesController {
     public ResponseEntity<QueryResponse> getByKey(@PathVariable("store") String store,
                                                   @PathVariable("key") String key,
                                                   @RequestParam(value = "includeKey", required = false)
-                                                  boolean includeKey,
+                                                  Boolean includeKey,
                                                   @RequestParam(value = "includeMetadata", required = false)
-                                                  boolean includeMetadata) {
+                                                  Boolean includeMetadata) {
         if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
             KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
             throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));

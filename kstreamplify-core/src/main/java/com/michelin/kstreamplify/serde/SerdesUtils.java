@@ -40,7 +40,7 @@ public final class SerdesUtils {
     private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(
         boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();
-        serde.configure(KafkaStreamsExecutionContext.getSerdeConfig(), isSerdeForKey);
+        serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), isSerdeForKey);
         return serde;
     }
 }

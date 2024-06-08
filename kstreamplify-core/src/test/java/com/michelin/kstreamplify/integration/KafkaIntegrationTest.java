@@ -34,7 +34,7 @@ abstract class KafkaIntegrationTest {
     protected void waitingForKafkaStreamsToRun() throws InterruptedException {
         while (!initializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)) {
             log.info("Waiting for Kafka Streams to start...");
-            Thread.sleep(2000);
+            Thread.sleep(2000); // NOSONAR
         }
     }
 
