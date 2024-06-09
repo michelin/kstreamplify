@@ -257,6 +257,9 @@ public class InteractiveQueriesService {
                         stateQueryResponse.getPositionVectors());
                 })
                 .toList();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Collections.emptyList();
         } catch (Exception e) {
             throw new OtherInstanceResponseException(e);
         }
@@ -281,6 +284,9 @@ public class InteractiveQueriesService {
 
             return new StateQueryData<>(key, value, response.getTimestamp(),
                 response.getHostInfo(), response.getPositionVectors());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         } catch (Exception e) {
             throw new OtherInstanceResponseException(e);
         }
