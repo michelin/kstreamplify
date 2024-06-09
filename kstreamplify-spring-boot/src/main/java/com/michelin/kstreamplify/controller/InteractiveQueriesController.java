@@ -94,15 +94,11 @@ public class InteractiveQueriesController {
         }
 
         List<StateQueryData<Object, Object>> stateQueryData = interactiveQueriesService
-            .getAll(store, Object.class, Object.class, includeKey, includeMetadata);
+            .getAll(store, Object.class, Object.class);
 
         List<StateQueryResponse> stateQueryResponse = stateQueryData
             .stream()
-            .map(data -> new StateQueryResponse(data.getKey(),
-                data.getValue(),
-                data.getTimestamp(),
-                data.getHostInfo(),
-                data.getPositionVectors()))
+            .map(stateQueryDataItem -> stateQueryDataItem.toStateQueryResponse(includeKey, includeMetadata))
             .toList();
 
         return ResponseEntity
@@ -124,24 +120,20 @@ public class InteractiveQueriesController {
     public ResponseEntity<StateQueryResponse> getByKey(@PathVariable("store") String store,
                                                        @PathVariable("key") String key,
                                                        @RequestParam(value = "includeKey", required = false,
-                                                           defaultValue = "false") Boolean includeKey,
+                                                       defaultValue = "false") Boolean includeKey,
                                                        @RequestParam(value = "includeMetadata", required = false,
-                                                           defaultValue = "false") Boolean includeMetadata) {
+                                                       defaultValue = "false") Boolean includeMetadata) {
         if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
             KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
             throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
         }
 
         StateQueryData<String, Object> stateQueryData = interactiveQueriesService
-            .getByKey(store, key, new StringSerializer(), Object.class, includeKey, includeMetadata);
-
-        StateQueryResponse stateQueryResponse = new StateQueryResponse(stateQueryData.getKey(),
-            stateQueryData.getValue(), stateQueryData.getTimestamp(), stateQueryData.getHostInfo(),
-            stateQueryData.getPositionVectors());
+            .getByKey(store, key, new StringSerializer(), Object.class);
 
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(stateQueryResponse);
+            .body(stateQueryData.toStateQueryResponse(includeKey, includeMetadata));
     }
 }
