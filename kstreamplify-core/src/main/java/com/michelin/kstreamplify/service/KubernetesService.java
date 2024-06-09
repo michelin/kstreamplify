@@ -2,7 +2,7 @@ package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

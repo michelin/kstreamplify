@@ -3,7 +3,7 @@ package com.michelin.kstreamplify.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.server.RestResponse;
 import com.michelin.kstreamplify.service.KubernetesService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

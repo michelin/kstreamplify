@@ -8,9 +8,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.HostInfoResponse;
-import com.michelin.kstreamplify.model.QueryResponse;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
+import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryData;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.util.List;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsMetadata;
@@ -143,10 +144,10 @@ class InteractiveQueriesControllerTest {
         when(kafkaStreamsInitializer.isNotRunning())
             .thenReturn(false);
 
-        when(interactiveQueriesService.getAll("store", false, false))
-            .thenReturn(List.of(new QueryResponse("key1", "value1")));
+        when(interactiveQueriesService.getAll("store", Object.class, Object.class, false, false))
+            .thenReturn(List.of(new StateQueryData<>("key1", "value1")));
 
-        List<QueryResponse> responses = interactiveQueriesController.getAll("store", false, false).getBody();
+        List<StateQueryResponse> responses = interactiveQueriesController.getAll("store", false, false).getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
@@ -181,10 +182,10 @@ class InteractiveQueriesControllerTest {
         when(kafkaStreamsInitializer.isNotRunning())
             .thenReturn(false);
 
-        when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), eq(false), eq(false)))
-            .thenReturn(new QueryResponse("key", "value"));
+        when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), any(), eq(false), eq(false)))
+            .thenReturn(new StateQueryData<>("key", "value"));
 
-        QueryResponse response = interactiveQueriesController.getByKey("store", "key", false, false).getBody();
+        StateQueryResponse response = interactiveQueriesController.getByKey("store", "key", false, false).getBody();
 
         assertNotNull(response);
         assertEquals("key", response.getKey());
