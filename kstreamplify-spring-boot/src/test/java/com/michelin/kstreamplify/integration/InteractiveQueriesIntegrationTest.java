@@ -13,9 +13,9 @@ import static org.springframework.http.HttpMethod.GET;
 import com.michelin.kstreamplify.avro.CountryCode;
 import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.model.HostInfoResponse;
-import com.michelin.kstreamplify.model.QueryResponse;
 import com.michelin.kstreamplify.serde.SerdesUtils;
+import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Instant;
 import java.util.HashMap;
@@ -159,16 +159,16 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Key wrongKey not found", wrongKey.getBody());
 
         // Get by key
-        ResponseEntity<QueryResponse> recordByKey = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_STORE/key", QueryResponse.class);
+        ResponseEntity<StateQueryResponse> recordByKey = restTemplate
+            .getForEntity("http://localhost:8085/store/STRING_STORE/key", StateQueryResponse.class);
 
         assertEquals(200, recordByKey.getStatusCode().value());
         assertNotNull(recordByKey.getBody());
         assertEquals("value", recordByKey.getBody().getValue());
 
         // Get by key with metadata
-        ResponseEntity<QueryResponse> recordByKeyWithMetadata = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_STORE/key?includeKey=true&includeMetadata=true", QueryResponse.class);
+        ResponseEntity<StateQueryResponse> recordByKeyWithMetadata = restTemplate
+            .getForEntity("http://localhost:8085/store/STRING_STORE/key?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
         assertEquals(200, recordByKeyWithMetadata.getStatusCode().value());
         assertNotNull(recordByKeyWithMetadata.getBody());
@@ -182,8 +182,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(recordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
 
         // Get Avro by key with metadata
-        ResponseEntity<QueryResponse> avroRecordByKeyWithMetadata = restTemplate
-            .getForEntity("http://localhost:8085/store/AVRO_STORE/person?includeKey=true&includeMetadata=true", QueryResponse.class);
+        ResponseEntity<StateQueryResponse> avroRecordByKeyWithMetadata = restTemplate
+            .getForEntity("http://localhost:8085/store/AVRO_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
         assertEquals(200, avroRecordByKeyWithMetadata.getStatusCode().value());
         assertNotNull(avroRecordByKeyWithMetadata.getBody());
@@ -208,7 +208,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
 
         // Get all
-        ResponseEntity<List<QueryResponse>> allRecords = restTemplate
+        ResponseEntity<List<StateQueryResponse>> allRecords = restTemplate
             .exchange("http://localhost:8085/store/STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
             });
 
@@ -217,7 +217,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("value", allRecords.getBody().get(0).getValue());
 
         // Get all with metadata
-        ResponseEntity<List<QueryResponse>> allRecordsMetadata = restTemplate
+        ResponseEntity<List<StateQueryResponse>> allRecordsMetadata = restTemplate
             .exchange("http://localhost:8085/store/STRING_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
@@ -233,7 +233,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(allRecordsMetadata.getBody().get(0).getPositionVectors().get(0).offset());
 
         // Get all Avro with metadata
-        ResponseEntity<List<QueryResponse>> allAvroRecordsMetadata = restTemplate
+        ResponseEntity<List<StateQueryResponse>> allAvroRecordsMetadata = restTemplate
             .exchange("http://localhost:8085/store/AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 

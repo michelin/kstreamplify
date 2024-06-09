@@ -1,13 +1,13 @@
 package com.michelin.kstreamplify.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.HostInfoResponse;
-import com.michelin.kstreamplify.model.QueryResponse;
+import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryData;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -99,25 +99,28 @@ public class InteractiveQueriesService {
      * @param includeMetadata Include the metadata
      * @return The values
      */
-    public List<QueryResponse> getAll(String store, boolean includeKey, boolean includeMetadata) {
+    public <K, V> List<StateQueryData<K, V>> getAll(String store, Class<K> keyClass, Class<V> valueClass,
+                                                    boolean includeKey, boolean includeMetadata) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadata(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
             throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
         }
 
-        List<QueryResponse> values = new ArrayList<>();
+        List<StateQueryData<K, V>> values = new ArrayList<>();
         streamsMetadata.forEach(metadata -> {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                List<QueryResponse> queryResponses = requestAllOtherInstance(metadata.hostInfo(),
-                    "/store/" + store + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata);
-                values.addAll(queryResponses);
+                List<StateQueryData<K, V>> stateQueryDataResponse = requestAllOtherInstance(metadata.hostInfo(),
+                    "/store/" + store + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata,
+                    keyClass, valueClass);
+                values.addAll(stateQueryDataResponse);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                List<QueryResponse> partitionsResult = executeRangeQuery(store, metadata, includeKey, includeMetadata);
+                List<StateQueryData<K, V>> partitionsResult = executeRangeQuery(store, metadata,
+                    includeKey, includeMetadata);
                 values.addAll(partitionsResult);
             }
         });
@@ -125,10 +128,10 @@ public class InteractiveQueriesService {
         return values;
     }
 
-    private List<QueryResponse> executeRangeQuery(String store, StreamsMetadata metadata, boolean includeKey,
-                                                  boolean includeMetadata) {
-        RangeQuery<Object, ValueAndTimestamp<Object>> rangeQuery = RangeQuery.withNoBounds();
-        StateQueryResult<KeyValueIterator<Object, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
+    private <K, V> List<StateQueryData<K, V>> executeRangeQuery(String store, StreamsMetadata metadata,
+                                                                boolean includeKey, boolean includeMetadata) {
+        RangeQuery<K, ValueAndTimestamp<V>> rangeQuery = RangeQuery.withNoBounds();
+        StateQueryResult<KeyValueIterator<K, ValueAndTimestamp<V>>> result = kafkaStreamsInitializer
             .getKafkaStreams()
             .query(StateQueryRequest
                 .inStore(store)
@@ -138,31 +141,31 @@ public class InteractiveQueriesService {
                     .map(TopicPartition::partition)
                     .collect(Collectors.toSet())));
 
-        List<QueryResponse> partitionsResult = new ArrayList<>();
+        List<StateQueryData<K, V>> partitionsResult = new ArrayList<>();
         result.getPartitionResults().forEach((key, queryResult) ->
             queryResult.getResult().forEachRemaining(kv -> {
-                QueryResponse queryResponse;
+                StateQueryData<K, V> stateQueryData;
                 if (includeMetadata) {
                     Set<String> topics = queryResult.getPosition().getTopics();
-                    List<QueryResponse.PositionVector> positions = topics
+                    List<StateQueryResponse.PositionVector> positions = topics
                         .stream()
                         .flatMap(topic -> queryResult.getPosition().getPartitionPositions(topic)
                             .entrySet()
                             .stream()
-                            .map(partitionOffset -> new QueryResponse.PositionVector(topic,
+                            .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
                                 partitionOffset.getKey(), partitionOffset.getValue())))
                         .toList();
 
-                    queryResponse = new QueryResponse(includeKey ? kv.key : null,
+                    stateQueryData = new StateQueryData<>(includeKey ? kv.key : null,
                         kv.value.value(),
                         kv.value.timestamp(),
                         new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
                         positions);
                 } else {
-                    queryResponse = new QueryResponse(includeKey ? kv.key : null, kv.value.value());
+                    stateQueryData = new StateQueryData<>(includeKey ? kv.key : null, kv.value.value());
                 }
 
-                partitionsResult.add(queryResponse);
+                partitionsResult.add(stateQueryData);
             }));
 
         return partitionsResult;
@@ -179,8 +182,8 @@ public class InteractiveQueriesService {
      * @param <K> The key type
      * @return The value
      */
-    public <K> QueryResponse getByKey(String store, K key, Serializer<K> serializer, boolean includeKey,
-                                      boolean includeMetadata) {
+    public <K, V> StateQueryData<K, V> getByKey(String store, K key, Serializer<K> serializer, Class<V> valueClass,
+                                                boolean includeKey, boolean includeMetadata) {
         KeyQueryMetadata keyQueryMetadata = getKeyQueryMetadata(store, key, serializer);
 
         if (keyQueryMetadata == null) {
@@ -192,15 +195,17 @@ public class InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
+            Class<K> keyClass = (Class<K>) key.getClass();
+
             return requestOtherInstance(host, "/store/" + store + "/" + key
-                + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata);
+                + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata, keyClass, valueClass);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
             host.host(), host.port());
 
-        KeyQuery<K, ValueAndTimestamp<Object>> keyQuery = KeyQuery.withKey(key);
-        StateQueryResult<ValueAndTimestamp<Object>> result = kafkaStreamsInitializer
+        KeyQuery<K, ValueAndTimestamp<V>> keyQuery = KeyQuery.withKey(key);
+        StateQueryResult<ValueAndTimestamp<V>> result = kafkaStreamsInitializer
             .getKafkaStreams()
             .query(StateQueryRequest
                 .inStore(store)
@@ -213,24 +218,22 @@ public class InteractiveQueriesService {
 
         if (includeMetadata) {
             Set<String> topics = result.getOnlyPartitionResult().getPosition().getTopics();
-            List<QueryResponse.PositionVector> positions = topics
+            List<StateQueryResponse.PositionVector> positions = topics
                 .stream()
                 .flatMap(topic -> result.getOnlyPartitionResult().getPosition().getPartitionPositions(topic)
                     .entrySet()
                     .stream()
-                    .map(partitionOffset -> new QueryResponse.PositionVector(topic,
+                    .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
                         partitionOffset.getKey(), partitionOffset.getValue())))
                 .toList();
 
-            return new QueryResponse(includeKey ? key : null,
-                result.getOnlyPartitionResult().getResult().value(),
+            return new StateQueryData<>(includeKey ? key : null, result.getOnlyPartitionResult().getResult().value(),
                 result.getOnlyPartitionResult().getResult().timestamp(),
                 new HostInfoResponse(host.host(), host.port()),
                 positions);
         }
 
-        return new QueryResponse(includeKey ? key : null,
-            result.getOnlyPartitionResult().getResult().value());
+        return new StateQueryData<>(includeKey ? key : null, result.getOnlyPartitionResult().getResult().value());
     }
 
     /**
@@ -253,10 +256,24 @@ public class InteractiveQueriesService {
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    private List<QueryResponse> requestAllOtherInstance(HostInfo host, String endpointPath) {
+    private <K, V> List<StateQueryData<K, V>> requestAllOtherInstance(HostInfo host, String endpointPath,
+                                                                      Class<K> keyClass,
+                                                                      Class<V> valueClass) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
-            return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
+            List<StateQueryResponse> response = objectMapper.readValue(jsonResponse, new TypeReference<>() {});
+            return response
+                .stream()
+                .map(stateQueryResponse -> {
+                    K key = objectMapper.convertValue(stateQueryResponse.getKey(), keyClass);
+                    V value = objectMapper.convertValue(stateQueryResponse.getValue(), valueClass);
+
+                    return new StateQueryData<>(key, value,
+                        stateQueryResponse.getTimestamp(),
+                        stateQueryResponse.getHostInfo(),
+                        stateQueryResponse.getPositionVectors());
+                })
+                .toList();
         } catch (Exception e) {
             throw new OtherInstanceResponseException(e);
         }
@@ -269,10 +286,16 @@ public class InteractiveQueriesService {
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    private QueryResponse requestOtherInstance(HostInfo host, String endpointPath) {
+    private <K, V> StateQueryData<K, V> requestOtherInstance(HostInfo host, String endpointPath, Class<K> keyClass,
+                                                             Class<V> valueClass) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
-            return objectMapper.readValue(jsonResponse, QueryResponse.class);
+            StateQueryResponse response = objectMapper.readValue(jsonResponse, StateQueryResponse.class);
+            K key = objectMapper.convertValue(response.getKey(), keyClass);
+            V value = objectMapper.convertValue(response.getValue(), valueClass);
+
+            return new StateQueryData<>(key, value, response.getTimestamp(),
+                response.getHostInfo(), response.getPositionVectors());
         } catch (Exception e) {
             throw new OtherInstanceResponseException(e);
         }

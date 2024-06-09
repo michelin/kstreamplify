@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.server.RestResponse;
 import com.michelin.kstreamplify.service.TopologyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

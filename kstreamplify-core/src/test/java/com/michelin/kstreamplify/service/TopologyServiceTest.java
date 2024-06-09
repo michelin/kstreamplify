@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;

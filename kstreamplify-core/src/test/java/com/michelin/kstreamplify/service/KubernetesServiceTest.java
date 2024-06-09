@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.RestResponse;
+import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;

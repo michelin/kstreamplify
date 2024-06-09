@@ -12,7 +12,8 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.QueryResponse;
+import com.michelin.kstreamplify.store.StateQueryData;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Collection;
@@ -118,7 +119,8 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store", false, false));
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store",
+            Object.class, Object.class, false, false));
     }
 
     @Test
@@ -126,7 +128,8 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store", false, false));
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store",
+            Object.class, Object.class, false, false));
     }
 
     @Test
@@ -146,13 +149,15 @@ class InteractiveQueriesServiceTest {
             .thenReturn(true)
             .thenReturn(false);
 
+        PersonStub personStub = new PersonStub("John", "Doe");
         when(iterator.next())
-            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(personStub, 150L)));
 
-        List<QueryResponse> responses = interactiveQueriesService.getAll("store", false, false);
+        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
+            String.class, PersonStub.class, false, false);
 
         assertNull(responses.get(0).getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), responses.get(0).getValue());
+        assertEquals(personStub, responses.get(0).getValue());
         assertNull(responses.get(0).getTimestamp());
         assertNull(responses.get(0).getHostInfo());
         assertNull(responses.get(0).getPositionVectors());
@@ -178,13 +183,15 @@ class InteractiveQueriesServiceTest {
             .thenReturn(true)
             .thenReturn(false);
 
+        PersonStub personStub = new PersonStub("John", "Doe");
         when(iterator.next())
-            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(personStub, 150L)));
 
-        List<QueryResponse> responses = interactiveQueriesService.getAll("store", true, true);
+        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
+            String.class, PersonStub.class, true, true);
 
         assertEquals("key", responses.get(0).getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), responses.get(0).getValue());
+        assertEquals(personStub, responses.get(0).getValue());
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
@@ -216,10 +223,11 @@ class InteractiveQueriesServiceTest {
               }
             ]""");
 
-        List<QueryResponse> responses = interactiveQueriesService.getAll("store", false, false);
+        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
+            String.class, PersonStub.class, false, false);
 
         assertNull(responses.get(0).getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), responses.get(0).getValue());
+        assertEquals(new PersonStub("John", "Doe"), responses.get(0).getValue());
         assertNull(responses.get(0).getTimestamp());
         assertNull(responses.get(0).getHostInfo());
         assertNull(responses.get(0).getPositionVectors());
@@ -261,10 +269,11 @@ class InteractiveQueriesServiceTest {
               }
             ]""");
 
-        List<QueryResponse> responses = interactiveQueriesService.getAll("store", true, true);
+        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
+            String.class, PersonStub.class, true, true);
 
         assertEquals("key", responses.get(0).getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), responses.get(0).getValue());
+        assertEquals(new PersonStub("John", "Doe"), responses.get(0).getValue());
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
@@ -280,7 +289,7 @@ class InteractiveQueriesServiceTest {
             .thenReturn(null);
 
         assertThrows(UnknownStateStoreException.class, () ->
-            interactiveQueriesService.getByKey("store", "key", new StringSerializer(), false, false));
+            interactiveQueriesService.getByKey("store", "key", new StringSerializer(), Object.class, false, false));
     }
 
     @Test
@@ -297,11 +306,11 @@ class InteractiveQueriesServiceTest {
         when(stateKeyQueryResult.getOnlyPartitionResult())
             .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
-        QueryResponse response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), false, false);
+        StateQueryData<String, PersonStub> response = interactiveQueriesService
+            .getByKey("store", "key", new StringSerializer(), PersonStub.class, false, false);
 
         assertNull(response.getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), response.getValue());
+        assertEquals(new PersonStub("John", "Doe"), response.getValue());
         assertNull(response.getTimestamp());
         assertNull(response.getHostInfo());
         assertNull(response.getPositionVectors());
@@ -326,11 +335,11 @@ class InteractiveQueriesServiceTest {
         when(stateKeyQueryResult.getOnlyPartitionResult())
             .thenReturn(queryResult);
 
-        QueryResponse response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), true, true);
+        StateQueryData<String, PersonStub> response = interactiveQueriesService
+            .getByKey("store", "key", new StringSerializer(), PersonStub.class, true, true);
 
         assertEquals("key", response.getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), response.getValue());
+        assertEquals(new PersonStub("John", "Doe"), response.getValue());
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());
@@ -359,11 +368,11 @@ class InteractiveQueriesServiceTest {
               }
             """);
 
-        QueryResponse response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), true, true);
+        StateQueryData<String, PersonStub> response = interactiveQueriesService
+            .getByKey("store", "key", new StringSerializer(), PersonStub.class, true, true);
 
         assertNull(response.getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), response.getValue());
+        assertEquals(new PersonStub("John", "Doe"), response.getValue());
         assertNull(response.getTimestamp());
         assertNull(response.getHostInfo());
         assertNull(response.getPositionVectors());
@@ -402,11 +411,11 @@ class InteractiveQueriesServiceTest {
               }
             """);
 
-        QueryResponse response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), true, true);
+        StateQueryData<String, PersonStub> response = interactiveQueriesService
+            .getByKey("store", "key", new StringSerializer(), PersonStub.class, true, true);
 
         assertEquals("key", response.getKey());
-        assertEquals(Map.of("firstName", "John", "lastName", "Doe"), response.getValue());
+        assertEquals(new PersonStub("John", "Doe"), response.getValue());
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());

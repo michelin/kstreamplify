@@ -8,7 +8,6 @@ import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_DEFAULT
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PROPERTY;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.model.RestResponse;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.sun.net.httpserver.HttpServer;
