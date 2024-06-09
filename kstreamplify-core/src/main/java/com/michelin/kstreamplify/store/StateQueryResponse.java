@@ -9,7 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Rest key value.
+ * State query response.
+ * This wraps the ${@link StateQueryData} but converts the key and value
+ * to Object to avoid Avro serialization issues with Jackson.
  */
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -28,7 +30,6 @@ public class StateQueryResponse {
      * @param value The value
      */
     public StateQueryResponse(Object key, Object value) {
-        // Convert the Object to JSON then back to Object to avoid Avro serialization issues with Jackson
         this.key = jsonToObject(AvroToJsonConverter.convertObject(key));
         this.value = jsonToObject(AvroToJsonConverter.convertObject(value));
     }
@@ -44,9 +45,7 @@ public class StateQueryResponse {
      */
     public StateQueryResponse(Object key, Object value, Long timestamp, HostInfoResponse hostInfo,
                               List<PositionVector> positionVectors) {
-        // Convert the Object to JSON then back to Object to avoid Avro serialization issues with Jackson
-        this.key = jsonToObject(AvroToJsonConverter.convertObject(key));
-        this.value = jsonToObject(AvroToJsonConverter.convertObject(value));
+        this(key, value);
         this.timestamp = timestamp;
         this.hostInfo = hostInfo;
         this.positionVectors = positionVectors;

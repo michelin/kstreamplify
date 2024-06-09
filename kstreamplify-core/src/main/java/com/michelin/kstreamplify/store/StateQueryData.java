@@ -24,17 +24,6 @@ public class StateQueryData<K, V> {
      *
      * @param key The key
      * @param value The value
-     */
-    public StateQueryData(K key, V value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param key The key
-     * @param value The value
      * @param timestamp The timestamp
      * @param hostInfo The host info
      * @param positionVectors The position vectors
@@ -46,5 +35,17 @@ public class StateQueryData<K, V> {
         this.timestamp = timestamp;
         this.hostInfo = hostInfo;
         this.positionVectors = positionVectors;
+    }
+
+    /**
+     * Convert to state query response.
+     *
+     * @return The state query response
+     */
+    public StateQueryResponse toStateQueryResponse(Boolean includeKey, Boolean includeMetadata) {
+        if (includeMetadata) {
+            return new StateQueryResponse(includeKey ? key : null, value, timestamp, hostInfo, positionVectors);
+        }
+        return new StateQueryResponse(includeKey ? key : null, value);
     }
 }

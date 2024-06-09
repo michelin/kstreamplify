@@ -95,12 +95,11 @@ public class InteractiveQueriesService {
      * Get all values from the store.
      *
      * @param store The store
-     * @param includeKey Include the key
-     * @param includeMetadata Include the metadata
+     * @param keyClass The key class
+     * @param valueClass The value class
      * @return The values
      */
-    public <K, V> List<StateQueryData<K, V>> getAll(String store, Class<K> keyClass, Class<V> valueClass,
-                                                    boolean includeKey, boolean includeMetadata) {
+    public <K, V> List<StateQueryData<K, V>> getAll(String store, Class<K> keyClass, Class<V> valueClass) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadata(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
@@ -113,62 +112,47 @@ public class InteractiveQueriesService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 List<StateQueryData<K, V>> stateQueryDataResponse = requestAllOtherInstance(metadata.hostInfo(),
-                    "/store/" + store + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata,
-                    keyClass, valueClass);
+                    "/store/" + store + "?includeKey=true&includeMetadata=true", keyClass, valueClass);
                 values.addAll(stateQueryDataResponse);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                List<StateQueryData<K, V>> partitionsResult = executeRangeQuery(store, metadata,
-                    includeKey, includeMetadata);
+                RangeQuery<K, ValueAndTimestamp<V>> rangeQuery = RangeQuery.withNoBounds();
+                StateQueryResult<KeyValueIterator<K, ValueAndTimestamp<V>>> result = kafkaStreamsInitializer
+                    .getKafkaStreams()
+                    .query(StateQueryRequest
+                        .inStore(store)
+                        .withQuery(rangeQuery)
+                        .withPartitions(metadata.topicPartitions()
+                            .stream()
+                            .map(TopicPartition::partition)
+                            .collect(Collectors.toSet())));
+
+                List<StateQueryData<K, V>> partitionsResult = new ArrayList<>();
+                result.getPartitionResults().forEach((key, queryResult) ->
+                    queryResult.getResult().forEachRemaining(kv -> {
+                        Set<String> topics = queryResult.getPosition().getTopics();
+                        List<StateQueryResponse.PositionVector> positions = topics
+                            .stream()
+                            .flatMap(topic -> queryResult.getPosition().getPartitionPositions(topic)
+                                .entrySet()
+                                .stream()
+                                .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
+                                    partitionOffset.getKey(), partitionOffset.getValue())))
+                            .toList();
+
+                        partitionsResult.add(new StateQueryData<>(kv.key,
+                            kv.value.value(),
+                            kv.value.timestamp(),
+                            new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
+                            positions));
+                    }));
+
                 values.addAll(partitionsResult);
             }
         });
 
         return values;
-    }
-
-    private <K, V> List<StateQueryData<K, V>> executeRangeQuery(String store, StreamsMetadata metadata,
-                                                                boolean includeKey, boolean includeMetadata) {
-        RangeQuery<K, ValueAndTimestamp<V>> rangeQuery = RangeQuery.withNoBounds();
-        StateQueryResult<KeyValueIterator<K, ValueAndTimestamp<V>>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(rangeQuery)
-                .withPartitions(metadata.topicPartitions()
-                    .stream()
-                    .map(TopicPartition::partition)
-                    .collect(Collectors.toSet())));
-
-        List<StateQueryData<K, V>> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> {
-                StateQueryData<K, V> stateQueryData;
-                if (includeMetadata) {
-                    Set<String> topics = queryResult.getPosition().getTopics();
-                    List<StateQueryResponse.PositionVector> positions = topics
-                        .stream()
-                        .flatMap(topic -> queryResult.getPosition().getPartitionPositions(topic)
-                            .entrySet()
-                            .stream()
-                            .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
-                                partitionOffset.getKey(), partitionOffset.getValue())))
-                        .toList();
-
-                    stateQueryData = new StateQueryData<>(includeKey ? kv.key : null,
-                        kv.value.value(),
-                        kv.value.timestamp(),
-                        new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
-                        positions);
-                } else {
-                    stateQueryData = new StateQueryData<>(includeKey ? kv.key : null, kv.value.value());
-                }
-
-                partitionsResult.add(stateQueryData);
-            }));
-
-        return partitionsResult;
     }
 
     /**
@@ -177,13 +161,12 @@ public class InteractiveQueriesService {
      * @param store The store name
      * @param key   The key
      * @param serializer The serializer
-     * @param includeKey Include the key
-     * @param includeMetadata Include the metadata
+     * @param valueClass The value class
      * @param <K> The key type
      * @return The value
      */
-    public <K, V> StateQueryData<K, V> getByKey(String store, K key, Serializer<K> serializer, Class<V> valueClass,
-                                                boolean includeKey, boolean includeMetadata) {
+    @SuppressWarnings("unchecked")
+    public <K, V> StateQueryData<K, V> getByKey(String store, K key, Serializer<K> serializer, Class<V> valueClass) {
         KeyQueryMetadata keyQueryMetadata = getKeyQueryMetadata(store, key, serializer);
 
         if (keyQueryMetadata == null) {
@@ -198,7 +181,7 @@ public class InteractiveQueriesService {
             Class<K> keyClass = (Class<K>) key.getClass();
 
             return requestOtherInstance(host, "/store/" + store + "/" + key
-                + "?includeKey=" + includeKey + "&includeMetadata=" + includeMetadata, keyClass, valueClass);
+                + "?includeKey=true&includeMetadata=true", keyClass, valueClass);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
@@ -216,24 +199,21 @@ public class InteractiveQueriesService {
             throw new UnknownKeyException(key.toString());
         }
 
-        if (includeMetadata) {
-            Set<String> topics = result.getOnlyPartitionResult().getPosition().getTopics();
-            List<StateQueryResponse.PositionVector> positions = topics
+        Set<String> topics = result.getOnlyPartitionResult().getPosition().getTopics();
+        List<StateQueryResponse.PositionVector> positions = topics
+            .stream()
+            .flatMap(topic -> result.getOnlyPartitionResult().getPosition().getPartitionPositions(topic)
+                .entrySet()
                 .stream()
-                .flatMap(topic -> result.getOnlyPartitionResult().getPosition().getPartitionPositions(topic)
-                    .entrySet()
-                    .stream()
-                    .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
-                        partitionOffset.getKey(), partitionOffset.getValue())))
-                .toList();
+                .map(partitionOffset -> new StateQueryResponse.PositionVector(topic,
+                    partitionOffset.getKey(), partitionOffset.getValue())))
+            .toList();
 
-            return new StateQueryData<>(includeKey ? key : null, result.getOnlyPartitionResult().getResult().value(),
-                result.getOnlyPartitionResult().getResult().timestamp(),
-                new HostInfoResponse(host.host(), host.port()),
-                positions);
-        }
-
-        return new StateQueryData<>(includeKey ? key : null, result.getOnlyPartitionResult().getResult().value());
+        return new StateQueryData<>(key,
+            result.getOnlyPartitionResult().getResult().value(),
+            result.getOnlyPartitionResult().getResult().timestamp(),
+            new HostInfoResponse(host.host(), host.port()),
+            positions);
     }
 
     /**
@@ -254,9 +234,12 @@ public class InteractiveQueriesService {
      *
      * @param host        The host instance
      * @param endpointPath The endpoint path to request
+     * @param keyClass The key class
+     * @param valueClass The value class
      * @return The response
      */
-    private <K, V> List<StateQueryData<K, V>> requestAllOtherInstance(HostInfo host, String endpointPath,
+    private <K, V> List<StateQueryData<K, V>> requestAllOtherInstance(HostInfo host,
+                                                                      String endpointPath,
                                                                       Class<K> keyClass,
                                                                       Class<V> valueClass) {
         try {
@@ -284,6 +267,8 @@ public class InteractiveQueriesService {
      *
      * @param host        The host instance
      * @param endpointPath The endpoint path to request
+     * @param keyClass The key class
+     * @param valueClass The value class
      * @return The response
      */
     private <K, V> StateQueryData<K, V> requestOtherInstance(HostInfo host, String endpointPath, Class<K> keyClass,
@@ -315,6 +300,12 @@ public class InteractiveQueriesService {
             .get();
     }
 
+    /**
+     * Check if given host is equals to the current stream host.
+     *
+     * @param compareHostInfo The host to compare
+     * @return True if the host is not the current host
+     */
     private boolean isNotCurrentHost(HostInfo compareHostInfo) {
         return !kafkaStreamsInitializer.getHostInfo().host().equals(compareHostInfo.host())
             || kafkaStreamsInitializer.getHostInfo().port() != compareHostInfo.port();
