@@ -19,7 +19,7 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <V> The type of the value
  */
 public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
-        implements Processor<K, V, K, ProcessingResult<V, V>> {
+    implements Processor<K, V, K, ProcessingResult<V, V>> {
 
     /**
      * Kstream context for this transformer.
@@ -37,7 +37,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
-     * Retention window for the statestore. Used for fetching data.
+     * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
 
@@ -63,13 +63,11 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
     @Override
     public void init(ProcessorContext<K, ProcessingResult<V, V>> context) {
         this.processorContext = context;
-
         dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
     }
 
     @Override
     public void process(Record<K, V> message) {
-
         try {
             // Get the record timestamp
             var currentInstant = Instant.ofEpochMilli(message.timestamp());
@@ -77,8 +75,8 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
             try (var resultIterator = dedupWindowStore.backwardFetch(identifier,
-                    currentInstant.minus(retentionWindowDuration),
-                    currentInstant.plus(retentionWindowDuration))) {
+                currentInstant.minus(retentionWindowDuration),
+                currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
@@ -93,8 +91,8 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                    "Couldn't figure out what to do with the current payload: "
-                            + "An unlikely error occurred during deduplication transform"));
+                "Could not figure out what to do with the current payload: "
+                    + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

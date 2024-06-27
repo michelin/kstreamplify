@@ -18,8 +18,7 @@ import org.apache.kafka.streams.processor.ProcessorContext;
  */
 @Slf4j
 @NoArgsConstructor
-public class DlqDeserializationExceptionHandler extends DlqExceptionHandler
-    implements DeserializationExceptionHandler {
+public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
 
     /**

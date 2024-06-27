@@ -57,7 +57,7 @@ class DlqProductionExceptionHandlerTest {
     @Test
     void shouldReturnContinueOnExceptionDuringHandle() {
         handler = new DlqProductionExceptionHandler(producer);
-        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
             handler.handle(record, new KafkaException("Exception..."));
 
@@ -67,7 +67,7 @@ class DlqProductionExceptionHandlerTest {
     @Test
     void shouldReturnContinueOnKafkaException() {
         handler = new DlqProductionExceptionHandler(producer);
-        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
         when(record.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
@@ -82,7 +82,7 @@ class DlqProductionExceptionHandlerTest {
     @Test
     void shouldReturnFailOnRetriableException() {
         handler = new DlqProductionExceptionHandler(producer);
-        KafkaStreamsExecutionContext.setDlqTopicName("DlqTopic");
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
             handler.handle(record, new RetriableCommitFailedException("Exception..."));

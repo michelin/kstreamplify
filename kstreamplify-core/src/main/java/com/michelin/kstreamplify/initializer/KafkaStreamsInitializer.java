@@ -1,12 +1,10 @@
 package com.michelin.kstreamplify.initializer;
 
-import static com.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
 import static java.util.Optional.ofNullable;
 
-import com.michelin.kstreamplify.constants.InitializerConstants;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.properties.PropertiesUtils;
-import com.michelin.kstreamplify.rest.DefaultProbeController;
+import com.michelin.kstreamplify.property.PropertiesUtils;
+import com.michelin.kstreamplify.server.KafkaStreamsHttpServer;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -26,6 +24,21 @@ import org.apache.kafka.streams.state.HostInfo;
 @Slf4j
 @Getter
 public class KafkaStreamsInitializer {
+    /**
+     * The application server property name.
+     */
+    public static final String APPLICATION_SERVER_PROPERTY_NAME = "application.server.var.name";
+
+    /**
+     * The server port property name.
+     */
+    public static final String SERVER_PORT_PROPERTY_NAME = "server.port";
+
+    /**
+     * The default application server variable name.
+     */
+    public static final String DEFAULT_APPLICATION_SERVER_VARIABLE_NAME = "APPLICATION_SERVER";
+
     /**
      * The Kafka Streams instance.
      */
@@ -76,7 +89,7 @@ public class KafkaStreamsInitializer {
 
         initProperties();
 
-        initSerdesConfig();
+        initSerdeConfig();
 
         initDlq();
 
@@ -97,24 +110,24 @@ public class KafkaStreamsInitializer {
 
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
-        // Inject a BYO (Bring Your Own) uncaught exception handler if it is provided
         kafkaStreams.setUncaughtExceptionHandler(
-                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
-                        .orElse(this::onStreamsUncaughtException));
+            ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
+                .orElse(this::onStreamsUncaughtException));
 
         kafkaStreams.setStateListener(this::onStateChange);
 
         kafkaStreams.start();
-        initHttpServer();
+        startHttpServer();
     }
 
     /**
      * Init the Kafka Streams execution context.
      */
-    private void initSerdesConfig() {
+    private void initSerdeConfig() {
         KafkaStreamsExecutionContext.setSerdesConfig(
-            kafkaProperties.entrySet().stream().collect(
-                Collectors.toMap(
+            kafkaProperties.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
                     e -> String.valueOf(e.getKey()),
                     e -> String.valueOf(e.getValue()),
                     (prev, next) -> next, HashMap::new
@@ -134,12 +147,12 @@ public class KafkaStreamsInitializer {
      * Init the host information.
      */
     private void initHostInfo() {
-        String ipEnvVarName = (String) kafkaProperties.get(InitializerConstants.IP_SYSTEM_VARIABLE_PROPERTY);
-        if (StringUtils.isBlank(ipEnvVarName)) {
-            ipEnvVarName = InitializerConstants.IP_SYSTEM_VARIABLE_DEFAULT;
-        }
-        String myIp = System.getenv(ipEnvVarName);
-        String host = StringUtils.isNotBlank(myIp) ? myIp : InitializerConstants.LOCALHOST;
+        String applicationServerVarName =
+            (String) kafkaProperties.getOrDefault(APPLICATION_SERVER_PROPERTY_NAME,
+                DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
+
+        String applicationServer = System.getenv(applicationServerVarName);
+        String host = StringUtils.isNotBlank(applicationServer) ? applicationServer : "localhost";
 
         hostInfo = new HostInfo(host, serverPort);
 
@@ -155,8 +168,9 @@ public class KafkaStreamsInitializer {
     /**
      * Init the HTTP server.
      */
-    protected void initHttpServer() {
-        new DefaultProbeController(this);
+    protected void startHttpServer() {
+        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(this);
+        server.start();
     }
 
     /**
@@ -164,7 +178,7 @@ public class KafkaStreamsInitializer {
      */
     protected void initProperties() {
         properties = PropertiesUtils.loadProperties();
-        serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY);
+        serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY_NAME);
         kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
@@ -197,9 +211,20 @@ public class KafkaStreamsInitializer {
     }
 
     /**
-     * Register metrics.
+     * Register the metrics.
+     *
+     * @param kafkaStreams The Kafka Streams instance
      */
     protected void registerMetrics(KafkaStreams kafkaStreams) {
         // Nothing to do here
+    }
+
+    /**
+     * Check if the Kafka Streams is running.
+     *
+     * @return True if the Kafka Streams is running
+     */
+    public boolean isNotRunning() {
+        return !kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
     }
 }

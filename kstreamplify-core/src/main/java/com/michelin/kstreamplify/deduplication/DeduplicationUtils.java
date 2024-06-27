@@ -1,9 +1,10 @@
 package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
-import com.michelin.kstreamplify.utils.SerdesUtils;
+import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.time.Duration;
 import java.util.function.Function;
+import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -16,12 +17,8 @@ import org.apache.kafka.streams.state.WindowStore;
 /**
  * Deduplication utility class. Only streams with String keys are supported.
  */
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class DeduplicationUtils {
-
-    private DeduplicationUtils() {
-
-    }
-
     /**
      * Default values for the topic names. It should be noted that if used multiple times, this dedup will not work
      */
@@ -55,7 +52,7 @@ public final class DeduplicationUtils {
      *
      * @param streamsBuilder  Stream builder instance for topology editing
      * @param initialStream   Stream containing the events that should be deduplicated
-     * @param storeName       Statestore name
+     * @param storeName       State store name
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
      * @param <V>             Generic Type of the Stream value.
@@ -69,15 +66,15 @@ public final class DeduplicationUtils {
         String repartitionName, Duration windowDuration) {
 
         StoreBuilder<WindowStore<String, String>> dedupWindowStore = Stores.windowStoreBuilder(
-                Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-                Serdes.String(), Serdes.String());
+            Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
+            Serdes.String(), Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-                Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
-                        .withName(repartitionName));
+            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
+                .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration),
-                storeName);
+            storeName);
     }
 
     /**
@@ -107,7 +104,7 @@ public final class DeduplicationUtils {
      *
      * @param streamsBuilder  Stream builder instance for topology editing
      * @param initialStream   Stream containing the events that should be deduplicated
-     * @param storeName       Statestore name
+     * @param storeName       State store name
      * @param repartitionName Repartition topic name
      * @param windowDuration  Window of time to keep in the window store
      * @param <V>             Generic Type of the Stream value.
@@ -122,11 +119,11 @@ public final class DeduplicationUtils {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
             Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdesUtils.getSerdesForValue());
+            Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
+            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                 .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyValueProcessor<>(storeName, windowDuration),
             storeName);
@@ -172,7 +169,7 @@ public final class DeduplicationUtils {
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
-     * @param storeName                 Statestore name
+     * @param storeName                 State store name
      * @param repartitionName           Repartition topic name
      * @param windowDuration            Window of time to keep in the window store
      * @param deduplicationKeyExtractor Function that should extract a deduplication key in String format.
@@ -191,12 +188,12 @@ public final class DeduplicationUtils {
         Function<V, String> deduplicationKeyExtractor) {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
-                Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-                Serdes.String(), SerdesUtils.getSerdesForValue());
+            Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
+            Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getSerdesForValue())
+            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                 .withName(repartitionName));
         return repartitioned.process(
             () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,

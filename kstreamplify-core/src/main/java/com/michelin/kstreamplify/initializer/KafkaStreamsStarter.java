@@ -34,7 +34,7 @@ public abstract class KafkaStreamsStarter {
     /**
      * Register a custom uncaught exception handler.
      *
-     * @return StreamsUncaughtExceptionHandler - uncaught exception handler
+     * @return StreamsUncaughtExceptionHandler The custom uncaught exception handler
      */
     public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
         return null;

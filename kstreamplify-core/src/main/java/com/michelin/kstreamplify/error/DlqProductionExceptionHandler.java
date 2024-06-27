@@ -16,8 +16,7 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler;
  */
 @Slf4j
 @NoArgsConstructor
-public class DlqProductionExceptionHandler extends DlqExceptionHandler
-    implements ProductionExceptionHandler {
+public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
     private static final Object GUARD = new Object();
 
     /**

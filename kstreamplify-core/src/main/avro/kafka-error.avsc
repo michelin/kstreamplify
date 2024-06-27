@@ -2,6 +2,7 @@
   "namespace": "com.michelin.kstreamplify.avro",
   "type": "record",
   "name": "KafkaError",
+  "doc": "Kafka error message",
   "fields": [
     {
       "name": "cause",

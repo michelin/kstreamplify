@@ -1,0 +1,224 @@
+{
+  "namespace": "com.michelin.kstreamplify.avro",
+  "type": "record",
+  "name": "KafkaRecordStub",
+  "fields": [
+    {
+      "name": "stringField",
+      "type": "string"
+    },
+    {
+      "name": "booleanField",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "decimalField",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 17,
+        "scale": 4
+      }
+    },
+    {
+      "name": "intField",
+      "type": "int"
+    },
+    {
+      "name": "uuidField",
+      "type": [
+        "null",
+        {
+          "type": "string",
+          "logicalType": "uuid"
+        }
+      ]
+    },
+    {
+      "name": "dateField",
+      "type": {
+        "type": "int",
+        "logicalType": "date"
+      }
+    },
+    {
+      "name": "timestampMillisField",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "timestampMicrosField",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-micros"
+      }
+    },
+    {
+      "name": "localTimestampMillisField",
+      "type": {
+        "type": "long",
+        "logicalType": "local-timestamp-millis"
+      }
+    },
+    {
+      "name": "localTimestampMicrosField",
+      "type": {
+        "type": "long",
+        "logicalType": "local-timestamp-micros"
+      }
+    },
+    {
+      "name": "timeMillisField",
+      "type": {
+        "type": "int",
+        "logicalType": "time-millis"
+      }
+    },
+    {
+      "name": "timeMicrosField",
+      "type": {
+        "type": "long",
+        "logicalType": "time-micros"
+      }
+    },
+    {
+      "name": "enumField",
+      "type": {
+        "type": "enum",
+        "name": "EnumField",
+        "symbols": [
+          "a",
+          "b",
+          "c"
+        ],
+        "default": "c"
+      }
+    },
+    {
+      "name": "members",
+      "type": [
+        "null",
+        {
+          "type": "map",
+          "values": {
+            "type": "record",
+            "name": "MapElement",
+            "fields": [
+              {
+                "name": "mapDateField",
+                "type": [
+                  "null",
+                  {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                  }
+                ],
+                "default": null
+              },
+              {
+                "name": "mapQuantityField",
+                "type": [
+                  "null",
+                  {
+                    "type": "bytes",
+                    "logicalType": "decimal",
+                    "precision": 17,
+                    "scale": 4
+                  }
+                ],
+                "default": null
+              }
+            ]
+          }
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "membersString",
+      "type": [
+        "null",
+        {
+          "type": "map",
+          "values": "string"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "listString",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": "string"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "split",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "SubKafkaRecordStub",
+          "fields": [
+            {
+              "name": "subField",
+              "type": [
+                "null",
+                "string"
+              ],
+              "default": null
+            },
+            {
+              "name": "subSplit",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "SubSubKafkaRecordStub",
+                  "fields": [
+                    {
+                      "name": "subSubDateField",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "subSubField",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "subSubIntField",
+                      "type": [
+                        "null",
+                        "int"
+                      ],
+                      "default": null
+                    }
+                  ]
+                }
+              },
+              "default": []
+            }
+          ]
+        }
+      },
+      "default": []
+    }
+  ]
+}
