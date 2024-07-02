@@ -120,7 +120,7 @@
         <junit-jupiter.version>5.10.3</junit-jupiter.version>
         <kafka.version>3.6.1</kafka.version>
         <kafka-streams-avro-serde.version>7.6.0</kafka-streams-avro-serde.version>
-        <lombok.version>1.18.32</lombok.version>
+        <lombok.version>1.18.34</lombok.version>
         <mockito.version>5.12.0</mockito.version>
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
