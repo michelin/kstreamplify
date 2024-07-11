@@ -2,7 +2,6 @@ package com.michelin.kstreamplify.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.store.StateQueryData;
-import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Collection;
@@ -224,8 +222,10 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () ->
-            interactiveQueriesService.getByKey("store", "key", new StringSerializer(), Object.class));
+        try (StringSerializer stringSerializer = new StringSerializer()) {
+            assertThrows(UnknownStateStoreException.class, () ->
+                interactiveQueriesService.getByKey("store", "key", stringSerializer, Object.class));
+        }
     }
 
     @Test

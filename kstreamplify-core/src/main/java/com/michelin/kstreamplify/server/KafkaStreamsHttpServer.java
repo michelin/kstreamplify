@@ -7,6 +7,7 @@ import static com.michelin.kstreamplify.service.KubernetesService.READINESS_PATH
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_DEFAULT_PATH;
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PROPERTY;
 
+import com.michelin.kstreamplify.exception.HttpServerException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
@@ -47,22 +48,22 @@ public class KafkaStreamsHttpServer {
     public void start() {
         try {
             server = HttpServer.create(new InetSocketAddress(kafkaStreamsInitializer.getServerPort()), 0);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+            List<HttpEndpoint> httpEndpoints = new ArrayList<>();
+            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
+                .getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH), kubernetesService::getReadiness));
+            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
+                .getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH), kubernetesService::getLiveness));
+            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
+                .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH), topologyService::getTopology));
+
+            httpEndpoints.forEach(this::exposeEndpoint);
+
+            addEndpoint(kafkaStreamsInitializer);
+            server.start();
+        } catch (Exception e) {
+            throw new HttpServerException(e);
         }
-
-        List<HttpEndpoint> httpEndpoints = new ArrayList<>();
-        httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH), kubernetesService::getReadiness));
-        httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH), kubernetesService::getLiveness));
-        httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH), topologyService::getTopology));
-
-        httpEndpoints.forEach(this::exposeEndpoint);
-
-        addEndpoint(kafkaStreamsInitializer);
-        server.start();
     }
 
     /**

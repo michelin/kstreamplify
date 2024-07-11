@@ -42,7 +42,7 @@ public class StateQueryData<K, V> {
      *
      * @return The state query response
      */
-    public StateQueryResponse toStateQueryResponse(Boolean includeKey, Boolean includeMetadata) {
+    public StateQueryResponse toStateQueryResponse(boolean includeKey, boolean includeMetadata) {
         if (includeMetadata) {
             return new StateQueryResponse(includeKey ? key : null, value, timestamp, hostInfo, positionVectors);
         }

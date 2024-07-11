@@ -332,6 +332,7 @@
                     <violationSeverity>info</violationSeverity>
                     <consoleOutput>true</consoleOutput>
                 </configuration>
+
                 <executions>
                     <execution>
                         <id>check-style</id>

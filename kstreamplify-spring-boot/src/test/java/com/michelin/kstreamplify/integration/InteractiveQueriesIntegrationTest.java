@@ -18,9 +18,11 @@ import com.michelin.kstreamplify.store.HostInfoResponse;
 import com.michelin.kstreamplify.store.StateQueryResponse;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -31,8 +33,18 @@ import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.processor.api.ContextualProcessor;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.ProcessorSupplier;
+import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,8 +128,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @BeforeEach
     void setUp() throws InterruptedException {
         waitingForKafkaStreamsToStart();
-        waitingForLocalStoreToReachOffset(Map.of("STRING_STORE", Map.of(1, 1L),
-            "AVRO_STORE", Map.of(0, 1L)));
+        waitingForLocalStoreToReachOffset(Map.of(
+            "STRING_STORE", Map.of(1, 1L),
+            "AVRO_STORE", Map.of(0, 1L),
+            "AVRO_TIMESTAMPED_STORE", Map.of(0, 1L)
+        ));
     }
 
     @Test
@@ -129,7 +144,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(200, stores.getStatusCode().value());
         assertNotNull(stores.getBody());
-        assertTrue(stores.getBody().containsAll(List.of("STRING_STORE", "AVRO_STORE")));
+        assertTrue(stores.getBody().containsAll(List.of("STRING_STORE", "AVRO_STORE", "AVRO_TIMESTAMPED_STORE")));
 
         // Get hosts
         ResponseEntity<List<HostInfoResponse>> hosts = restTemplate
@@ -196,6 +211,15 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("AVRO_TOPIC", avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).topic());
         assertEquals(0, avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).partition());
         assertNotNull(avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
+
+        // Get Avro by key with metadata from timestamped store
+        ResponseEntity<StateQueryResponse> avroTsRecordByKeyWithMetadata = restTemplate
+            .getForEntity("http://localhost:8085/store/AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
+
+        assertEquals(200, avroTsRecordByKeyWithMetadata.getStatusCode().value());
+        assertNotNull(avroTsRecordByKeyWithMetadata.getBody());
+        assertEquals("person", avroTsRecordByKeyWithMetadata.getBody().getKey());
+        assertEquals("John", ((HashMap<?, ?>) avroTsRecordByKeyWithMetadata.getBody().getValue()).get("firstName"));
     }
 
     @Test
@@ -268,8 +292,43 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                 .table("STRING_TOPIC", Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("STRING_STORE"));
 
             streamsBuilder
+                .table("JAVA_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()),
+                    Materialized.<String, KafkaPersonStub, KeyValueStore<Bytes, byte[]>>as("JAVA_STORE"));
+
+            KStream<String, KafkaPersonStub> personStubStream = streamsBuilder
                 .table("AVRO_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()),
-                    Materialized.<String, KafkaPersonStub, KeyValueStore<Bytes, byte[]>>as("AVRO_STORE"));
+                    Materialized.<String, KafkaPersonStub, KeyValueStore<Bytes, byte[]>>as("AVRO_STORE"))
+                .toStream();
+
+            personStubStream
+                .process(new ProcessorSupplier<String, KafkaPersonStub, String, KafkaPersonStub>() {
+                    @Override
+                    public Set<StoreBuilder<?>> stores() {
+                        StoreBuilder<TimestampedKeyValueStore<String, KafkaPersonStub>> storeBuilder = Stores
+                            .timestampedKeyValueStoreBuilder(
+                                Stores.persistentTimestampedKeyValueStore("AVRO_TIMESTAMPED_STORE"),
+                                Serdes.String(), SerdesUtils.getValueSerdes());
+                        return Collections.singleton(storeBuilder);
+                    }
+
+                    @Override
+                    public Processor<String, KafkaPersonStub, String, KafkaPersonStub> get() {
+                        return new Processor<>() {
+                            private TimestampedKeyValueStore<String, KafkaPersonStub> kafkaPersonStore;
+
+                            @Override
+                            public void init(ProcessorContext<String, KafkaPersonStub> context) {
+                                this.kafkaPersonStore = context.getStateStore("AVRO_TIMESTAMPED_STORE");
+                            }
+
+                            @Override
+                            public void process(Record<String, KafkaPersonStub> record) {
+                                kafkaPersonStore.put(record.key(),
+                                    ValueAndTimestamp.make(record.value(), record.timestamp()));
+                            }
+                        };
+                    }
+                });
         }
 
         @Override
