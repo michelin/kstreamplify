@@ -10,6 +10,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.when;
 
+import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
+import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.store.StateQueryData;
 import java.net.http.HttpClient;
@@ -69,6 +71,12 @@ class InteractiveQueriesServiceTest {
 
     @InjectMocks
     private InteractiveQueriesService interactiveQueriesService;
+
+    @Test
+    void shouldConstructInteractiveQueriesService() {
+        InteractiveQueriesService service = new InteractiveQueriesService(kafkaStreamsInitializer);
+        assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
+    }
 
     @Test
     void shouldGetStores() {
@@ -217,6 +225,26 @@ class InteractiveQueriesServiceTest {
     }
 
     @Test
+    void shouldHandleRuntimeExceptionWhenGettingAllOtherInstance() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
+
+        HostInfo hostInfo = new HostInfo("localhost", 8080);
+        when(streamsMetadata.hostInfo()).thenReturn(hostInfo);
+
+        HostInfo anotherHostInfo = new HostInfo("anotherHost", 8080);
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(anotherHostInfo);
+
+        when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
+            .thenThrow(new RuntimeException("Error"));
+
+        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
+            () -> interactiveQueriesService.getAll("store", String.class, PersonStub.class));
+
+        assertEquals("Fail to read other instance response", exception.getMessage());
+    }
+
+    @Test
     void shouldGetByKeyThrowsUnknownStoreExceptionWhenMetadataNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
@@ -304,6 +332,51 @@ class InteractiveQueriesServiceTest {
         assertEquals("topic", response.getPositionVectors().get(0).topic());
         assertEquals(0, response.getPositionVectors().get(0).partition());
         assertEquals(15L, response.getPositionVectors().get(0).offset());
+    }
+
+    @Test
+    void shouldGetUnknownKeyCurrentInstance() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
+            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
+
+        HostInfo hostInfo = new HostInfo("localhost", 8080);
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(hostInfo);
+
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<ValueAndTimestamp<Object>>>any()))
+            .thenReturn(stateKeyQueryResult);
+
+        QueryResult<ValueAndTimestamp<Object>> queryResult = QueryResult
+            .forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L));
+        queryResult.setPosition(Position.fromMap(Map.of("topic", Map.of(0, 15L))));
+
+        when(stateKeyQueryResult.getOnlyPartitionResult())
+            .thenReturn(null);
+
+        try (StringSerializer stringSerializer = new StringSerializer()) {
+            UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
+                interactiveQueriesService.getByKey("store", "unknownKey", stringSerializer, PersonStub.class));
+
+            assertEquals("Key unknownKey not found", exception.getMessage());
+        }
+    }
+
+    @Test
+    void shouldHandleRuntimeExceptionWhenGettingByKeyOtherInstance() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
+            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
+
+        HostInfo hostInfo = new HostInfo("localhost", 8080);
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(hostInfo);
+
+        when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
+            .thenThrow(new RuntimeException("Error"));
+
+        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
+            () -> interactiveQueriesService.getByKey("store", "key", new StringSerializer(), PersonStub.class));
+
+        assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
     record PersonStub(String firstName, String lastName) { }

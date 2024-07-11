@@ -26,6 +26,15 @@ class WindowStateStoreUtilsTest {
     private WindowStoreIterator<String> iterator;
 
     @Test
+    void shouldReturnNull() {
+        when(windowStore.backwardFetch(anyString(), any(), any()))
+            .thenReturn(null);
+
+        String result = WindowStateStoreUtils.get(windowStore, "testKey", 1);
+        assertNull(result);
+    }
+
+    @Test
     void shouldPutAndGetFromWindowStore() {
         String value = "testValue";
 
@@ -39,13 +48,11 @@ class WindowStateStoreUtilsTest {
         when(windowStore.backwardFetch(anyString(), any(), any()))
             .thenReturn(iterator);
 
-        // Call the put method
         String key = "testKey";
         WindowStateStoreUtils.put(windowStore, key, value);
         String result = WindowStateStoreUtils.get(windowStore, key, 1);
         String nullResult = WindowStateStoreUtils.get(windowStore, "nothing", 1);
 
-        // Verify that the put method of the windowStore is called with the correct arguments
         assertEquals("testValue", result);
         assertNull(nullResult);
         verify(windowStore).put(eq(key), eq(value), anyLong());

@@ -21,7 +21,6 @@ import org.rocksdb.Options;
 
 @ExtendWith(MockitoExtension.class)
 class RocksDbConfigTest {
-
     @Mock
     private Options options;
 
@@ -32,25 +31,21 @@ class RocksDbConfigTest {
 
     @Test
     void testSetConfigWithDefaultValues() {
-        // Arrange
         Map<String, Object> configs = new HashMap<>();
         RocksDbConfig rocksDbConfig = new RocksDbConfig();
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
-        // Act
         rocksDbConfig.setConfig("storeName", options, configs);
 
-        // Assert
-        verify(options, times(1)).tableFormatConfig();
-        verify(options, times(1)).setTableFormatConfig(any());
-        verify(options, times(1)).setMaxWriteBufferNumber(RocksDbConfig.ROCKSDB_MAX_WRITE_BUFFER_DEFAULT);
-        verify(options, times(1)).setWriteBufferSize(RocksDbConfig.ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT);
-        verify(options, times(1)).setCompressionType(CompressionType.NO_COMPRESSION);
+        verify(options).tableFormatConfig();
+        verify(options).setTableFormatConfig(any());
+        verify(options).setMaxWriteBufferNumber(RocksDbConfig.ROCKSDB_MAX_WRITE_BUFFER_DEFAULT);
+        verify(options).setWriteBufferSize(RocksDbConfig.ROCKSDB_WRITE_BUFFER_SIZE_DEFAULT);
+        verify(options).setCompressionType(CompressionType.NO_COMPRESSION);
     }
 
     @Test
     void testSetConfigWithCustomValues() {
-        // Arrange
         long cacheSize = 64 * 1024L * 1024L;
         long writeBufferSize = 8 * 1024L * 1024L;
         long blockSize = 8 * 1024L;
@@ -71,14 +66,12 @@ class RocksDbConfigTest {
 
         RocksDbConfig rocksDbConfig = new RocksDbConfig();
 
-        // Act
         rocksDbConfig.setConfig("storeName", options, configs);
 
-        // Assert
-        verify(options, times(1)).tableFormatConfig();
-        verify(options, times(1)).setTableFormatConfig(any());
-        verify(options, times(1)).setMaxWriteBufferNumber(maxWriteBuffer);
-        verify(options, times(1)).setWriteBufferSize(writeBufferSize);
-        verify(options, times(1)).setCompressionType(CompressionType.getCompressionType(compressionType));
+        verify(options).tableFormatConfig();
+        verify(options).setTableFormatConfig(any());
+        verify(options).setMaxWriteBufferNumber(maxWriteBuffer);
+        verify(options).setWriteBufferSize(writeBufferSize);
+        verify(options).setCompressionType(CompressionType.getCompressionType(compressionType));
     }
 }
