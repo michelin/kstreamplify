@@ -8,7 +8,10 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import java.util.Properties;
+import java.util.Set;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.processor.internals.StreamThread;
+import org.apache.kafka.streams.processor.internals.ThreadMetadataImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +30,7 @@ class KubernetesServiceTest {
     private KubernetesService kubernetesService;
 
     @Test
-    void shouldGetReadinessProbeWithWhenStreamsRunning() {
+    void shouldGetReadinessProbeWhenRunning() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
@@ -39,7 +42,7 @@ class KubernetesServiceTest {
     }
 
     @Test
-    void shouldGetReadinessProbeWithWhenStreamsNotRunning() {
+    void shouldGetReadinessProbeWhenNotRunning() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
@@ -51,12 +54,76 @@ class KubernetesServiceTest {
     }
 
     @Test
-    void shouldGetReadinessProbeWithWhenStreamsNull() {
+    void shouldGetReadinessProbeWhenNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
         RestResponse<Void> response = kubernetesService.getReadiness();
 
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.status());
+    }
+
+    @Test
+    void shouldGetReadinessProbeWhenRebalancingAndAllThreadsCreated() {
+        KafkaStreamsExecutionContext.registerProperties(new Properties());
+
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.metadataForLocalThreads()).thenReturn(Set.of(
+            new ThreadMetadataImpl(
+                "thread-1",
+                StreamThread.State.CREATED.name(),
+                "mainConsumerClientId",
+                "restoreConsumerClientId",
+                Set.of(),
+                "adminClientId",
+                Set.of(),
+                Set.of())
+        ));
+
+        RestResponse<Void> response = kubernetesService.getReadiness();
+
+        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
+    }
+
+    @Test
+    void shouldGetReadinessProbeWhenRebalancingAndAllThreadsNotStartingOrCreated() {
+        KafkaStreamsExecutionContext.registerProperties(new Properties());
+
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.metadataForLocalThreads()).thenReturn(Set.of(
+            new ThreadMetadataImpl(
+                "thread-1",
+                StreamThread.State.CREATED.name(),
+                "mainConsumerClientId",
+                "restoreConsumerClientId",
+                Set.of(),
+                "adminClientId",
+                Set.of(),
+                Set.of()),
+            new ThreadMetadataImpl(
+                "thread-2",
+                StreamThread.State.STARTING.name(),
+                "mainConsumerClientId",
+                "restoreConsumerClientId",
+                Set.of(),
+                "adminClientId",
+                Set.of(),
+                Set.of()),
+            new ThreadMetadataImpl(
+                "thread-3",
+                StreamThread.State.PARTITIONS_ASSIGNED.name(),
+                "mainConsumerClientId",
+                "restoreConsumerClientId",
+                Set.of(),
+                "adminClientId",
+                Set.of(),
+                Set.of())
+        ));
+
+        RestResponse<Void> response = kubernetesService.getReadiness();
+
+        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.status());
     }
 
     @Test

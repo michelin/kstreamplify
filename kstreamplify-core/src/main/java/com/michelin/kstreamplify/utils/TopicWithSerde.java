@@ -24,7 +24,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
  * @param <V> The model used as the value avro of the topic.
  * @deprecated Use {@link com.michelin.kstreamplify.serde.TopicWithSerde}.
  */
-@Deprecated(forRemoval = true, since = "1.0.3")
+@Deprecated(forRemoval = true, since = "1.1.0")
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class TopicWithSerde<K, V> {
     /**

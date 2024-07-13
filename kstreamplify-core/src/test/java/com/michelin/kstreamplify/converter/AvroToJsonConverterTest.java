@@ -37,19 +37,8 @@ class AvroToJsonConverterTest {
     }
 
     @Test
-    void shouldConvertListObject() {
-        String json = AvroToJsonConverter.convertObject(List.of(new PersonStub("John", "Doe")));
-        assertEquals("""
-            [{
-              "firstName": "John",
-              "lastName": "Doe"
-            }]""", json);
-    }
-
-    @Test
-    void shouldConvertAvroToJson() {
-        String jsonString = AvroToJsonConverter.convertRecord(buildKafkaRecordStub());
-
+    void shouldConvertGenericRecord() {
+        String json = AvroToJsonConverter.convertRecord(buildKafkaRecordStub());
         assertEquals("""
             {
               "localTimestampMillisField": "2024-03-27T20:51:01.815832",
@@ -90,9 +79,19 @@ class AvroToJsonConverterTest {
               "timeMicrosField": "20:51:01.815832",
               "stringField": "test",
               "enumField": "b"
-            }""", jsonString);
+            }""", json);
     }
 
+    @Test
+    void shouldConvertListObject() {
+        String json = AvroToJsonConverter.convertObject(List.of(new PersonStub("John", "Doe")));
+        assertEquals("""
+            [{
+              "firstName": "John",
+              "lastName": "Doe"
+            }]""", json);
+    }
+    
     private KafkaRecordStub buildKafkaRecordStub() {
         return KafkaRecordStub.newBuilder()
                 .setDecimalField(BigDecimal.TEN)

@@ -14,7 +14,9 @@ import com.michelin.kstreamplify.avro.CountryCode;
 import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
+import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryData;
 import com.michelin.kstreamplify.store.StateQueryResponse;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Instant;
@@ -35,7 +37,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.processor.api.ContextualProcessor;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
@@ -48,6 +49,7 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,6 +70,9 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("interactive-queries")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
+    @Autowired
+    private InteractiveQueriesService interactiveQueriesService;
+
     @Container
     static KafkaContainer broker = new KafkaContainer(DockerImageName
         .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
@@ -121,6 +126,24 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                     .setNationality(CountryCode.FR)
                     .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
                     .build()))
+                .get();
+        }
+
+        try (KafkaProducer<KafkaPersonStub, KafkaPersonStub> avroKeyValueKafkaProducer = new KafkaProducer<>(
+            Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
+                KEY_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
+                VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
+                SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
+            KafkaPersonStub kafkaPersonStub = KafkaPersonStub.newBuilder()
+                .setId(1L)
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setNationality(CountryCode.FR)
+                .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
+                .build();
+
+            avroKeyValueKafkaProducer
+                .send(new ProducerRecord<>("AVRO_KEY_VALUE_TOPIC", kafkaPersonStub, kafkaPersonStub))
                 .get();
         }
     }
@@ -274,6 +297,32 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(allAvroRecordsMetadata.getBody().get(0).getPositionVectors().get(0).offset());
     }
 
+    @Test
+    void shouldGetMessageFromInteractiveQueriesService() {
+        KafkaPersonStub key = KafkaPersonStub.newBuilder()
+            .setId(1L)
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setNationality(CountryCode.FR)
+            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
+            .build();
+
+        StateQueryData<KafkaPersonStub, KafkaPersonStub> stateQueryData = interactiveQueriesService
+            .getByKey("AVRO_KEY_VALUE_STORE",
+                key,
+                SerdesUtils.<KafkaPersonStub>getKeySerdes().serializer(),
+                KafkaPersonStub.class);
+
+        assertEquals(key, stateQueryData.getKey());
+        assertEquals(key, stateQueryData.getValue()); // Key and value are the same in this case
+        assertNotNull(stateQueryData.getTimestamp());
+        assertEquals("localhost", stateQueryData.getHostInfo().host());
+        assertEquals(8085, stateQueryData.getHostInfo().port());
+        assertEquals("AVRO_KEY_VALUE_TOPIC", stateQueryData.getPositionVectors().get(0).topic());
+        assertEquals(0, stateQueryData.getPositionVectors().get(0).partition());
+        assertNotNull(stateQueryData.getPositionVectors().get(0).offset());
+    }
+
     /**
      * Kafka Streams starter implementation for integration tests.
      * The topology consumes events from multiple topics (string, Java, Avro) and stores them in dedicated stores
@@ -290,10 +339,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder
                 .table("STRING_TOPIC", Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("STRING_STORE"));
-
-            streamsBuilder
-                .table("JAVA_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()),
-                    Materialized.<String, KafkaPersonStub, KeyValueStore<Bytes, byte[]>>as("JAVA_STORE"));
 
             KStream<String, KafkaPersonStub> personStubStream = streamsBuilder
                 .table("AVRO_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()),
@@ -329,6 +374,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                         };
                     }
                 });
+
+            streamsBuilder
+                .table("AVRO_KEY_VALUE_TOPIC", Consumed.with(SerdesUtils.getKeySerdes(), SerdesUtils.getValueSerdes()),
+                    Materialized.<KafkaPersonStub, KafkaPersonStub,
+                        KeyValueStore<Bytes, byte[]>>as("AVRO_KEY_VALUE_STORE"));
         }
 
         @Override

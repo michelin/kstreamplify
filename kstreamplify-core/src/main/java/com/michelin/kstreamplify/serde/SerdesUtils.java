@@ -37,8 +37,7 @@ public final class SerdesUtils {
      * @param <T>           The class of requested serdes
      * @return a serdes for requested class
      */
-    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(
-        boolean isSerdeForKey) {
+    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();
         serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), isSerdeForKey);
         return serde;

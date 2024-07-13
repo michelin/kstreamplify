@@ -223,6 +223,7 @@ public class JsonToAvroConverter {
      * @param fieldName  the name to populate
      * @param result     the avro record populated
      */
+    @SuppressWarnings("unchecked")
     private static void populateFieldInRecordWithCorrespondingType(JsonObject jsonObject,
                                                                    String fieldName,
                                                                    GenericRecord result) {

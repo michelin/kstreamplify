@@ -62,8 +62,7 @@ public class ProcessingResult<V, V2> {
      * @param <V2>    The type of the ProcessingResult error value
      * @return The initial Record, with value wrapped in a ProcessingResult
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(
-        Record<K, V> message) {
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(Record<K, V> message) {
         return new Record<>(message.key(), ProcessingResult.success(message.value()),
             message.timestamp());
     }
@@ -85,8 +84,7 @@ public class ProcessingResult<V, V2> {
      * @param <V2>      The type of the ProcessingResult error value
      * @return A Record with value wrapped in a {@link ProcessingResult}
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(K key, V value,
-                                                                                  long timestamp) {
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(K key, V value, long timestamp) {
         return new Record<>(key, ProcessingResult.success(value), timestamp);
     }
 
@@ -126,8 +124,7 @@ public class ProcessingResult<V, V2> {
      * @param <V2>              The type of the failed record
      * @return A processing result containing the failed record
      */
-    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 failedRecordValue,
-                                                       String contextMessage) {
+    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 failedRecordValue, String contextMessage) {
         return new ProcessingResult<>(new ProcessingError<>(e, contextMessage, failedRecordValue));
     }
 
