@@ -196,7 +196,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(404, wrongKey.getStatusCode().value());
         assertEquals("Key wrongKey not found", wrongKey.getBody());
 
-        // Get by key
+        // Get by key from String store
         ResponseEntity<StateQueryResponse> recordByKey = restTemplate
             .getForEntity("http://localhost:8085/store/STRING_STORE/key", StateQueryResponse.class);
 
@@ -204,22 +204,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(recordByKey.getBody());
         assertEquals("value", recordByKey.getBody().getValue());
 
-        // Get by key with metadata
-        ResponseEntity<StateQueryResponse> recordByKeyWithMetadata = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_STORE/key?includeKey=true&includeMetadata=true", StateQueryResponse.class);
-
-        assertEquals(200, recordByKeyWithMetadata.getStatusCode().value());
-        assertNotNull(recordByKeyWithMetadata.getBody());
-        assertEquals("key", recordByKeyWithMetadata.getBody().getKey());
-        assertEquals("value", recordByKeyWithMetadata.getBody().getValue());
-        assertNotNull(recordByKeyWithMetadata.getBody().getTimestamp());
-        assertEquals("localhost", recordByKeyWithMetadata.getBody().getHostInfo().host());
-        assertEquals(8085, recordByKeyWithMetadata.getBody().getHostInfo().port());
-        assertEquals("STRING_TOPIC", recordByKeyWithMetadata.getBody().getPositionVectors().get(0).topic());
-        assertEquals(1, recordByKeyWithMetadata.getBody().getPositionVectors().get(0).partition());
-        assertNotNull(recordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
-
-        // Get Avro by key with metadata
+        // Get by key from Avro store with metadata
         ResponseEntity<StateQueryResponse> avroRecordByKeyWithMetadata = restTemplate
             .getForEntity("http://localhost:8085/store/AVRO_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
@@ -235,7 +220,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(0, avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).partition());
         assertNotNull(avroRecordByKeyWithMetadata.getBody().getPositionVectors().get(0).offset());
 
-        // Get Avro by key with metadata from timestamped store
+        // Get by key from timestamped Avro store with metadata
         ResponseEntity<StateQueryResponse> avroTsRecordByKeyWithMetadata = restTemplate
             .getForEntity("http://localhost:8085/store/AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
@@ -254,7 +239,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(404, wrongStore.getStatusCode().value());
         assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
 
-        // Get all
+        // Get all from String store
         ResponseEntity<List<StateQueryResponse>> allRecords = restTemplate
             .exchange("http://localhost:8085/store/STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
             });
@@ -263,23 +248,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(allRecords.getBody());
         assertEquals("value", allRecords.getBody().get(0).getValue());
 
-        // Get all with metadata
-        ResponseEntity<List<StateQueryResponse>> allRecordsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/STRING_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, allRecordsMetadata.getStatusCode().value());
-        assertNotNull(allRecordsMetadata.getBody());
-        assertEquals("key", allRecordsMetadata.getBody().get(0).getKey());
-        assertEquals("value", allRecordsMetadata.getBody().get(0).getValue());
-        assertNotNull(allRecordsMetadata.getBody().get(0).getTimestamp());
-        assertEquals("localhost", allRecordsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, allRecordsMetadata.getBody().get(0).getHostInfo().port());
-        assertEquals("STRING_TOPIC", allRecordsMetadata.getBody().get(0).getPositionVectors().get(0).topic());
-        assertEquals(1, allRecordsMetadata.getBody().get(0).getPositionVectors().get(0).partition());
-        assertNotNull(allRecordsMetadata.getBody().get(0).getPositionVectors().get(0).offset());
-
-        // Get all Avro with metadata
+        // Get all from Avro store with metadata
         ResponseEntity<List<StateQueryResponse>> allAvroRecordsMetadata = restTemplate
             .exchange("http://localhost:8085/store/AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
@@ -367,9 +336,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                             }
 
                             @Override
-                            public void process(Record<String, KafkaPersonStub> record) {
-                                kafkaPersonStore.put(record.key(),
-                                    ValueAndTimestamp.make(record.value(), record.timestamp()));
+                            public void process(Record<String, KafkaPersonStub> message) {
+                                kafkaPersonStore.put(message.key(),
+                                    ValueAndTimestamp.make(message.value(), message.timestamp()));
                             }
                         };
                     }

@@ -373,10 +373,12 @@ class InteractiveQueriesServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
             .thenThrow(new RuntimeException("Error"));
 
-        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> interactiveQueriesService.getByKey("store", "key", new StringSerializer(), PersonStub.class));
+        try (StringSerializer stringSerializer = new StringSerializer()) {
+            OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
+                () -> interactiveQueriesService.getByKey("store", "key", stringSerializer, PersonStub.class));
 
-        assertEquals("Fail to read other instance response", exception.getMessage());
+            assertEquals("Fail to read other instance response", exception.getMessage());
+        }
     }
 
     record PersonStub(String firstName, String lastName) { }
