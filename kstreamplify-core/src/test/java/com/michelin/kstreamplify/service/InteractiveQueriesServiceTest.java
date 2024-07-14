@@ -309,10 +309,12 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreams.state())
             .thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesService.getByKey("store", "key", new StringSerializer(), Object.class));
+        try (StringSerializer stringSerializer = new StringSerializer()) {
+            StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+                () -> interactiveQueriesService.getByKey("store", "key", stringSerializer, Object.class));
 
-        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
+            assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
+        }
     }
 
     @Test

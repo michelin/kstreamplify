@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.store.HostInfoResponse;
 import com.michelin.kstreamplify.store.StateQueryData;

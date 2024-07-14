@@ -7,8 +7,6 @@ import com.michelin.kstreamplify.store.StateQueryData;
 import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.util.List;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;

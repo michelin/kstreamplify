@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
@@ -89,9 +90,9 @@ public class KafkaStreamsHttpServer {
         }
     }
 
-    private void createKubernetesEndpoints(String path, Supplier<Integer> kubernetesSupplier) {
+    private void createKubernetesEndpoints(String path, IntSupplier kubernetesSupplier) {
         server.createContext("/" + path, (exchange -> {
-            Integer code = kubernetesSupplier.get();
+            int code = kubernetesSupplier.getAsInt();
             exchange.sendResponseHeaders(code, 0);
             exchange.close();
         }));
