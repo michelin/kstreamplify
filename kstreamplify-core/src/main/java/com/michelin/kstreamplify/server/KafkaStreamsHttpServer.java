@@ -16,6 +16,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
+import com.michelin.kstreamplify.store.HostInfoResponse;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.OutputStream;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -67,21 +67,16 @@ public class KafkaStreamsHttpServer {
 
             Properties properties = kafkaStreamsInitializer.getProperties();
 
-            createKubernetesEndpoints(
+            createKubernetesEndpoint(
                 (String) properties.getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH),
                 kubernetesService::getReadiness);
 
-            createKubernetesEndpoints(
+            createKubernetesEndpoint(
                 (String) properties.getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH),
                 kubernetesService::getLiveness);
 
-            createTopologyEndpoint(
-                (String) properties.getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH),
-                topologyService::getTopology);
-
-            createStoreEndpoint(
-                DEFAULT_STORE_PATH,
-                interactiveQueriesService::getStores);
+            createTopologyEndpoint();
+            createStoreEndpoints();
 
             addEndpoint(kafkaStreamsInitializer);
             server.start();
@@ -90,39 +85,57 @@ public class KafkaStreamsHttpServer {
         }
     }
 
-    private void createKubernetesEndpoints(String path, IntSupplier kubernetesSupplier) {
-        server.createContext("/" + path, (exchange -> {
-            int code = kubernetesSupplier.getAsInt();
-            exchange.sendResponseHeaders(code, 0);
-            exchange.close();
-        }));
+    private void createKubernetesEndpoint(String path, IntSupplier kubernetesSupplier) {
+        server.createContext("/" + path,
+            (exchange -> {
+                int code = kubernetesSupplier.getAsInt();
+                exchange.sendResponseHeaders(code, 0);
+                exchange.close();
+            }));
     }
 
-    private void createTopologyEndpoint(String path, Supplier<String> topologySupplier) {
-        server.createContext("/" + path, (exchange -> {
-            String response = topologySupplier.get();
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
-            exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.PLAIN_TEXT_UTF_8.toString());
+    private void createTopologyEndpoint() {
+        String topologyEndpointPath = (String) kafkaStreamsInitializer.getProperties()
+            .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH);
 
-            OutputStream output = exchange.getResponseBody();
-            output.write(response.getBytes());
+        server.createContext("/" + topologyEndpointPath,
+            (exchange -> {
+                String response = topologyService.getTopology();
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
+                exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.PLAIN_TEXT_UTF_8.toString());
 
-            exchange.close();
-        }));
+                OutputStream output = exchange.getResponseBody();
+                output.write(response.getBytes());
+
+                exchange.close();
+            }));
     }
 
-    private void createStoreEndpoint(String path, Supplier<List<String>> storeSupplier) {
-        server.createContext("/" + path, (exchange -> {
-            List<String> stores = storeSupplier.get();
-            String response = objectMapper.writeValueAsString(stores);
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
-            exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
+    private void createStoreEndpoints() {
+        server.createContext("/" + DEFAULT_STORE_PATH,
+            (exchange -> {
+                Object response = null;
+                if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
+                    response = interactiveQueriesService.getStores();
+                }
 
-            OutputStream output = exchange.getResponseBody();
-            output.write(response.getBytes());
+                if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + ".*/info")) {
+                    String store = exchange.getRequestURI().toString().split("/")[2];
+                    response = interactiveQueriesService.getStreamsMetadata(store)
+                        .stream()
+                        .map(streamsMetadata -> new HostInfoResponse(streamsMetadata.host(), streamsMetadata.port()))
+                        .toList();
+                }
 
-            exchange.close();
-        }));
+                String jsonResponse = objectMapper.writeValueAsString(response);
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, jsonResponse.length());
+                exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
+
+                OutputStream output = exchange.getResponseBody();
+                output.write(jsonResponse.getBytes());
+
+                exchange.close();
+            }));
     }
 
     /**

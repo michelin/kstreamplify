@@ -148,17 +148,30 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetStoresAndHosts() throws IOException, InterruptedException {
         // Get stores
-        HttpRequest requestStore = HttpRequest.newBuilder()
+        HttpRequest storesRequest = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store"))
             .GET()
             .build();
 
-        HttpResponse<String> responseTopology = httpClient.send(requestStore, HttpResponse.BodyHandlers.ofString());
-        List<String> body = objectMapper.readValue(responseTopology.body(), new TypeReference<>() {});
+        HttpResponse<String> storesResponse = httpClient.send(storesRequest, HttpResponse.BodyHandlers.ofString());
+        List<String> stores = objectMapper.readValue(storesResponse.body(), new TypeReference<>() {});
 
-        assertEquals(200, responseTopology.statusCode());
-        assertTrue(body.containsAll(List.of("STRING_STORE", "AVRO_STORE", "AVRO_TIMESTAMPED_STORE",
+        assertEquals(200, storesResponse.statusCode());
+        assertTrue(stores.containsAll(List.of("STRING_STORE", "AVRO_STORE", "AVRO_TIMESTAMPED_STORE",
             "AVRO_KEY_VALUE_STORE")));
+
+        // Get hosts
+        HttpRequest hostsRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/STRING_STORE/info"))
+            .GET()
+            .build();
+
+        HttpResponse<String> hostsResponse = httpClient.send(hostsRequest, HttpResponse.BodyHandlers.ofString());
+        List<HostInfoResponse> hosts = objectMapper.readValue(hostsResponse.body(), new TypeReference<>() {});
+
+        assertEquals(200, hostsResponse.statusCode());
+        assertEquals("localhost", hosts.get(0).host());
+        assertEquals(8081, hosts.get(0).port());
     }
 
     /**
