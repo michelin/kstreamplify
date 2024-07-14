@@ -28,6 +28,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 import org.apache.kafka.streams.query.Position;
 import org.apache.kafka.streams.query.QueryResult;
@@ -45,6 +46,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class InteractiveQueriesServiceTest {
+    private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in REBALANCING state";
+
     @Mock
     private KafkaStreamsInitializer kafkaStreamsInitializer;
 
@@ -76,6 +79,23 @@ class InteractiveQueriesServiceTest {
     void shouldConstructInteractiveQueriesService() {
         InteractiveQueriesService service = new InteractiveQueriesService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
+    }
+
+    @Test
+    void shouldNotGetStoresWhenStreamsIsNotStarted() {
+        when(kafkaStreamsInitializer.isNotRunning())
+            .thenReturn(true);
+
+        when(kafkaStreamsInitializer.getKafkaStreams())
+            .thenReturn(kafkaStreams);
+
+        when(kafkaStreams.state())
+            .thenReturn(KafkaStreams.State.REBALANCING);
+
+        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+            () -> interactiveQueriesService.getStores());
+
+        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
@@ -111,6 +131,23 @@ class InteractiveQueriesServiceTest {
     }
 
     @Test
+    void shouldNotGetStreamsMetadataForStoreWhenStreamsIsNotStarted() {
+        when(kafkaStreamsInitializer.isNotRunning())
+            .thenReturn(true);
+
+        when(kafkaStreamsInitializer.getKafkaStreams())
+            .thenReturn(kafkaStreams);
+
+        when(kafkaStreams.state())
+            .thenReturn(KafkaStreams.State.REBALANCING);
+
+        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+            () -> interactiveQueriesService.getStreamsMetadata("store"));
+
+        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
+    }
+
+    @Test
     void shouldGetStreamsMetadataForStore() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
@@ -118,6 +155,23 @@ class InteractiveQueriesServiceTest {
         Collection<StreamsMetadata> streamsMetadataResponse = interactiveQueriesService.getStreamsMetadata("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
+    }
+
+    @Test
+    void shouldNotGetAllWhenStreamsIsNotStarted() {
+        when(kafkaStreamsInitializer.isNotRunning())
+            .thenReturn(true);
+
+        when(kafkaStreamsInitializer.getKafkaStreams())
+            .thenReturn(kafkaStreams);
+
+        when(kafkaStreams.state())
+            .thenReturn(KafkaStreams.State.REBALANCING);
+
+        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+            () -> interactiveQueriesService.getAll("store", Object.class, Object.class));
+
+        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
@@ -242,6 +296,23 @@ class InteractiveQueriesServiceTest {
             () -> interactiveQueriesService.getAll("store", String.class, PersonStub.class));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotGetByKeyWhenStreamsIsNotStarted() {
+        when(kafkaStreamsInitializer.isNotRunning())
+            .thenReturn(true);
+
+        when(kafkaStreamsInitializer.getKafkaStreams())
+            .thenReturn(kafkaStreams);
+
+        when(kafkaStreams.state())
+            .thenReturn(KafkaStreams.State.REBALANCING);
+
+        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+            () -> interactiveQueriesService.getByKey("store", "key", new StringSerializer(), Object.class));
+
+        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test

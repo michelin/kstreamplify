@@ -5,5 +5,5 @@ kafka:
     application.id: appInteractiveQueriesId
     default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
     default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    state.dir: /tmp/kstreamplify-test/interactive-queries
+    state.dir: /tmp/kstreamplify/kstreamplify-spring-boot-test/interactive-queries
     auto.offset.reset: earliest

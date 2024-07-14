@@ -3,7 +3,6 @@ package com.michelin.kstreamplify.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -14,9 +13,7 @@ import com.michelin.kstreamplify.store.HostInfoResponse;
 import com.michelin.kstreamplify.store.StateQueryData;
 import com.michelin.kstreamplify.store.StateQueryResponse;
 import java.util.List;
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsMetadata;
-import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,16 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class InteractiveQueriesControllerTest {
-    private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in REBALANCING state";
-
-    @Mock
-    private KafkaStreams kafkaStreams;
-
     @Mock
     private StreamsMetadata streamsMetadata;
-
-    @Mock
-    private KafkaStreamsInitializer kafkaStreamsInitializer;
 
     @Mock
     private InteractiveQueriesService interactiveQueriesService;
@@ -43,33 +32,7 @@ class InteractiveQueriesControllerTest {
     private InteractiveQueriesController interactiveQueriesController;
 
     @Test
-    void shouldNotGetStoresWhenStreamsIsNotStarted() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
-
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
-
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
-
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesController.getStores());
-
-        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
-    }
-
-    @Test
     void shouldGetStores() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getStores())
             .thenReturn(List.of("store1", "store2"));
 
@@ -77,33 +40,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldNotGetHostsForStoreWhenStreamsIsNotStarted() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
-
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
-
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
-
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesController.getHostsForStore("store"));
-
-        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
-    }
-
-    @Test
     void shouldGetHostsForStore() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getStreamsMetadata("store"))
             .thenReturn(List.of(streamsMetadata));
 
@@ -118,33 +55,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldNotGetAllWhenStreamsIsNotStarted() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
-
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
-
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
-
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesController.getAll("store", false, false));
-
-        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
-    }
-
-    @Test
     void shouldGetAll() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getAll("store", Object.class, Object.class))
             .thenReturn(List.of(new StateQueryData<>("key1", "value1", 1L,
                 new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L)))));
@@ -161,12 +72,6 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllWithMetadata() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getAll("store", Object.class, Object.class))
             .thenReturn(List.of(new StateQueryData<>("key1", "value1", 1L,
                 new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L)))));
@@ -186,33 +91,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldNotGetByKeyWhenStreamsIsNotStarted() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
-
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
-
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
-
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesController.getByKey("store", "key", false, false));
-
-        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
-    }
-
-    @Test
     void shouldGetByKey() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), any()))
             .thenReturn(new StateQueryData<>("key1", "value1", 1L,
                 new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L))));
@@ -229,12 +108,6 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetByKeyWithMetadata() {
-        when(interactiveQueriesService.getKafkaStreamsInitializer())
-            .thenReturn(kafkaStreamsInitializer);
-
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(false);
-
         when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), any()))
             .thenReturn(new StateQueryData<>("key1", "value1", 1L,
                 new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L))));

@@ -1,7 +1,6 @@
 package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.server.RestResponse;
 import com.michelin.kstreamplify.service.KubernetesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,10 +27,10 @@ public class KubernetesController {
      */
     @GetMapping("/${kubernetes.readiness.path:ready}")
     public ResponseEntity<Void> readiness() {
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int readinessStatus = kubernetesService.getReadiness();
         return ResponseEntity
-            .status(response.status())
-            .body(response.body());
+            .status(readinessStatus)
+            .build();
     }
 
     /**
@@ -41,9 +40,9 @@ public class KubernetesController {
      */
     @GetMapping("/${kubernetes.liveness.path:liveness}")
     public ResponseEntity<Void> liveness() {
-        RestResponse<Void> response = kubernetesService.getLiveness();
+        int livenessStatus = kubernetesService.getLiveness();
         return ResponseEntity
-            .status(response.status())
-            .body(response.body());
+            .status(livenessStatus)
+            .build();
     }
 }

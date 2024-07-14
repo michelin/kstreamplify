@@ -2,7 +2,6 @@ package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +43,9 @@ public final class KubernetesService {
     /**
      * Kubernetes' readiness probe.
      *
-     * @return An HTTP response based on the Kafka Streams state
+     * @return An HTTP response code
      */
-    public RestResponse<Void> getReadiness() {
+    public int getReadiness() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
             log.debug("Kafka Stream \"{}\" state: {}",
                 KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
@@ -61,33 +60,26 @@ public final class KubernetesService {
                     .count();
 
                 if (startingThreadCount == kafkaStreamsInitializer.getKafkaStreams().metadataForLocalThreads().size()) {
-                    return RestResponse.<Void>builder()
-                        .status(HttpURLConnection.HTTP_NO_CONTENT).build();
+                    return HttpURLConnection.HTTP_NO_CONTENT;
                 }
             }
 
             return kafkaStreamsInitializer.getKafkaStreams().state().equals(KafkaStreams.State.RUNNING)
-                ? RestResponse.<Void>builder().status(HttpURLConnection.HTTP_OK).build() :
-                RestResponse.<Void>builder().status(HttpURLConnection.HTTP_UNAVAILABLE)
-                    .build();
+                ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_UNAVAILABLE;
         }
-        return RestResponse.<Void>builder().status(HttpURLConnection.HTTP_BAD_REQUEST)
-            .build();
+        return HttpURLConnection.HTTP_BAD_REQUEST;
     }
 
     /**
      * Kubernetes' liveness probe.
      *
-     * @return An HTTP response based on the Kafka Streams state
+     * @return An HTTP response code
      */
-    public RestResponse<Void> getLiveness() {
+    public int getLiveness() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
             return kafkaStreamsInitializer.getKafkaStreams().state() != KafkaStreams.State.NOT_RUNNING
-                ? RestResponse.<Void>builder().status(HttpURLConnection.HTTP_OK).build()
-                : RestResponse.<Void>builder().status(HttpURLConnection.HTTP_INTERNAL_ERROR)
-                .build();
+                ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR;
         }
-        return RestResponse.<Void>builder().status(HttpURLConnection.HTTP_NO_CONTENT)
-            .build();
+        return HttpURLConnection.HTTP_NO_CONTENT;
     }
 }

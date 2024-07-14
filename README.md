@@ -366,7 +366,7 @@ kafka:
 #### Querying State Stores with REST Endpoints
 
 Kstreamplify provides REST endpoints to query the state stores of your Kafka Streams application.
-It handles state stores being on different instances of the application by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
+It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
 
 Here is an overview of the available endpoints:
 

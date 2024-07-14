@@ -11,12 +11,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -29,6 +31,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @Container
     static KafkaContainer broker = new KafkaContainer(DockerImageName
         .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+        .withNetwork(NETWORK)
         .withNetworkAliases("broker")
         .withKraft();
 
@@ -38,13 +41,16 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
             "INPUT_TOPIC", "OUTPUT_TOPIC");
     }
 
-    @Test
-    void shouldInitAndRun() throws InterruptedException, IOException {
+    @BeforeEach
+    void setUp() throws InterruptedException {
         initializer = new KafkaStreamInitializerStub(broker.getBootstrapServers());
         initializer.init(new KafkaStreamsStarterStub());
 
-        waitingForKafkaStreamsToRun();
+        waitingForKafkaStreamsToStart();
+    }
 
+    @Test
+    void shouldInitAndRun() throws InterruptedException, IOException {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
@@ -55,10 +61,12 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(8080, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
-        List<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions().stream().toList();
+        Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
 
-        assertEquals("INPUT_TOPIC", topicPartitions.get(0).topic());
-        assertEquals(0, topicPartitions.get(0).partition());
+        assertTrue(Set.of(
+            new TopicPartition("INPUT_TOPIC", 0),
+            new TopicPartition("INPUT_TOPIC", 1)
+        ).containsAll(topicPartitions));
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",

@@ -40,6 +40,8 @@ public class StateQueryData<K, V> {
     /**
      * Convert to state query response.
      *
+     * @param includeKey Include key in response
+     * @param includeMetadata Include metadata in response
      * @return The state query response
      */
     public StateQueryResponse toStateQueryResponse(boolean includeKey, boolean includeMetadata) {

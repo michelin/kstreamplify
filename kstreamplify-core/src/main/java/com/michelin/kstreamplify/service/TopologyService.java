@@ -1,8 +1,6 @@
 package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.server.RestResponse;
-import java.net.HttpURLConnection;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,12 +30,7 @@ public class TopologyService {
      *
      * @return The Kafka Streams topology
      */
-    public RestResponse<String> getTopology() {
-        if (kafkaStreamsInitializer.getTopology() != null) {
-            return RestResponse.<String>builder().status(HttpURLConnection.HTTP_OK)
-                .body(kafkaStreamsInitializer.getTopology().describe().toString()).build();
-        }
-        return RestResponse.<String>builder().status(HttpURLConnection.HTTP_NO_CONTENT)
-            .build();
+    public String getTopology() {
+        return kafkaStreamsInitializer.getTopology().describe().toString();
     }
 }

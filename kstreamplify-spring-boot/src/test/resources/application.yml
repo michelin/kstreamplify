@@ -5,5 +5,5 @@ kafka:
     application.id: appId
     default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
     default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    state.dir: /tmp/kstreamplify-test/initializer
+    state.dir: /tmp/kstreamplify/kstreamplify-spring-boot-test/initializer
     auto.offset.reset: earliest

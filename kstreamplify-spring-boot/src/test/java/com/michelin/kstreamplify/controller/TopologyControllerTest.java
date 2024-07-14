@@ -3,7 +3,6 @@ package com.michelin.kstreamplify.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.server.RestResponse;
 import com.michelin.kstreamplify.service.TopologyService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +23,7 @@ class TopologyControllerTest {
     @Test
     void shouldGetTopology() {
         when(topologyService.getTopology())
-            .thenReturn(new RestResponse<>(200, "Topology"));
+            .thenReturn("Topology");
 
         ResponseEntity<String> response = topologyController.topology();
 

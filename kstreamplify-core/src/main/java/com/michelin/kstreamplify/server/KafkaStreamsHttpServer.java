@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.server;
 
+import static com.michelin.kstreamplify.service.InteractiveQueriesService.DEFAULT_STORE_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.DEFAULT_LIVENESS_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.DEFAULT_READINESS_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.LIVENESS_PATH_PROPERTY_NAME;
@@ -7,24 +8,36 @@ import static com.michelin.kstreamplify.service.KubernetesService.READINESS_PATH
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_DEFAULT_PATH;
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PROPERTY;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.HttpHeaders;
+import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Kafka Streams HTTP server.
  */
 public class KafkaStreamsHttpServer {
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+    private final ObjectMapper objectMapper;
     private final KubernetesService kubernetesService;
     private final TopologyService topologyService;
+    private final InteractiveQueriesService interactiveQueriesService;
 
     /**
      * The HTTP server.
@@ -38,8 +51,10 @@ public class KafkaStreamsHttpServer {
      */
     public KafkaStreamsHttpServer(KafkaStreamsInitializer kafkaStreamsInitializer) {
         this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+        this.objectMapper = new ObjectMapper();
         this.kubernetesService = new KubernetesService(kafkaStreamsInitializer);
         this.topologyService = new TopologyService(kafkaStreamsInitializer);
+        this.interactiveQueriesService = new InteractiveQueriesService(kafkaStreamsInitializer);
     }
 
     /**
@@ -49,15 +64,23 @@ public class KafkaStreamsHttpServer {
         try {
             server = HttpServer.create(new InetSocketAddress(kafkaStreamsInitializer.getServerPort()), 0);
 
-            List<HttpEndpoint> httpEndpoints = new ArrayList<>();
-            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-                .getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH), kubernetesService::getReadiness));
-            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-                .getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH), kubernetesService::getLiveness));
-            httpEndpoints.add(new HttpEndpoint((String) kafkaStreamsInitializer.getProperties()
-                .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH), topologyService::getTopology));
+            Properties properties = kafkaStreamsInitializer.getProperties();
 
-            httpEndpoints.forEach(this::exposeEndpoint);
+            createKubernetesEndpoints(
+                (String) properties.getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH),
+                kubernetesService::getReadiness);
+
+            createKubernetesEndpoints(
+                (String) properties.getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH),
+                kubernetesService::getLiveness);
+
+            createTopologyEndpoint(
+                (String) properties.getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH),
+                topologyService::getTopology);
+
+            createStoreEndpoint(
+                DEFAULT_STORE_PATH,
+                interactiveQueriesService::getStores);
 
             addEndpoint(kafkaStreamsInitializer);
             server.start();
@@ -66,23 +89,58 @@ public class KafkaStreamsHttpServer {
         }
     }
 
-    /**
-     * Expose an endpoint.
-     *
-     * @param httpEndpoint The endpoint
-     */
-    private void exposeEndpoint(HttpEndpoint httpEndpoint) {
-        server.createContext("/" + httpEndpoint.getPath(), (exchange -> {
-            RestResponse<?> restResponse = httpEndpoint.getRestService().get();
-            exchange.sendResponseHeaders(restResponse.status(), 0);
-
-            OutputStream output = exchange.getResponseBody();
-            if (restResponse.body() != null) {
-                output.write(((String) restResponse.body()).getBytes());
-            }
-            output.close();
+    private void createKubernetesEndpoints(String path, Supplier<Integer> kubernetesSupplier) {
+        server.createContext("/" + path, (exchange -> {
+            Integer code = kubernetesSupplier.get();
+            exchange.sendResponseHeaders(code, 0);
             exchange.close();
         }));
+    }
+
+    private void createTopologyEndpoint(String path, Supplier<String> topologySupplier) {
+        server.createContext("/" + path, (exchange -> {
+            String response = topologySupplier.get();
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
+            exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.PLAIN_TEXT_UTF_8.toString());
+
+            OutputStream output = exchange.getResponseBody();
+            output.write(response.getBytes());
+
+            exchange.close();
+        }));
+    }
+
+    private void createStoreEndpoint(String path, Supplier<List<String>> storeSupplier) {
+        server.createContext("/" + path, (exchange -> {
+            List<String> stores = storeSupplier.get();
+            String response = objectMapper.writeValueAsString(stores);
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, response.length());
+            exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
+
+            OutputStream output = exchange.getResponseBody();
+            output.write(response.getBytes());
+
+            exchange.close();
+        }));
+    }
+
+    /**
+     * Parse the query parameters.
+     *
+     * @param httpExchange The HTTP exchange
+     * @return The query parameters
+     */
+    private Map<String, String> parseQueryParams(HttpExchange httpExchange) {
+        List<String> parameters = Arrays.asList(httpExchange
+            .getRequestURI()
+            .toString()
+            .split("\\?")[1]
+            .split("&"));
+
+        return parameters
+            .stream()
+            .map(param -> Pair.of(param.split("=")[0], param.split("=")[1]))
+            .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 
     /**

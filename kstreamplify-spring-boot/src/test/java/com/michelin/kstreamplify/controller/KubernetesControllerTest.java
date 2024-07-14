@@ -3,7 +3,6 @@ package com.michelin.kstreamplify.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.server.RestResponse;
 import com.michelin.kstreamplify.service.KubernetesService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +23,7 @@ class KubernetesControllerTest {
     @Test
     void shouldGetReadinessProbe() {
         when(kubernetesService.getReadiness())
-            .thenReturn(new RestResponse<>(200, null));
+            .thenReturn(200);
 
         ResponseEntity<Void> response = kubernetesController.readiness();
 
@@ -34,7 +33,7 @@ class KubernetesControllerTest {
     @Test
     void shouldGetLivenessProbe() {
         when(kubernetesService.getLiveness())
-            .thenReturn(new RestResponse<>(200, null));
+            .thenReturn(200);
 
         ResponseEntity<Void> response = kubernetesController.liveness();
 

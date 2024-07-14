@@ -5,8 +5,6 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.server.RestResponse;
-import java.net.HttpURLConnection;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,16 +21,15 @@ class TopologyServiceTest {
     private TopologyService topologyService;
 
     @Test
-    void shouldExposeTopologyWithNonNullTopology() {
+    void shouldExposeTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         KafkaStreamsStarter starter = new KafkaStreamsStarterStub();
         starter.topology(streamsBuilder);
 
         when(kafkaStreamsInitializer.getTopology()).thenReturn(streamsBuilder.build());
 
-        RestResponse<String> response = topologyService.getTopology();
+        String response = topologyService.getTopology();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.status());
         assertEquals("""
             Topologies:
                Sub-topology: 0
@@ -41,16 +38,7 @@ class TopologyServiceTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """, response.body());
-    }
-
-    @Test
-    void shouldExposeTopologyWithNullTopology() {
-        when(kafkaStreamsInitializer.getTopology()).thenReturn(null);
-
-        RestResponse<String> response = topologyService.getTopology();
-
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
+            """, response);
     }
 
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {

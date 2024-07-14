@@ -25,8 +25,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.query.RangeQuery;
@@ -42,12 +44,18 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 @Slf4j
 @AllArgsConstructor
 public class InteractiveQueriesService {
+    private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
     private static final String UNKNOWN_STATE_STORE = "State store %s not found";
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
 
     @Getter
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * The default store endpoint path.
+     */
+    public static final String DEFAULT_STORE_PATH = "store";
 
     /**
      * Constructor.
@@ -65,6 +73,8 @@ public class InteractiveQueriesService {
      * @return The stores
      */
     public List<String> getStores() {
+        checkStreamsRunning();
+
         final Collection<StreamsMetadata> metadata = kafkaStreamsInitializer
             .getKafkaStreams()
             .metadataForAllStreamsClients();
@@ -86,6 +96,8 @@ public class InteractiveQueriesService {
      * @return The hosts
      */
     public Collection<StreamsMetadata> getStreamsMetadata(final String store) {
+        checkStreamsRunning();
+
         return kafkaStreamsInitializer
             .getKafkaStreams()
             .streamsMetadataForStore(store);
@@ -97,6 +109,8 @@ public class InteractiveQueriesService {
      * @param store The store
      * @param keyClass The key class
      * @param valueClass The value class
+     * @param <K> The key type
+     * @param <V> The value type
      * @return The values
      */
     public <K, V> List<StateQueryData<K, V>> getAll(String store, Class<K> keyClass, Class<V> valueClass) {
@@ -163,6 +177,7 @@ public class InteractiveQueriesService {
      * @param serializer The serializer
      * @param valueClass The value class
      * @param <K> The key type
+     * @param <V> The value type
      * @return The value
      */
     @SuppressWarnings("unchecked")
@@ -224,6 +239,8 @@ public class InteractiveQueriesService {
      * @return The host
      */
     private <K> KeyQueryMetadata getKeyQueryMetadata(String store, K key, Serializer<K> serializer) {
+        checkStreamsRunning();
+
         return kafkaStreamsInitializer
             .getKafkaStreams()
             .queryMetadataForKey(store, key, serializer);
@@ -315,5 +332,15 @@ public class InteractiveQueriesService {
     private boolean isNotCurrentHost(HostInfo compareHostInfo) {
         return !kafkaStreamsInitializer.getHostInfo().host().equals(compareHostInfo.host())
             || kafkaStreamsInitializer.getHostInfo().port() != compareHostInfo.port();
+    }
+
+    /**
+     * Check if the streams are started.
+     */
+    private void checkStreamsRunning() {
+        if (kafkaStreamsInitializer.isNotRunning()) {
+            KafkaStreams.State state = kafkaStreamsInitializer.getKafkaStreams().state();
+            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
+        }
     }
 }

@@ -5,7 +5,6 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.server.RestResponse;
 import java.net.HttpURLConnection;
 import java.util.Properties;
 import java.util.Set;
@@ -36,9 +35,9 @@ class KubernetesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
 
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.status());
+        assertEquals(HttpURLConnection.HTTP_OK, response);
     }
 
     @Test
@@ -48,18 +47,18 @@ class KubernetesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
 
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.status());
+        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response);
     }
 
     @Test
     void shouldGetReadinessProbeWhenNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response.status());
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, response);
     }
 
     @Test
@@ -80,9 +79,9 @@ class KubernetesServiceTest {
                 Set.of())
         ));
 
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
+        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response);
     }
 
     @Test
@@ -121,9 +120,9 @@ class KubernetesServiceTest {
                 Set.of())
         ));
 
-        RestResponse<Void> response = kubernetesService.getReadiness();
+        int response = kubernetesService.getReadiness();
 
-        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response.status());
+        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, response);
     }
 
     @Test
@@ -131,9 +130,9 @@ class KubernetesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
 
-        RestResponse<Void> response = kubernetesService.getLiveness();
+        int response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_OK, response.status());
+        assertEquals(HttpURLConnection.HTTP_OK, response);
     }
 
     @Test
@@ -141,18 +140,18 @@ class KubernetesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
 
-        RestResponse<Void> response = kubernetesService.getLiveness();
+        int response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response.status());
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, response);
     }
 
     @Test
     void shouldGetLivenessProbeWithWhenStreamsNull() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(null);
 
-        RestResponse<Void> response = kubernetesService.getLiveness();
+        int response = kubernetesService.getLiveness();
 
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response.status());
+        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response);
     }
 }
 

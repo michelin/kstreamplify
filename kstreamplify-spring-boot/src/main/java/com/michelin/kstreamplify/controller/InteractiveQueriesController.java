@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/store")
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class InteractiveQueriesController {
-    private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
 
     /**
      * The store service.
@@ -41,11 +40,6 @@ public class InteractiveQueriesController {
      */
     @GetMapping
     public ResponseEntity<List<String>> getStores() {
-        if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
-            KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
-            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
-        }
-
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -60,11 +54,6 @@ public class InteractiveQueriesController {
      */
     @GetMapping(value = "/{store}/info")
     public ResponseEntity<List<HostInfoResponse>> getHostsForStore(@PathVariable("store") final String store) {
-        if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
-            KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
-            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
-        }
-
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -88,11 +77,6 @@ public class InteractiveQueriesController {
                                                                defaultValue = "false") Boolean includeKey,
                                                            @RequestParam(value = "includeMetadata", required = false,
                                                                defaultValue = "false") Boolean includeMetadata) {
-        if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
-            KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
-            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
-        }
-
         List<StateQueryData<Object, Object>> stateQueryData = interactiveQueriesService
             .getAll(store, Object.class, Object.class);
 
@@ -123,11 +107,6 @@ public class InteractiveQueriesController {
                                                        defaultValue = "false") Boolean includeKey,
                                                        @RequestParam(value = "includeMetadata", required = false,
                                                        defaultValue = "false") Boolean includeMetadata) {
-        if (interactiveQueriesService.getKafkaStreamsInitializer().isNotRunning()) {
-            KafkaStreams.State state = interactiveQueriesService.getKafkaStreamsInitializer().getKafkaStreams().state();
-            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
-        }
-
         StateQueryData<String, Object> stateQueryData = interactiveQueriesService
             .getByKey(store, key, new StringSerializer(), Object.class);
 
