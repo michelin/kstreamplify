@@ -14,6 +14,7 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.IOException;
 import java.net.URI;
@@ -21,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,10 +126,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                 .send(new ProducerRecord<>("AVRO_KEY_VALUE_TOPIC", kafkaPersonStub, kafkaPersonStub))
                 .get();
         }
-    }
 
-    @BeforeEach
-    void setUp() throws InterruptedException {
         initializer = new KafkaStreamInitializerStub(
             8081,
             "appInteractiveQueriesId",
@@ -135,7 +134,10 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
             "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries");
         initializer.init(new KafkaStreamsStarterStub());
+    }
 
+    @BeforeEach
+    void setUp() throws InterruptedException {
         waitingForKafkaStreamsToStart();
         waitingForLocalStoreToReachOffset(Map.of(
             "STRING_STORE", Map.of(1, 1L),
@@ -172,6 +174,86 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, hostsResponse.statusCode());
         assertEquals("localhost", hosts.get(0).host());
         assertEquals(8081, hosts.get(0).port());
+    }
+
+    @Test
+    void shouldGetByKey() throws IOException, InterruptedException {
+        // Wrong store
+        HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/WRONG_STORE/key"))
+            .GET()
+            .build();
+
+        HttpResponse<String> wrongStoreResponse = httpClient.send(wrongStoreRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, wrongStoreResponse.statusCode());
+        assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
+
+        // Wrong key
+        HttpRequest wrongKeyRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/STRING_STORE/wrongKey"))
+            .GET()
+            .build();
+
+        HttpResponse<String> wrongKeyResponse = httpClient.send(wrongKeyRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, wrongKeyResponse.statusCode());
+        assertEquals("Key wrongKey not found", wrongKeyResponse.body());
+
+        // Get by key from String store
+        HttpRequest recordByKeyRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/STRING_STORE/key"))
+            .GET()
+            .build();
+
+        HttpResponse<String> recordByKeyResponse = httpClient.send(recordByKeyRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        StateQueryResponse recordByKey = objectMapper.readValue(recordByKeyResponse.body(), StateQueryResponse.class);
+
+        assertEquals(200, recordByKeyResponse.statusCode());
+        assertEquals("value", recordByKey.getValue());
+
+        // Get by key from Avro store with metadata
+        HttpRequest avroRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/AVRO_STORE/person?includeKey=true&includeMetadata=true"))
+            .GET()
+            .build();
+
+        HttpResponse<String> avroRecordByKeyWithMetadataResponse = httpClient.send(avroRecordByKeyWithMetadataRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        StateQueryResponse avroRecordByKeyWithMetadata = objectMapper
+            .readValue(avroRecordByKeyWithMetadataResponse.body(), StateQueryResponse.class);
+
+        assertEquals(200, avroRecordByKeyWithMetadataResponse.statusCode());
+        assertEquals("person", avroRecordByKeyWithMetadata.getKey());
+        assertEquals("John", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getValue()).get("firstName"));
+        assertEquals("Doe", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getValue()).get("lastName"));
+        assertNotNull(avroRecordByKeyWithMetadata.getTimestamp());
+        assertEquals("localhost", avroRecordByKeyWithMetadata.getHostInfo().host());
+        assertEquals(8081, avroRecordByKeyWithMetadata.getHostInfo().port());
+        assertEquals("AVRO_TOPIC", avroRecordByKeyWithMetadata.getPositionVectors().get(0).topic());
+        assertEquals(0, avroRecordByKeyWithMetadata.getPositionVectors().get(0).partition());
+        assertNotNull(avroRecordByKeyWithMetadata.getPositionVectors().get(0).offset());
+
+        // Get by key from timestamped Avro store with metadata
+        HttpRequest avroTsRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true"))
+            .GET()
+            .build();
+
+        HttpResponse<String> avroTsRecordByKeyWithMetadataResponse = httpClient
+            .send(avroTsRecordByKeyWithMetadataRequest, HttpResponse.BodyHandlers.ofString());
+
+        StateQueryResponse avroTsRecordByKeyWithMetadata = objectMapper.readValue(avroTsRecordByKeyWithMetadataResponse.body(),
+            StateQueryResponse.class);
+
+        assertEquals(200, avroTsRecordByKeyWithMetadataResponse.statusCode());
+        assertEquals("person", avroTsRecordByKeyWithMetadata.getKey());
+        assertEquals("John", ((HashMap<?, ?>) avroTsRecordByKeyWithMetadata.getValue()).get("firstName"));
     }
 
     /**

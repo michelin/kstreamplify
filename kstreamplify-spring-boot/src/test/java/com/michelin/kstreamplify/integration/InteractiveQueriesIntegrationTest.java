@@ -184,7 +184,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKey() {
-        // Wrong keystore
+        // Wrong store
         ResponseEntity<String> wrongStore = restTemplate
             .getForEntity("http://localhost:8085/store/WRONG_STORE/key", String.class);
 
@@ -234,7 +234,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAll() {
-        // Wrong keystore
+        // Wrong store
         ResponseEntity<String> wrongStore = restTemplate
             .getForEntity("http://localhost:8085/store/WRONG_STORE", String.class);
 

@@ -23,7 +23,7 @@ abstract class KafkaIntegrationTest {
     protected static final Network NETWORK = Network.newNetwork();
     protected final HttpClient httpClient = HttpClient.newBuilder().build();
     protected final ObjectMapper objectMapper = new ObjectMapper();
-    protected KafkaStreamsInitializer initializer;
+    protected static KafkaStreamsInitializer initializer;
 
     protected static void createTopics(String bootstrapServers, String... topics) {
         var newTopics = Arrays.stream(topics)

@@ -12,16 +12,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;
+import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryResponse;
 import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +35,9 @@ import java.util.Properties;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.errors.StreamsNotStartedException;
+import org.apache.kafka.streams.errors.UnknownStateStoreException;
 
 /**
  * Kafka Streams HTTP server.
@@ -114,28 +123,66 @@ public class KafkaStreamsHttpServer {
     private void createStoreEndpoints() {
         server.createContext("/" + DEFAULT_STORE_PATH,
             (exchange -> {
-                Object response = null;
-                if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
-                    response = interactiveQueriesService.getStores();
+                try {
+                    Object response = getResponseForStoreEndpoints(exchange);
+                    String jsonResponse = objectMapper.writeValueAsString(response);
+
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, jsonResponse.length());
+                    exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
+
+                    OutputStream output = exchange.getResponseBody();
+                    output.write(jsonResponse.getBytes());
+                } catch (StreamsNotStartedException e) {
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_UNAVAILABLE, e.getMessage().length());
+                    OutputStream output = exchange.getResponseBody();
+                    output.write(e.getMessage().getBytes());
+                } catch (UnknownStateStoreException | UnknownKeyException e) {
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, e.getMessage().length());
+                    OutputStream output = exchange.getResponseBody();
+                    output.write(e.getMessage().getBytes());
+                } finally {
+                    exchange.close();
                 }
-
-                if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + ".*/info")) {
-                    String store = exchange.getRequestURI().toString().split("/")[2];
-                    response = interactiveQueriesService.getStreamsMetadata(store)
-                        .stream()
-                        .map(streamsMetadata -> new HostInfoResponse(streamsMetadata.host(), streamsMetadata.port()))
-                        .toList();
-                }
-
-                String jsonResponse = objectMapper.writeValueAsString(response);
-                exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, jsonResponse.length());
-                exchange.getResponseHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.JSON_UTF_8.toString());
-
-                OutputStream output = exchange.getResponseBody();
-                output.write(jsonResponse.getBytes());
-
-                exchange.close();
             }));
+    }
+
+    private Object getResponseForStoreEndpoints(HttpExchange exchange) {
+        if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
+            return interactiveQueriesService.getStores();
+        }
+
+        String store = exchange.getRequestURI().toString().split("/")[2];
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/info")) {
+            return interactiveQueriesService.getStreamsMetadata(store)
+                .stream()
+                .map(streamsMetadata -> new HostInfoResponse(streamsMetadata.host(), streamsMetadata.port()))
+                .toList();
+        }
+
+        Map<String, String> queryParams = parseQueryParams(exchange);
+        boolean includeKey = Boolean.parseBoolean(queryParams.getOrDefault("includeKey", "false"));
+        boolean includeMetadata = Boolean.parseBoolean(queryParams.getOrDefault("includeMetadata", "false"));
+
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/.*")) {
+            String key = exchange.getRequestURI()
+                .toString()
+                .split("/")[3]
+                .split("\\?")[0];
+
+            return interactiveQueriesService
+                .getByKey(store, key, new StringSerializer(), Object.class)
+                .toStateQueryResponse(includeKey, includeMetadata);
+        }
+
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*")) {
+            return interactiveQueriesService
+                .getAll(store, Object.class, Object.class)
+                .stream()
+                .map(stateQueryDataItem -> stateQueryDataItem.toStateQueryResponse(includeKey, includeMetadata))
+                .toList();
+        }
+
+        return null;
     }
 
     /**
@@ -145,11 +192,18 @@ public class KafkaStreamsHttpServer {
      * @return The query parameters
      */
     private Map<String, String> parseQueryParams(HttpExchange httpExchange) {
-        List<String> parameters = Arrays.asList(httpExchange
+        List<String> parametersList = Arrays.stream(httpExchange
             .getRequestURI()
             .toString()
-            .split("\\?")[1]
-            .split("&"));
+            .split("\\?"))
+            .toList();
+
+        List<String> parameters = new ArrayList<>();
+        if (parametersList.size() > 1) {
+            parameters.addAll(Arrays.stream(parametersList.get(1)
+                .split("&"))
+                .toList());
+        }
 
         return parameters
             .stream()

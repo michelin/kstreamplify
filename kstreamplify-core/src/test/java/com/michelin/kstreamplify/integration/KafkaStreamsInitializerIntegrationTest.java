@@ -39,13 +39,13 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     static void globalSetUp() {
         createTopics(broker.getBootstrapServers(),
             "INPUT_TOPIC", "OUTPUT_TOPIC");
+
+        initializer = new KafkaStreamInitializerStub(broker.getBootstrapServers());
+        initializer.init(new KafkaStreamsStarterStub());
     }
 
     @BeforeEach
     void setUp() throws InterruptedException {
-        initializer = new KafkaStreamInitializerStub(broker.getBootstrapServers());
-        initializer.init(new KafkaStreamsStarterStub());
-
         waitingForKafkaStreamsToStart();
     }
 
