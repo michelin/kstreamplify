@@ -151,7 +151,11 @@ public class KafkaStreamsHttpServer {
             return interactiveQueriesService.getStores();
         }
 
-        String store = exchange.getRequestURI().toString().split("/")[2];
+        String store = exchange.getRequestURI()
+            .toString()
+            .split("\\?")[0]
+            .split("/")[2];
+
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/info")) {
             return interactiveQueriesService.getStreamsMetadata(store)
                 .stream()

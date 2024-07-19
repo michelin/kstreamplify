@@ -13,7 +13,9 @@ import com.michelin.kstreamplify.avro.CountryCode;
 import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
+import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.store.HostInfoResponse;
+import com.michelin.kstreamplify.store.StateQueryData;
 import com.michelin.kstreamplify.store.StateQueryResponse;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.IOException;
@@ -60,6 +62,8 @@ import org.testcontainers.utility.DockerImageName;
 @Slf4j
 @Testcontainers
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
+    private final InteractiveQueriesService interactiveQueriesService = new InteractiveQueriesService(initializer);
+
     @Container
     static KafkaContainer broker = new KafkaContainer(DockerImageName
         .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
@@ -248,12 +252,91 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         HttpResponse<String> avroTsRecordByKeyWithMetadataResponse = httpClient
             .send(avroTsRecordByKeyWithMetadataRequest, HttpResponse.BodyHandlers.ofString());
 
-        StateQueryResponse avroTsRecordByKeyWithMetadata = objectMapper.readValue(avroTsRecordByKeyWithMetadataResponse.body(),
-            StateQueryResponse.class);
+        StateQueryResponse avroTsRecordByKeyWithMetadata = objectMapper
+            .readValue(avroTsRecordByKeyWithMetadataResponse.body(), StateQueryResponse.class);
 
         assertEquals(200, avroTsRecordByKeyWithMetadataResponse.statusCode());
         assertEquals("person", avroTsRecordByKeyWithMetadata.getKey());
         assertEquals("John", ((HashMap<?, ?>) avroTsRecordByKeyWithMetadata.getValue()).get("firstName"));
+    }
+
+    @Test
+    void shouldGetAll() throws IOException, InterruptedException {
+        // Wrong store
+        HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/WRONG_STORE/key"))
+            .GET()
+            .build();
+
+        HttpResponse<String> wrongStoreResponse = httpClient.send(wrongStoreRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, wrongStoreResponse.statusCode());
+        assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
+
+        // Get all from String store
+        HttpRequest allRecordsRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/STRING_STORE"))
+            .GET()
+            .build();
+
+        HttpResponse<String> allRecordsResponse = httpClient.send(allRecordsRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        List<StateQueryResponse> allRecords = objectMapper
+            .readValue(allRecordsResponse.body(), new TypeReference<>() {});
+
+        assertEquals(200, allRecordsResponse.statusCode());
+        assertEquals("value", allRecords.get(0).getValue());
+
+        // Get all from Avro store with metadata
+        HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/AVRO_STORE?includeKey=true&includeMetadata=true"))
+            .GET()
+            .build();
+
+        HttpResponse<String> allAvroRecordsMetadataResponse = httpClient.send(allAvroRecordsMetadataRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        List<StateQueryResponse> allAvroRecordsMetadata = objectMapper
+            .readValue(allAvroRecordsMetadataResponse.body(), new TypeReference<>() {});
+
+        assertEquals(200, allAvroRecordsMetadataResponse.statusCode());
+        assertEquals("person", allAvroRecordsMetadata.get(0).getKey());
+        assertEquals("John", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("lastName"));
+        assertNotNull(allAvroRecordsMetadata.get(0).getTimestamp());
+        assertEquals("localhost", allAvroRecordsMetadata.get(0).getHostInfo().host());
+        assertEquals(8081, allAvroRecordsMetadata.get(0).getHostInfo().port());
+        assertEquals("AVRO_TOPIC", allAvroRecordsMetadata.get(0).getPositionVectors().get(0).topic());
+        assertEquals(0, allAvroRecordsMetadata.get(0).getPositionVectors().get(0).partition());
+        assertNotNull(allAvroRecordsMetadata.get(0).getPositionVectors().get(0).offset());
+    }
+
+    @Test
+    void shouldGetMessageFromInteractiveQueriesService() {
+        KafkaPersonStub key = KafkaPersonStub.newBuilder()
+            .setId(1L)
+            .setFirstName("John")
+            .setLastName("Doe")
+            .setNationality(CountryCode.FR)
+            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
+            .build();
+
+        StateQueryData<KafkaPersonStub, KafkaPersonStub> stateQueryData = interactiveQueriesService
+            .getByKey("AVRO_KEY_VALUE_STORE",
+                key,
+                SerdesUtils.<KafkaPersonStub>getKeySerdes().serializer(),
+                KafkaPersonStub.class);
+
+        assertEquals(key, stateQueryData.getKey());
+        assertEquals(key, stateQueryData.getValue()); // Key and value are the same in this case
+        assertNotNull(stateQueryData.getTimestamp());
+        assertEquals("localhost", stateQueryData.getHostInfo().host());
+        assertEquals(8081, stateQueryData.getHostInfo().port());
+        assertEquals("AVRO_KEY_VALUE_TOPIC", stateQueryData.getPositionVectors().get(0).topic());
+        assertEquals(0, stateQueryData.getPositionVectors().get(0).partition());
+        assertNotNull(stateQueryData.getPositionVectors().get(0).offset());
     }
 
     /**
