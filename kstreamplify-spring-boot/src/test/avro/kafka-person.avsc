@@ -22,19 +22,6 @@
       "doc": "Person last name"
     },
     {
-      "name": "nationality",
-      "type": [
-        "null",
-        {
-          "name": "CountryCode",
-          "type": "enum",
-          "symbols" : ["FR", "DE", "ES", "IT", "GB", "CH"]
-        }
-      ],
-      "default": null,
-      "doc": "Person nationality"
-    },
-    {
       "name": "birthDate",
       "type": [
         "null",

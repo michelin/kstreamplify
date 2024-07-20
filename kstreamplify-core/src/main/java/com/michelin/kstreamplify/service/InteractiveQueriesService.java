@@ -27,6 +27,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
@@ -36,6 +37,8 @@ import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.apache.kafka.streams.state.QueryableStoreTypes;
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 
 /**
@@ -131,8 +134,8 @@ public class InteractiveQueriesService {
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                RangeQuery<K, ValueAndTimestamp<V>> rangeQuery = RangeQuery.withNoBounds();
-                StateQueryResult<KeyValueIterator<K, ValueAndTimestamp<V>>> result = kafkaStreamsInitializer
+                RangeQuery<K, Object> rangeQuery = RangeQuery.withNoBounds();
+                StateQueryResult<KeyValueIterator<K, Object>> result = kafkaStreamsInitializer
                     .getKafkaStreams()
                     .query(StateQueryRequest
                         .inStore(store)
@@ -155,9 +158,18 @@ public class InteractiveQueriesService {
                                     partitionOffset.getKey(), partitionOffset.getValue())))
                             .toList();
 
-                        partitionsResult.add(new StateQueryData<>(kv.key,
-                            kv.value.value(),
-                            kv.value.timestamp(),
+                        V value;
+                        Long timestamp;
+                        if (kv.value instanceof ValueAndTimestamp<?>) {
+                            ValueAndTimestamp<V> valueAndTimestamp = (ValueAndTimestamp<V>) kv.value;
+                            value = valueAndTimestamp.value();
+                            timestamp = valueAndTimestamp.timestamp();
+                        } else {
+                            value = (V) kv.value;
+                            timestamp = null;
+                        }
+
+                        partitionsResult.add(new StateQueryData<>(kv.key, value, timestamp,
                             new HostInfoResponse(metadata.hostInfo().host(), metadata.hostInfo().port()),
                             positions));
                     }));
@@ -202,8 +214,11 @@ public class InteractiveQueriesService {
         log.debug("The key {} has been located on the current instance ({}:{})", key,
             host.host(), host.port());
 
-        KeyQuery<K, ValueAndTimestamp<V>> keyQuery = KeyQuery.withKey(key);
-        StateQueryResult<ValueAndTimestamp<V>> result = kafkaStreamsInitializer
+        final ReadOnlyKeyValueStore<Object, Object> toto = kafkaStreamsInitializer.getKafkaStreams().store(
+            StoreQueryParameters.fromNameAndType(store, QueryableStoreTypes.keyValueStore()));
+
+        KeyQuery<K, Object> keyQuery = KeyQuery.withKey(key);
+        StateQueryResult<Object> result = kafkaStreamsInitializer
             .getKafkaStreams()
             .query(StateQueryRequest
                 .inStore(store)
@@ -224,9 +239,18 @@ public class InteractiveQueriesService {
                     partitionOffset.getKey(), partitionOffset.getValue())))
             .toList();
 
-        return new StateQueryData<>(key,
-            result.getOnlyPartitionResult().getResult().value(),
-            result.getOnlyPartitionResult().getResult().timestamp(),
+        V value;
+        Long timestamp;
+        if (result.getOnlyPartitionResult().getResult() instanceof ValueAndTimestamp<?>) {
+            ValueAndTimestamp<V> valueAndTimestamp = (ValueAndTimestamp<V>) result.getOnlyPartitionResult().getResult();
+            value = valueAndTimestamp.value();
+            timestamp = valueAndTimestamp.timestamp();
+        } else {
+            value = (V) result.getOnlyPartitionResult().getResult();
+            timestamp = null;
+        }
+
+        return new StateQueryData<>(key, value, timestamp,
             new HostInfoResponse(host.host(), host.port()),
             positions);
     }
