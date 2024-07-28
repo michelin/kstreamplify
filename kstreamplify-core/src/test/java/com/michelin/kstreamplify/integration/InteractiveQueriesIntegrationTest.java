@@ -169,7 +169,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyWrongStoreAndWrongKey() throws IOException, InterruptedException {
         HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/WRONG_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/person"))
             .GET()
             .build();
 
@@ -180,7 +180,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
 
         HttpRequest wrongKeyRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE/wrongKey"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey"))
             .GET()
             .build();
 
@@ -194,7 +194,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest recordByKeyRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/person"))
             .GET()
             .build();
 
@@ -211,7 +211,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroKeyValueStore() throws IOException, InterruptedException {
         HttpRequest avroRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_STORE/person?includeKey=true&includeMetadata=true"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_STORE/person?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
@@ -262,7 +262,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
         HttpRequest avroTsRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
@@ -287,7 +287,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllWrongStore() throws IOException, InterruptedException {
         HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/WRONG_STORE/key"))
+            .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/key"))
             .GET()
             .build();
 
@@ -301,7 +301,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest allRecordsRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE"))
             .GET()
             .build();
 
@@ -318,7 +318,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroKeyValueStore() throws IOException, InterruptedException {
         HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_STORE?includeKey=true&includeMetadata=true"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_STORE?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
@@ -343,7 +343,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInAvroAvroKeyValueStore() throws IOException, InterruptedException {
         HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/AVRO_AVRO_STORE?includeKey=true&includeMetadata=true"))
+            .uri(URI.create("http://localhost:8081/store/key-value/AVRO_AVRO_STORE?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
@@ -393,7 +393,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
         HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 

@@ -35,6 +35,8 @@ import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.query.RangeQuery;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
+import org.apache.kafka.streams.query.WindowKeyQuery;
+import org.apache.kafka.streams.query.WindowRangeQuery;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
@@ -129,7 +131,7 @@ public class InteractiveQueriesService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 List<StateQueryData<K, V>> stateQueryDataResponse = requestAllOtherInstance(metadata.hostInfo(),
-                    "/store/" + store + "?includeKey=true&includeMetadata=true", keyClass, valueClass);
+                    "/store/key-value/" + store + "?includeKey=true&includeMetadata=true", keyClass, valueClass);
                 values.addAll(stateQueryDataResponse);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
@@ -207,15 +209,12 @@ public class InteractiveQueriesService {
 
             Class<K> keyClass = (Class<K>) key.getClass();
 
-            return requestOtherInstance(host, "/store/" + store + "/" + key
+            return requestOtherInstance(host, "/store/key-value/" + store + "/" + key
                 + "?includeKey=true&includeMetadata=true", keyClass, valueClass);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
             host.host(), host.port());
-
-        final ReadOnlyKeyValueStore<Object, Object> toto = kafkaStreamsInitializer.getKafkaStreams().store(
-            StoreQueryParameters.fromNameAndType(store, QueryableStoreTypes.keyValueStore()));
 
         KeyQuery<K, Object> keyQuery = KeyQuery.withKey(key);
         StateQueryResult<Object> result = kafkaStreamsInitializer

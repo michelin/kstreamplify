@@ -151,11 +151,7 @@ public class KafkaStreamsHttpServer {
             return interactiveQueriesService.getStores();
         }
 
-        String store = exchange.getRequestURI()
-            .toString()
-            .split("\\?")[0]
-            .split("/")[2];
-
+        String store = parsePathParam(exchange, 2);
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/info")) {
             return interactiveQueriesService.getStreamsMetadata(store)
                 .stream()
@@ -163,22 +159,19 @@ public class KafkaStreamsHttpServer {
                 .toList();
         }
 
+        store = parsePathParam(exchange, 3);
         Map<String, String> queryParams = parseQueryParams(exchange);
         boolean includeKey = Boolean.parseBoolean(queryParams.getOrDefault("includeKey", "false"));
         boolean includeMetadata = Boolean.parseBoolean(queryParams.getOrDefault("includeMetadata", "false"));
 
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/.*")) {
-            String key = exchange.getRequestURI()
-                .toString()
-                .split("/")[3]
-                .split("\\?")[0];
-
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*/.*")) {
+            String key = parsePathParam(exchange, 4);
             return interactiveQueriesService
                 .getByKey(store, key, new StringSerializer(), Object.class)
                 .toStateQueryResponse(includeKey, includeMetadata);
         }
 
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*")) {
             return interactiveQueriesService
                 .getAll(store, Object.class, Object.class)
                 .stream()
@@ -187,6 +180,13 @@ public class KafkaStreamsHttpServer {
         }
 
         return null;
+    }
+
+    private String parsePathParam(HttpExchange exchange, int index) {
+        return exchange.getRequestURI()
+            .toString()
+            .split("\\?")[0]
+            .split("/")[index];
     }
 
     /**

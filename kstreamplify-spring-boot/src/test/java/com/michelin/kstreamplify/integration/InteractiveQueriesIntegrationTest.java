@@ -171,13 +171,13 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyWrongStoreAndWrongKey() {
         ResponseEntity<String> wrongStore = restTemplate
-            .getForEntity("http://localhost:8085/store/WRONG_STORE/person", String.class);
+            .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE/person", String.class);
 
         assertEquals(404, wrongStore.getStatusCode().value());
         assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
 
         ResponseEntity<String> wrongKey = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_STRING_STORE/wrongKey", String.class);
+            .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_STORE/wrongKey", String.class);
 
         assertEquals(404, wrongKey.getStatusCode().value());
         assertEquals("Key wrongKey not found", wrongKey.getBody());
@@ -186,7 +186,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringKeyValueStore() {
         ResponseEntity<StateQueryResponse> response = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_STRING_STORE/person", StateQueryResponse.class);
+            .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_STORE/person", StateQueryResponse.class);
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -197,7 +197,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroKeyValueStore() {
         ResponseEntity<StateQueryResponse> response = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_AVRO_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
+            .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -241,7 +241,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroTimestampedKeyValueStore() {
         ResponseEntity<StateQueryResponse> response = restTemplate
-            .getForEntity("http://localhost:8085/store/STRING_AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
+            .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true", StateQueryResponse.class);
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -259,7 +259,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllWrongStore() {
         ResponseEntity<String> wrongStore = restTemplate
-            .getForEntity("http://localhost:8085/store/WRONG_STORE", String.class);
+            .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE", String.class);
 
         assertEquals(404, wrongStore.getStatusCode().value());
         assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
@@ -268,7 +268,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringStringKeyValueStore() {
         ResponseEntity<List<StateQueryResponse>> allRecords = restTemplate
-            .exchange("http://localhost:8085/store/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, allRecords.getStatusCode().value());
@@ -280,7 +280,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroKeyValueStore() {
         ResponseEntity<List<StateQueryResponse>> allAvroRecordsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/STRING_AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8085/store/key-value/STRING_AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, allAvroRecordsMetadata.getStatusCode().value());
@@ -299,7 +299,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInAvroAvroKeyValueStore() {
         ResponseEntity<List<StateQueryResponse>> allAvroRecordsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/AVRO_AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8085/store/key-value/AVRO_AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, allAvroRecordsMetadata.getStatusCode().value());
@@ -343,7 +343,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroTimestampedKeyValueStore() {
         ResponseEntity<List<StateQueryResponse>> allAvroRecordsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8085/store/key-value/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, allAvroRecordsMetadata.getStatusCode().value());

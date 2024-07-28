@@ -69,7 +69,7 @@ public class InteractiveQueriesController {
      * @param includeMetadata Include the metadata in the response
      * @return The values
      */
-    @GetMapping(value = "/{store}")
+    @GetMapping(value = "/key-value/{store}")
     public ResponseEntity<List<StateQueryResponse>> getAll(@PathVariable("store") String store,
                                                            @RequestParam(value = "includeKey", required = false,
                                                                defaultValue = "false") Boolean includeKey,
@@ -98,7 +98,7 @@ public class InteractiveQueriesController {
      * @param includeMetadata Include the metadata in the response
      * @return The value
      */
-    @GetMapping("/{store}/{key}")
+    @GetMapping("/key-value/{store}/{key}")
     public ResponseEntity<StateQueryResponse> getByKey(@PathVariable("store") String store,
                                                        @PathVariable("key") String key,
                                                        @RequestParam(value = "includeKey", required = false,
