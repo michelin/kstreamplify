@@ -15,7 +15,12 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
 abstract class KafkaIntegrationTest {
@@ -24,6 +29,25 @@ abstract class KafkaIntegrationTest {
     protected final HttpClient httpClient = HttpClient.newBuilder().build();
     protected final ObjectMapper objectMapper = new ObjectMapper();
     protected static KafkaStreamsInitializer initializer;
+
+    @Container
+    static KafkaContainer broker = new KafkaContainer(DockerImageName
+        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+        .withNetwork(NETWORK)
+        .withNetworkAliases("broker")
+        .withKraft();
+
+    @Container
+    static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
+        .parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
+        .dependsOn(broker)
+        .withNetwork(NETWORK)
+        .withNetworkAliases("schema-registry")
+        .withExposedPorts(8081)
+        .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
+        .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
+        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
+        .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
     protected static void createTopics(String bootstrapServers, String... topics) {
         var newTopics = Arrays.stream(topics)

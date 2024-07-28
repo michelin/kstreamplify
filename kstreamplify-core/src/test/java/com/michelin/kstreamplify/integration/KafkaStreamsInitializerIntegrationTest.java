@@ -28,13 +28,6 @@ import org.testcontainers.utility.DockerImageName;
 @Slf4j
 @Testcontainers
 class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
-    @Container
-    static KafkaContainer broker = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
-        .withNetwork(NETWORK)
-        .withNetworkAliases("broker")
-        .withKraft();
-
     @BeforeAll
     static void globalSetUp() {
         createTopics(broker.getBootstrapServers(),

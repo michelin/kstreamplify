@@ -74,32 +74,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Autowired
     private InteractiveQueriesService interactiveQueriesService;
 
-    @Container
-    static KafkaContainer broker = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
-        .withNetwork(NETWORK)
-        .withNetworkAliases("broker")
-        .withKraft();
-
-    @Container
-    static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
-        .parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
-        .dependsOn(broker)
-        .withNetwork(NETWORK)
-        .withNetworkAliases("schema-registry")
-        .withExposedPorts(8081)
-        .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
-        .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
-        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
-        .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG, broker::getBootstrapServers);
-        registry.add("kafka.properties." + SCHEMA_REGISTRY_URL_CONFIG,
-            () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
-    }
-
     @BeforeAll
     static void globalSetUp() throws ExecutionException, InterruptedException {
         createTopics(broker.getBootstrapServers(), "INPUT_TOPIC");

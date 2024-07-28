@@ -36,19 +36,6 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
-    @Container
-    static KafkaContainer broker = new KafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
-        .withNetwork(NETWORK)
-        .withNetworkAliases("broker")
-        .withKraft();
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG,
-            broker::getBootstrapServers);
-    }
-
     @Autowired
     private MeterRegistry registry;
 
