@@ -148,7 +148,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyWrongStoreAndWrongKey() throws IOException, InterruptedException {
+    void shouldGetByKeyWrongStore() throws IOException, InterruptedException {
         HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/person"))
             .GET()
@@ -159,7 +159,10 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(404, wrongStoreResponse.statusCode());
         assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
+    }
 
+    @Test
+    void shouldGetByKeyWrongKey() throws IOException, InterruptedException {
         HttpRequest wrongKeyRequest = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey"))
             .GET()
@@ -170,6 +173,20 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(404, wrongKeyResponse.statusCode());
         assertEquals("Key wrongKey not found", wrongKeyResponse.body());
+    }
+
+    @Test
+    void shouldGetByKeyWrongStoreType() throws IOException, InterruptedException {
+        HttpRequest wrongStoreTypeRequest = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_WINDOW_STORE/person"))
+            .GET()
+            .build();
+
+        HttpResponse<String> wrongStoreTypeResponse = httpClient.send(wrongStoreTypeRequest,
+            HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(400, wrongStoreTypeResponse.statusCode());
+        assertTrue(wrongStoreTypeResponse.body().contains("Cannot get result for failed query."));
     }
 
     @Test

@@ -57,4 +57,18 @@ public class ControllerExceptionHandler {
             .status(HttpStatus.NOT_FOUND)
             .body(e.getMessage());
     }
+
+    /**
+     * Handle the illegal argument exception.
+     *
+     * @param e The exception
+     * @return The response entity
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error(e.getMessage(), e);
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(e.getMessage());
+    }
 }

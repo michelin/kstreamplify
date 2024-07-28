@@ -143,18 +143,31 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyWrongStoreAndWrongKey() {
+    void shouldGetByKeyWrongStore() {
         ResponseEntity<String> wrongStore = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE/person", String.class);
 
         assertEquals(404, wrongStore.getStatusCode().value());
         assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
+    }
 
+    @Test
+    void shouldGetByKeyWrongKey() {
         ResponseEntity<String> wrongKey = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_STORE/wrongKey", String.class);
 
         assertEquals(404, wrongKey.getStatusCode().value());
         assertEquals("Key wrongKey not found", wrongKey.getBody());
+    }
+
+    @Test
+    void shouldGetByKeyWrongStoreType() {
+        ResponseEntity<String> wrongStoreType = restTemplate
+            .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_WINDOW_STORE/person", String.class);
+
+        assertEquals(400, wrongStoreType.getStatusCode().value());
+        assertNotNull(wrongStoreType.getBody());
+        assertTrue(wrongStoreType.getBody().contains("Cannot get result for failed query."));
     }
 
     @Test

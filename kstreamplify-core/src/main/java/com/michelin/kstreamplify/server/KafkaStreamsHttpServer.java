@@ -140,6 +140,10 @@ public class KafkaStreamsHttpServer {
                     exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, e.getMessage().length());
                     OutputStream output = exchange.getResponseBody();
                     output.write(e.getMessage().getBytes());
+                } catch (IllegalArgumentException e) {
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_REQUEST, e.getMessage().length());
+                    OutputStream output = exchange.getResponseBody();
+                    output.write(e.getMessage().getBytes());
                 } finally {
                     exchange.close();
                 }
