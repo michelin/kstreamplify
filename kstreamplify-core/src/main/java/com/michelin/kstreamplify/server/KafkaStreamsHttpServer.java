@@ -17,16 +17,13 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
-import com.michelin.kstreamplify.store.HostInfoResponse;
-import com.michelin.kstreamplify.store.StateQueryResponse;
+import com.michelin.kstreamplify.store.StateStoreHostInfo;
+import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -159,7 +156,7 @@ public class KafkaStreamsHttpServer {
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/info")) {
             return interactiveQueriesService.getStreamsMetadata(store)
                 .stream()
-                .map(streamsMetadata -> new HostInfoResponse(streamsMetadata.host(), streamsMetadata.port()))
+                .map(streamsMetadata -> new StateStoreHostInfo(streamsMetadata.host(), streamsMetadata.port()))
                 .toList();
         }
 
@@ -170,16 +167,15 @@ public class KafkaStreamsHttpServer {
 
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*/.*")) {
             String key = parsePathParam(exchange, 4);
-            return interactiveQueriesService
-                .getByKey(store, key, new StringSerializer(), Object.class)
-                .toStateQueryResponse(includeKey, includeMetadata);
+            StateStoreRecord stateStoreRecord = interactiveQueriesService.getByKey(store, key);
+            return stateStoreRecord.updateAttributes(includeKey, includeMetadata);
         }
 
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*")) {
-            return interactiveQueriesService
-                .getAll(store, Object.class, Object.class)
+            List<StateStoreRecord> stateStoreRecords = interactiveQueriesService.getAll(store);
+            return stateStoreRecords
                 .stream()
-                .map(stateQueryDataItem -> stateQueryDataItem.toStateQueryResponse(includeKey, includeMetadata))
+                .map(stateStoreRecord -> stateStoreRecord.updateAttributes(includeKey, includeMetadata))
                 .toList();
         }
 

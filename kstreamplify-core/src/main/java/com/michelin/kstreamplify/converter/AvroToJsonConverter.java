@@ -26,6 +26,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.ToNumberPolicy;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -50,6 +51,7 @@ public class AvroToJsonConverter {
         .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
         .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
         .registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
         .setPrettyPrinting()
         .create();
 

@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.ToNumberPolicy;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -35,6 +36,7 @@ import org.apache.avro.specific.SpecificRecordBase;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonToAvroConverter {
     private static final Gson gson = new GsonBuilder()
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
         .setPrettyPrinting()
         .create();
 

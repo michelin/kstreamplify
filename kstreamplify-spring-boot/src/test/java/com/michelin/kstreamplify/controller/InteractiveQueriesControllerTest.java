@@ -8,9 +8,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.HostInfoResponse;
-import com.michelin.kstreamplify.store.StateQueryData;
-import com.michelin.kstreamplify.store.StateQueryResponse;
+import com.michelin.kstreamplify.store.StateStoreHostInfo;
+import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.util.List;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.Test;
@@ -49,34 +48,41 @@ class InteractiveQueriesControllerTest {
         when(streamsMetadata.port())
             .thenReturn(1234);
 
-        assertEquals(List.of(new HostInfoResponse("host1", 1234)),
+        assertEquals(List.of(new StateStoreHostInfo("host1", 1234)),
             interactiveQueriesController.getHostsForStore("store").getBody());
     }
 
     @Test
     void shouldGetAll() {
-        when(interactiveQueriesService.getAll("store", Object.class, Object.class))
-            .thenReturn(List.of(new StateQueryData<>("key1", "value1", 1L,
-                new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L)))));
+        when(interactiveQueriesService.getAll("store"))
+            .thenReturn(List.of(new StateStoreRecord(
+                "key1",
+                "value1",
+                1L,
+                new StateStoreHostInfo("host1", 1234)
+            )));
 
-        List<StateQueryResponse> responses = interactiveQueriesController.getAll("store", false, false).getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store", false, false).getBody();
 
         assertNotNull(responses);
         assertNull(responses.get(0).getKey());
         assertEquals("value1", responses.get(0).getValue());
         assertNull(responses.get(0).getTimestamp());
-        assertNull(responses.get(0).getPositionVectors());
         assertNull(responses.get(0).getHostInfo());
     }
 
     @Test
     void shouldGetAllWithMetadata() {
-        when(interactiveQueriesService.getAll("store", Object.class, Object.class))
-            .thenReturn(List.of(new StateQueryData<>("key1", "value1", 1L,
-                new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L)))));
+        when(interactiveQueriesService.getAll("store"))
+            .thenReturn(List.of(new StateStoreRecord(
+                "key1",
+                "value1",
+                1L,
+                new StateStoreHostInfo("host1", 1234)
+            )));
 
 
-        List<StateQueryResponse> responses = interactiveQueriesController.getAll("store", true, true).getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store", true, true).getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
@@ -84,34 +90,40 @@ class InteractiveQueriesControllerTest {
         assertEquals(1L, responses.get(0).getTimestamp());
         assertEquals("host1", responses.get(0).getHostInfo().host());
         assertEquals(1234, responses.get(0).getHostInfo().port());
-        assertEquals("topic1", responses.get(0).getPositionVectors().get(0).topic());
-        assertEquals(1, responses.get(0).getPositionVectors().get(0).partition());
-        assertEquals(1L, responses.get(0).getPositionVectors().get(0).offset());
     }
 
     @Test
     void shouldGetByKey() {
-        when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), any()))
-            .thenReturn(new StateQueryData<>("key1", "value1", 1L,
-                new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L))));
+        when(interactiveQueriesService.getByKey(eq("store"), eq("key")))
+            .thenReturn(new StateStoreRecord(
+                "key1",
+                "value1",
+                1L,
+                new StateStoreHostInfo("host1", 1234)
+            ));
 
-        StateQueryResponse response = interactiveQueriesController.getByKey("store", "key", false, false).getBody();
+        StateStoreRecord response = interactiveQueriesController
+            .getByKey("store", "key", false, false).getBody();
 
         assertNotNull(response);
         assertNull(response.getKey());
         assertEquals("value1", response.getValue());
         assertNull(response.getTimestamp());
-        assertNull(response.getPositionVectors());
         assertNull(response.getHostInfo());
     }
 
     @Test
     void shouldGetByKeyWithMetadata() {
-        when(interactiveQueriesService.getByKey(eq("store"), eq("key"), any(), any()))
-            .thenReturn(new StateQueryData<>("key1", "value1", 1L,
-                new HostInfoResponse("host1", 1234), List.of(new StateQueryResponse.PositionVector("topic1", 1, 1L))));
+        when(interactiveQueriesService.getByKey(eq("store"), eq("key")))
+            .thenReturn(new StateStoreRecord(
+                "key1",
+                "value1",
+                1L,
+                new StateStoreHostInfo("host1", 1234)
+            ));
 
-        StateQueryResponse response = interactiveQueriesController.getByKey("store", "key", true, true).getBody();
+        StateStoreRecord response = interactiveQueriesController
+            .getByKey("store", "key", true, true).getBody();
 
         assertNotNull(response);
         assertEquals("key1", response.getKey());
@@ -119,8 +131,5 @@ class InteractiveQueriesControllerTest {
         assertEquals(1L, response.getTimestamp());
         assertEquals("host1", response.getHostInfo().host());
         assertEquals(1234, response.getHostInfo().port());
-        assertEquals("topic1", response.getPositionVectors().get(0).topic());
-        assertEquals(1, response.getPositionVectors().get(0).partition());
-        assertEquals(1L, response.getPositionVectors().get(0).offset());
     }
 }

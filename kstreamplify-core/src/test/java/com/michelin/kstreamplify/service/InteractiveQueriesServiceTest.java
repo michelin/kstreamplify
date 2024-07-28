@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.store.StateQueryData;
+import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.Collection;
@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.KeyValue;
@@ -169,7 +168,7 @@ class InteractiveQueriesServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> interactiveQueriesService.getAll("store", Object.class, Object.class));
+            () -> interactiveQueriesService.getAll("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -179,8 +178,7 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store",
-            Object.class, Object.class));
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store"));
     }
 
     @Test
@@ -188,8 +186,7 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store",
-            Object.class, Object.class));
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAll("store"));
     }
 
     @Test
@@ -216,17 +213,14 @@ class InteractiveQueriesServiceTest {
         when(iterator.next())
             .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(personStub, 150L)));
 
-        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
-            String.class, PersonStub.class);
+        List<StateStoreRecord> responses = interactiveQueriesService.getAll("store");
 
         assertEquals("key", responses.get(0).getKey());
-        assertEquals(personStub, responses.get(0).getValue());
+        assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) responses.get(0).getValue()).get("lastName"));
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
-        assertEquals("topic", responses.get(0).getPositionVectors().get(0).topic());
-        assertEquals(0, responses.get(0).getPositionVectors().get(0).partition());
-        assertEquals(15L, responses.get(0).getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -254,28 +248,18 @@ class InteractiveQueriesServiceTest {
                 "hostInfo": {
                   "host": "localhost",
                   "port": 8080
-                },
-                "positionVectors": [
-                  {
-                    "topic": "topic",
-                    "partition": 0,
-                    "offset": 15
-                  }
-                ]
+                }
               }
             ]""");
 
-        List<StateQueryData<String, PersonStub>> responses = interactiveQueriesService.getAll("store",
-            String.class, PersonStub.class);
+        List<StateStoreRecord> responses = interactiveQueriesService.getAll("store");
 
         assertEquals("key", responses.get(0).getKey());
-        assertEquals(new PersonStub("John", "Doe"), responses.get(0).getValue());
+        assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) responses.get(0).getValue()).get("lastName"));
         assertEquals(150L, responses.get(0).getTimestamp());
         assertEquals("localhost", responses.get(0).getHostInfo().host());
         assertEquals(8080, responses.get(0).getHostInfo().port());
-        assertEquals("topic", responses.get(0).getPositionVectors().get(0).topic());
-        assertEquals(0, responses.get(0).getPositionVectors().get(0).partition());
-        assertEquals(15L, responses.get(0).getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -293,7 +277,7 @@ class InteractiveQueriesServiceTest {
             .thenThrow(new RuntimeException("Error"));
 
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> interactiveQueriesService.getAll("store", String.class, PersonStub.class));
+            () -> interactiveQueriesService.getAll("store"));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
@@ -309,12 +293,10 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreams.state())
             .thenReturn(KafkaStreams.State.REBALANCING);
 
-        try (StringSerializer stringSerializer = new StringSerializer()) {
-            StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-                () -> interactiveQueriesService.getByKey("store", "key", stringSerializer, Object.class));
+        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
+            () -> interactiveQueriesService.getByKey("store", "key"));
 
-            assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
-        }
+        assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
@@ -323,10 +305,8 @@ class InteractiveQueriesServiceTest {
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
             .thenReturn(null);
 
-        try (StringSerializer stringSerializer = new StringSerializer()) {
-            assertThrows(UnknownStateStoreException.class, () ->
-                interactiveQueriesService.getByKey("store", "key", stringSerializer, Object.class));
-        }
+        assertThrows(UnknownStateStoreException.class, () ->
+            interactiveQueriesService.getByKey("store", "key"));
     }
 
     @Test
@@ -348,17 +328,14 @@ class InteractiveQueriesServiceTest {
         when(stateKeyQueryResult.getOnlyPartitionResult())
             .thenReturn(queryResult);
 
-        StateQueryData<String, PersonStub> response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), PersonStub.class);
+        StateStoreRecord response = interactiveQueriesService.getByKey("store", "key");
 
         assertEquals("key", response.getKey());
-        assertEquals(new PersonStub("John", "Doe"), response.getValue());
+        assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getValue()).get("lastName"));
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());
-        assertEquals("topic", response.getPositionVectors().get(0).topic());
-        assertEquals(0, response.getPositionVectors().get(0).partition());
-        assertEquals(15L, response.getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -383,28 +360,18 @@ class InteractiveQueriesServiceTest {
                 "hostInfo": {
                   "host": "localhost",
                   "port": 8080
-                },
-                "positionVectors": [
-                  {
-                    "topic": "topic",
-                    "partition": 0,
-                    "offset": 15
-                  }
-                ]
+                }
               }
             """);
 
-        StateQueryData<String, PersonStub> response = interactiveQueriesService
-            .getByKey("store", "key", new StringSerializer(), PersonStub.class);
+        StateStoreRecord response = interactiveQueriesService.getByKey("store", "key");
 
         assertEquals("key", response.getKey());
-        assertEquals(new PersonStub("John", "Doe"), response.getValue());
+        assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getValue()).get("lastName"));
         assertEquals(150L, response.getTimestamp());
         assertEquals("localhost", response.getHostInfo().host());
         assertEquals(8080, response.getHostInfo().port());
-        assertEquals("topic", response.getPositionVectors().get(0).topic());
-        assertEquals(0, response.getPositionVectors().get(0).partition());
-        assertEquals(15L, response.getPositionVectors().get(0).offset());
     }
 
     @Test
@@ -426,12 +393,10 @@ class InteractiveQueriesServiceTest {
         when(stateKeyQueryResult.getOnlyPartitionResult())
             .thenReturn(null);
 
-        try (StringSerializer stringSerializer = new StringSerializer()) {
-            UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-                interactiveQueriesService.getByKey("store", "unknownKey", stringSerializer, PersonStub.class));
+        UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
+            interactiveQueriesService.getByKey("store", "unknownKey"));
 
-            assertEquals("Key unknownKey not found", exception.getMessage());
-        }
+        assertEquals("Key unknownKey not found", exception.getMessage());
     }
 
     @Test
@@ -446,12 +411,10 @@ class InteractiveQueriesServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
             .thenThrow(new RuntimeException("Error"));
 
-        try (StringSerializer stringSerializer = new StringSerializer()) {
-            OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-                () -> interactiveQueriesService.getByKey("store", "key", stringSerializer, PersonStub.class));
+        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
+            () -> interactiveQueriesService.getByKey("store", "key"));
 
-            assertEquals("Fail to read other instance response", exception.getMessage());
-        }
+        assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
     record PersonStub(String firstName, String lastName) { }
