@@ -2,8 +2,8 @@ package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.michelin.kstreamplify.store.StateStoreRecord;
+import com.michelin.kstreamplify.store.StreamsMetadata;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;

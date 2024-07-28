@@ -14,8 +14,8 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.michelin.kstreamplify.store.StateStoreRecord;
+import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.io.IOException;
 import java.net.URI;
@@ -129,8 +129,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .GET()
             .build();
 
-        HttpResponse<String> streamsMetadataResponse = httpClient.send(streamsMetadataRequest, HttpResponse.BodyHandlers.ofString());
-        List<StreamsMetadata> streamsMetadata = objectMapper.readValue(streamsMetadataResponse.body(), new TypeReference<>() {});
+        HttpResponse<String> streamsMetadataResponse = httpClient
+            .send(streamsMetadataRequest, HttpResponse.BodyHandlers.ofString());
+
+        List<StreamsMetadata> streamsMetadata = objectMapper
+            .readValue(streamsMetadataResponse.body(), new TypeReference<>() {});
 
         assertEquals(200, streamsMetadataResponse.statusCode());
         assertEquals(Set.of(
