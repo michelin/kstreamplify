@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * State query data.
- *
- * @param <V> The value type
+ * The state store record class.
  */
 @Getter
 @NoArgsConstructor
