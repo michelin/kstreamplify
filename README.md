@@ -43,7 +43,7 @@ need to do:
     * [On Start](#on-start)
   * [Interactive Queries](#interactive-queries)
     * [Application Server Configuration](#application-server-configuration)
-    * [Querying State Stores with REST Endpoints](#querying-state-stores-with-rest-endpoints)
+    * [Querying State Stores](#querying-state-stores)
   * [Topology](#topology-2)
   * [Deduplication](#deduplication)
     * [By Key](#by-key)
@@ -363,17 +363,15 @@ kafka:
 2. The value of a default environment variable named `APPLICATION_SERVER`.
 3. `localhost`.
 
-#### Querying State Stores with REST Endpoints
+#### Querying State Stores
 
 Kstreamplify provides REST endpoints to query the state stores of your Kafka Streams application.
 It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
 
-Here is an overview of the available endpoints:
+Here is the list of supported state store types:
+- Key-Value
 
-- GET `/store`: Returns the list of available state stores
-- GET `/store/{store}/info`: Returns the host information of the state store
-- GET `/store/{store}`: Returns all records of the state store
-- GET `/store/{store}/{key}`: Returns the record of the state store for the given key
+Only state stores with String keys are supported.
 
 <h3 id="topology-2">Topology</h4>
 
