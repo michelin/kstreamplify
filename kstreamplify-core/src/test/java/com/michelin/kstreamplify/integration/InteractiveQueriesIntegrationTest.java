@@ -23,7 +23,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +36,6 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
@@ -67,7 +65,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .setId(1L)
             .setFirstName("John")
             .setLastName("Doe")
-            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
+            .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
             .build();
 
         try (KafkaProducer<String, KafkaPersonStub> avroKafkaProducer = new KafkaProducer<>(
@@ -141,191 +139,171 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKeyWrongStore() throws IOException, InterruptedException {
-        HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/person"))
             .GET()
             .build();
 
-        HttpResponse<String> wrongStoreResponse = httpClient.send(wrongStoreRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, wrongStoreResponse.statusCode());
-        assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
+        assertEquals(404, response.statusCode());
+        assertEquals("State store WRONG_STORE not found", response.body());
     }
 
     @Test
     void shouldGetByKeyWrongKey() throws IOException, InterruptedException {
-        HttpRequest wrongKeyRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey"))
             .GET()
             .build();
 
-        HttpResponse<String> wrongKeyResponse = httpClient.send(wrongKeyRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, wrongKeyResponse.statusCode());
-        assertEquals("Key wrongKey not found", wrongKeyResponse.body());
+        assertEquals(404, response.statusCode());
+        assertEquals("Key wrongKey not found", response.body());
     }
 
     @Test
     void shouldGetByKeyWrongStoreType() throws IOException, InterruptedException {
-        HttpRequest wrongStoreTypeRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
             .build();
 
-        HttpResponse<String> wrongStoreTypeResponse = httpClient.send(wrongStoreTypeRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(400, wrongStoreTypeResponse.statusCode());
-        assertTrue(wrongStoreTypeResponse.body().contains("Cannot get result for failed query."));
+        assertEquals(400, response.statusCode());
+        assertTrue(response.body().contains("Cannot get result for failed query."));
     }
 
     @Test
     void shouldGetByKeyInStringStringKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest recordByKeyRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/person"))
             .GET()
             .build();
 
-        HttpResponse<String> recordByKeyResponse = httpClient.send(recordByKeyRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        StateStoreRecord body = objectMapper.readValue(response.body(), StateStoreRecord.class);
 
-        StateStoreRecord recordByKey = objectMapper.readValue(recordByKeyResponse.body(), StateStoreRecord.class);
-
-        assertEquals(200, recordByKeyResponse.statusCode());
-        assertEquals("Doe", recordByKey.getValue());
-        assertNull(recordByKey.getTimestamp());
+        assertEquals(200, response.statusCode());
+        assertEquals("Doe", body.getValue());
+        assertNull(body.getTimestamp());
     }
 
     @Test
     void shouldGetByKeyInStringAvroKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest avroRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_STORE/person?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
-        HttpResponse<String> avroRecordByKeyWithMetadataResponse = httpClient.send(avroRecordByKeyWithMetadataRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        StateStoreRecord body = objectMapper.readValue(response.body(), StateStoreRecord.class);
 
-        StateStoreRecord avroRecordByKeyWithMetadata = objectMapper
-            .readValue(avroRecordByKeyWithMetadataResponse.body(), StateStoreRecord.class);
-
-        assertEquals(200, avroRecordByKeyWithMetadataResponse.statusCode());
-        assertEquals("person", avroRecordByKeyWithMetadata.getKey());
-        assertEquals("John", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) avroRecordByKeyWithMetadata.getValue()).get("lastName"));
-        assertNull(avroRecordByKeyWithMetadata.getTimestamp());
-        assertEquals("localhost", avroRecordByKeyWithMetadata.getHostInfo().host());
-        assertEquals(8081, avroRecordByKeyWithMetadata.getHostInfo().port());
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.getKey());
+        assertEquals(1, ((Map<?, ?>) body.getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
+        assertNull(body.getTimestamp());
+        assertEquals("localhost", body.getHostInfo().host());
+        assertEquals(8081, body.getHostInfo().port());
     }
 
     @Test
     void shouldGetByKeyInStringAvroKeyValueStoreFromInteractiveQueriesService() {
-        KafkaPersonStub expectedValue = KafkaPersonStub.newBuilder()
-            .setId(1L)
-            .setFirstName("John")
-            .setLastName("Doe")
-            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
-            .build();
-
         StateStoreRecord stateStoreRecord = interactiveQueriesService.getByKey("STRING_AVRO_STORE", "person");
 
         assertEquals("person", stateStoreRecord.getKey());
-        assertEquals(expectedValue, stateStoreRecord.getValue());
+        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateStoreRecord.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
         assertNull(stateStoreRecord.getTimestamp());
         assertEquals("localhost", stateStoreRecord.getHostInfo().host());
-        assertEquals(8085, stateStoreRecord.getHostInfo().port());
+        assertEquals(8081, stateStoreRecord.getHostInfo().port());
     }
 
     @Test
     void shouldGetByKeyInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest avroTsRecordByKeyWithMetadataRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE/person?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
-        HttpResponse<String> avroTsRecordByKeyWithMetadataResponse = httpClient
-            .send(avroTsRecordByKeyWithMetadataRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        StateStoreRecord body = objectMapper.readValue(response.body(), StateStoreRecord.class);
 
-        StateStoreRecord avroTsRecordByKeyWithMetadata = objectMapper
-            .readValue(avroTsRecordByKeyWithMetadataResponse.body(), StateStoreRecord.class);
-
-        assertEquals(200, avroTsRecordByKeyWithMetadataResponse.statusCode());
-        assertEquals("person", avroTsRecordByKeyWithMetadata.getKey());
-        assertEquals("John", ((HashMap<?, ?>) avroTsRecordByKeyWithMetadata.getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) avroTsRecordByKeyWithMetadata.getValue()).get("lastName"));
-        assertNotNull(avroTsRecordByKeyWithMetadata.getTimestamp());
-        assertEquals("localhost", avroTsRecordByKeyWithMetadata.getHostInfo().host());
-        assertEquals(8081, avroTsRecordByKeyWithMetadata.getHostInfo().port());
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.getKey());
+        assertEquals(1, ((Map<?, ?>) body.getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
+        assertNotNull(body.getTimestamp());
+        assertEquals("localhost", body.getHostInfo().host());
+        assertEquals(8081, body.getHostInfo().port());
     }
 
     @Test
     void shouldGetAllWrongStore() throws IOException, InterruptedException {
-        HttpRequest wrongStoreRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/key"))
             .GET()
             .build();
 
-        HttpResponse<String> wrongStoreResponse = httpClient.send(wrongStoreRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(404, wrongStoreResponse.statusCode());
-        assertEquals("State store WRONG_STORE not found", wrongStoreResponse.body());
+        assertEquals(404, response.statusCode());
+        assertEquals("State store WRONG_STORE not found", response.body());
     }
 
     @Test
     void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest allRecordsRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE"))
             .GET()
             .build();
 
-        HttpResponse<String> allRecordsResponse = httpClient.send(allRecordsRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
-        List<StateStoreRecord> allRecords = objectMapper
-            .readValue(allRecordsResponse.body(), new TypeReference<>() {});
-
-        assertEquals(200, allRecordsResponse.statusCode());
-        assertEquals("Doe", allRecords.get(0).getValue());
+        assertEquals(200, response.statusCode());
+        assertEquals("Doe", body.get(0).getValue());
     }
 
     @Test
     void shouldGetAllInStringAvroKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_STORE?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
-        HttpResponse<String> allAvroRecordsMetadataResponse = httpClient.send(allAvroRecordsMetadataRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
-        List<StateStoreRecord> allAvroRecordsMetadata = objectMapper
-            .readValue(allAvroRecordsMetadataResponse.body(), new TypeReference<>() {});
-
-        assertEquals(200, allAvroRecordsMetadataResponse.statusCode());
-        assertEquals("person", allAvroRecordsMetadata.get(0).getKey());
-        assertEquals("John", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("lastName"));
-        assertNull(allAvroRecordsMetadata.get(0).getTimestamp());
-        assertEquals("localhost", allAvroRecordsMetadata.get(0).getHostInfo().host());
-        assertEquals(8081, allAvroRecordsMetadata.get(0).getHostInfo().port());
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
+        assertNull(body.get(0).getTimestamp());
+        assertEquals("localhost", body.get(0).getHostInfo().host());
+        assertEquals(8081, body.get(0).getHostInfo().port());
     }
 
     @Test
     void shouldGetAllInStringAvroKeyValueStoreFromInteractiveQueriesService() {
-        KafkaPersonStub expectedValue = KafkaPersonStub.newBuilder()
-            .setId(1L)
-            .setFirstName("John")
-            .setLastName("Doe")
-            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
-            .build();
-
         List<StateStoreRecord> stateQueryData = interactiveQueriesService.getAll("STRING_AVRO_STORE");
 
         assertEquals("person", stateQueryData.get(0).getKey());
-        assertEquals(expectedValue, stateQueryData.get(0).getValue());
+        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
         assertNull(stateQueryData.get(0).getTimestamp());
         assertEquals("localhost", stateQueryData.get(0).getHostInfo().host());
         assertEquals(8081, stateQueryData.get(0).getHostInfo().port());
@@ -333,24 +311,23 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAllInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest allAvroRecordsMetadataRequest = HttpRequest.newBuilder()
+        HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true"))
             .GET()
             .build();
 
-        HttpResponse<String> allAvroRecordsMetadataResponse = httpClient.send(allAvroRecordsMetadataRequest,
-            HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
-        List<StateStoreRecord> allAvroRecordsMetadata = objectMapper
-            .readValue(allAvroRecordsMetadataResponse.body(), new TypeReference<>() {});
-
-        assertEquals(200, allAvroRecordsMetadataResponse.statusCode());
-        assertEquals("person", allAvroRecordsMetadata.get(0).getKey());
-        assertEquals("John", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) allAvroRecordsMetadata.get(0).getValue()).get("lastName"));
-        assertNotNull(allAvroRecordsMetadata.get(0).getTimestamp());
-        assertEquals("localhost", allAvroRecordsMetadata.get(0).getHostInfo().host());
-        assertEquals(8081, allAvroRecordsMetadata.get(0).getHostInfo().port());
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
+        assertNotNull(body.get(0).getTimestamp());
+        assertEquals("localhost", body.get(0).getHostInfo().host());
+        assertEquals(8081, body.get(0).getHostInfo().port());
     }
 
     /**

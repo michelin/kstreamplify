@@ -74,7 +74,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .setId(1L)
             .setFirstName("John")
             .setLastName("Doe")
-            .setBirthDate(Instant.parse("2000-01-01T01:00:00.00Z"))
+            .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
             .build();
 
         try (KafkaProducer<String, KafkaPersonStub> avroKafkaProducer = new KafkaProducer<>(
@@ -134,30 +134,30 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKeyWrongStore() {
-        ResponseEntity<String> wrongStore = restTemplate
+        ResponseEntity<String> response = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE/person", String.class);
 
-        assertEquals(404, wrongStore.getStatusCode().value());
-        assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("State store WRONG_STORE not found", response.getBody());
     }
 
     @Test
     void shouldGetByKeyWrongKey() {
-        ResponseEntity<String> wrongKey = restTemplate
+        ResponseEntity<String> response = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_STORE/wrongKey", String.class);
 
-        assertEquals(404, wrongKey.getStatusCode().value());
-        assertEquals("Key wrongKey not found", wrongKey.getBody());
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("Key wrongKey not found", response.getBody());
     }
 
     @Test
     void shouldGetByKeyWrongStoreType() {
-        ResponseEntity<String> wrongStoreType = restTemplate
+        ResponseEntity<String> response = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_WINDOW_STORE/person", String.class);
 
-        assertEquals(400, wrongStoreType.getStatusCode().value());
-        assertNotNull(wrongStoreType.getBody());
-        assertTrue(wrongStoreType.getBody().contains("Cannot get result for failed query."));
+        assertEquals(400, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains("Cannot get result for failed query."));
     }
 
     @Test
@@ -195,7 +195,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) stateStoreRecord.getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00.00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
         assertNull(stateStoreRecord.getTimestamp());
         assertEquals("localhost", stateStoreRecord.getHostInfo().host());
         assertEquals(8085, stateStoreRecord.getHostInfo().port());
@@ -219,39 +219,41 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAllWrongStore() {
-        ResponseEntity<String> wrongStore = restTemplate
+        ResponseEntity<String> response = restTemplate
             .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE", String.class);
 
-        assertEquals(404, wrongStore.getStatusCode().value());
-        assertEquals("State store WRONG_STORE not found", wrongStore.getBody());
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("State store WRONG_STORE not found", response.getBody());
     }
 
     @Test
     void shouldGetAllInStringStringKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> allRecords = restTemplate
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
             });
 
-        assertEquals(200, allRecords.getStatusCode().value());
-        assertNotNull(allRecords.getBody());
-        assertEquals("Doe", allRecords.getBody().get(0).getValue());
-        assertNull(allRecords.getBody().get(0).getTimestamp());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test
     void shouldGetAllInStringAvroKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> allAvroRecordsMetadata = restTemplate
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/key-value/STRING_AVRO_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
-        assertEquals(200, allAvroRecordsMetadata.getStatusCode().value());
-        assertNotNull(allAvroRecordsMetadata.getBody());
-        assertEquals("person", allAvroRecordsMetadata.getBody().get(0).getKey());
-        assertEquals("John", ((HashMap<?, ?>) allAvroRecordsMetadata.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) allAvroRecordsMetadata.getBody().get(0).getValue()).get("lastName"));
-        assertNull(allAvroRecordsMetadata.getBody().get(0).getTimestamp());
-        assertEquals("localhost", allAvroRecordsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, allAvroRecordsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNull(response.getBody().get(0).getTimestamp());
+        assertEquals("localhost", response.getBody().get(0).getHostInfo().host());
+        assertEquals(8085, response.getBody().get(0).getHostInfo().port());
     }
 
     @Test
@@ -262,7 +264,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00.00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
         assertNull(stateQueryData.get(0).getTimestamp());
         assertEquals("localhost", stateQueryData.get(0).getHostInfo().host());
         assertEquals(8085, stateQueryData.get(0).getHostInfo().port());
@@ -270,18 +272,20 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAllInStringAvroTimestampedKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> allAvroRecordsMetadata = restTemplate
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/key-value/STRING_AVRO_TIMESTAMPED_STORE?includeKey=true&includeMetadata=true", GET, null, new ParameterizedTypeReference<>() {
             });
 
-        assertEquals(200, allAvroRecordsMetadata.getStatusCode().value());
-        assertNotNull(allAvroRecordsMetadata.getBody());
-        assertEquals("person", allAvroRecordsMetadata.getBody().get(0).getKey());
-        assertEquals("John", ((HashMap<?, ?>) allAvroRecordsMetadata.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) allAvroRecordsMetadata.getBody().get(0).getValue()).get("lastName"));
-        assertNotNull(allAvroRecordsMetadata.getBody().get(0).getTimestamp());
-        assertEquals("localhost", allAvroRecordsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, allAvroRecordsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNotNull(response.getBody().get(0).getTimestamp());
+        assertEquals("localhost", response.getBody().get(0).getHostInfo().host());
+        assertEquals(8085, response.getBody().get(0).getHostInfo().port());
     }
 
     /**
