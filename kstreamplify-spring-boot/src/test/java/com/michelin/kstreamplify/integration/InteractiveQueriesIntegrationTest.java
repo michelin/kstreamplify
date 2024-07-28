@@ -15,8 +15,8 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.StateStoreHostInfo;
 import com.michelin.kstreamplify.store.StateStoreRecord;
+import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,7 +34,6 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
@@ -122,14 +121,23 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         )));
 
         // Get hosts
-        ResponseEntity<List<StateStoreHostInfo>> hosts = restTemplate
-            .exchange("http://localhost:8085/store/STRING_STRING_STORE/info", GET, null, new ParameterizedTypeReference<>() {
+        ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate
+            .exchange("http://localhost:8085/store/STRING_STRING_STORE/metadata", GET, null, new ParameterizedTypeReference<>() {
             });
 
-        assertEquals(200, hosts.getStatusCode().value());
-        assertNotNull(hosts.getBody());
-        assertEquals("localhost", hosts.getBody().get(0).host());
-        assertEquals(8085, hosts.getBody().get(0).port());
+        assertEquals(200, streamsMetadata.getStatusCode().value());
+        assertNotNull(streamsMetadata.getBody());
+        assertEquals(Set.of(
+            "STRING_STRING_STORE",
+            "STRING_AVRO_STORE",
+            "STRING_AVRO_TIMESTAMPED_STORE",
+            "STRING_AVRO_WINDOW_STORE",
+            "STRING_AVRO_TIMESTAMPED_WINDOW_STORE"), streamsMetadata.getBody().get(0).getStateStoreNames());
+        assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
+        assertEquals(8085, streamsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(Set.of(
+            "INPUT_TOPIC-0",
+            "INPUT_TOPIC-1"), streamsMetadata.getBody().get(0).getTopicPartitions());
     }
 
     @Test
@@ -167,6 +175,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().getKey());
         assertEquals("Doe", response.getBody().getValue());
         assertNull(response.getBody().getTimestamp());
     }
@@ -180,11 +189,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals("person", response.getBody().getKey());
+        assertEquals(1, ((HashMap<?, ?>) response.getBody().getValue()).get("id"));
         assertEquals("John", ((HashMap<?, ?>) response.getBody().getValue()).get("firstName"));
         assertEquals("Doe", ((HashMap<?, ?>) response.getBody().getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().getValue()).get("birthDate"));
         assertNull(response.getBody().getTimestamp());
-        assertEquals("localhost", response.getBody().getHostInfo().host());
-        assertEquals(8085, response.getBody().getHostInfo().port());
     }
 
     @Test
@@ -197,8 +206,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
         assertNull(stateStoreRecord.getTimestamp());
-        assertEquals("localhost", stateStoreRecord.getHostInfo().host());
-        assertEquals(8085, stateStoreRecord.getHostInfo().port());
     }
 
     @Test
@@ -210,11 +217,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals("person", response.getBody().getKey());
+        assertEquals(1, ((HashMap<?, ?>) response.getBody().getValue()).get("id"));
         assertEquals("John", ((HashMap<?, ?>) response.getBody().getValue()).get("firstName"));
         assertEquals("Doe", ((HashMap<?, ?>) response.getBody().getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().getValue()).get("birthDate"));
         assertNotNull(response.getBody().getTimestamp());
-        assertEquals("localhost", response.getBody().getHostInfo().host());
-        assertEquals(8085, response.getBody().getHostInfo().port());
     }
 
     @Test
@@ -234,6 +241,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
         assertEquals("Doe", response.getBody().get(0).getValue());
         assertNull(response.getBody().get(0).getTimestamp());
     }
@@ -252,8 +260,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
         assertNull(response.getBody().get(0).getTimestamp());
-        assertEquals("localhost", response.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, response.getBody().get(0).getHostInfo().port());
     }
 
     @Test
@@ -266,8 +272,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
         assertNull(stateQueryData.get(0).getTimestamp());
-        assertEquals("localhost", stateQueryData.get(0).getHostInfo().host());
-        assertEquals(8085, stateQueryData.get(0).getHostInfo().port());
     }
 
     @Test
@@ -284,8 +288,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
         assertNotNull(response.getBody().get(0).getTimestamp());
-        assertEquals("localhost", response.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, response.getBody().get(0).getHostInfo().port());
     }
 
     /**

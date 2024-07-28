@@ -2,9 +2,10 @@ package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.StateStoreHostInfo;
+import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -35,11 +35,11 @@ public class InteractiveQueriesController {
      * @return The stores
      */
     @GetMapping
-    public ResponseEntity<List<String>> getStores() {
+    public ResponseEntity<Set<String>> getStores() {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getStores());
+            .body(interactiveQueriesService.getStateStores());
     }
 
     /**
@@ -48,40 +48,33 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The hosts
      */
-    @GetMapping(value = "/{store}/info")
-    public ResponseEntity<List<StateStoreHostInfo>> getHostsForStore(@PathVariable("store") final String store) {
+    @GetMapping(value = "/{store}/metadata")
+    public ResponseEntity<List<StreamsMetadata>> getStreamsMetadataForStore(@PathVariable("store") final String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getStreamsMetadata(store)
+            .body(interactiveQueriesService.getStreamsMetadataForStore(store)
                 .stream()
-                .map(streamsMetadata -> new StateStoreHostInfo(streamsMetadata.host(), streamsMetadata.port()))
-                .toList());
+                .map(streamsMetadata -> new StreamsMetadata(
+                    streamsMetadata.stateStoreNames(),
+                    streamsMetadata.hostInfo(),
+                    streamsMetadata.topicPartitions()))
+                .toList()
+            );
     }
 
     /**
      * Get all the values from the store.
      *
      * @param store The store
-     * @param includeKey Include the key in the response
-     * @param includeMetadata Include the metadata in the response
      * @return The values
      */
     @GetMapping(value = "/key-value/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store,
-                                                           @RequestParam(value = "includeKey", required = false,
-                                                               defaultValue = "false") Boolean includeKey,
-                                                           @RequestParam(value = "includeMetadata", required = false,
-                                                               defaultValue = "false") Boolean includeMetadata) {
-        List<StateStoreRecord> stateStoreRecords = interactiveQueriesService.getAll(store);
-
+    public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(stateStoreRecords
-                .stream()
-                .map(stateStoreRecord -> stateStoreRecord.updateAttributes(includeKey, includeMetadata))
-                .toList());
+            .body(interactiveQueriesService.getAll(store));
     }
 
     /**
@@ -89,22 +82,14 @@ public class InteractiveQueriesController {
      *
      * @param store The store
      * @param key The key
-     * @param includeKey Include the key in the response
-     * @param includeMetadata Include the metadata in the response
      * @return The value
      */
     @GetMapping("/key-value/{store}/{key}")
     public ResponseEntity<StateStoreRecord> getByKey(@PathVariable("store") String store,
-                                                     @PathVariable("key") String key,
-                                                     @RequestParam(value = "includeKey", required = false,
-                                                         defaultValue = "false") Boolean includeKey,
-                                                     @RequestParam(value = "includeMetadata", required = false,
-                                                         defaultValue = "false") Boolean includeMetadata) {
-        StateStoreRecord stateStoreRecord = interactiveQueriesService.getByKey(store, key);
-
+                                                     @PathVariable("key") String key) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(stateStoreRecord.updateAttributes(includeKey, includeMetadata));
+            .body(interactiveQueriesService.getByKey(store, key));
     }
 }

@@ -1,17 +1,21 @@
 package com.michelin.kstreamplify.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
-import com.michelin.kstreamplify.store.StateStoreHostInfo;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.util.List;
+import java.util.Set;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.StreamsMetadata;
+import org.apache.kafka.streams.state.HostInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,105 +35,60 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetStores() {
-        when(interactiveQueriesService.getStores())
-            .thenReturn(List.of("store1", "store2"));
+        when(interactiveQueriesService.getStateStores())
+            .thenReturn(Set.of("store1", "store2"));
 
-        assertEquals(List.of("store1", "store2"), interactiveQueriesController.getStores().getBody());
+        assertEquals(Set.of("store1", "store2"), interactiveQueriesController.getStores().getBody());
     }
 
     @Test
     void shouldGetHostsForStore() {
-        when(interactiveQueriesService.getStreamsMetadata("store"))
+        when(streamsMetadata.stateStoreNames())
+            .thenReturn(Set.of("store"));
+
+        when(streamsMetadata.hostInfo())
+            .thenReturn(new HostInfo("host1", 1234));
+
+        when(streamsMetadata.topicPartitions())
+            .thenReturn(Set.of(new TopicPartition("topic", 0)));
+
+        when(interactiveQueriesService.getStreamsMetadataForStore("store"))
             .thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.host())
-            .thenReturn("host1");
+        List<com.michelin.kstreamplify.store.StreamsMetadata> response =
+            interactiveQueriesController.getStreamsMetadataForStore("store").getBody();
 
-        when(streamsMetadata.port())
-            .thenReturn(1234);
-
-        assertEquals(List.of(new StateStoreHostInfo("host1", 1234)),
-            interactiveQueriesController.getHostsForStore("store").getBody());
+        assertNotNull(response);
+        assertEquals(streamsMetadata.stateStoreNames(), response.get(0).getStateStoreNames());
+        assertEquals(streamsMetadata.hostInfo().host(), response.get(0).getHostInfo().host());
+        assertEquals(streamsMetadata.hostInfo().port(), response.get(0).getHostInfo().port());
+        assertTrue(response.get(0).getTopicPartitions().contains("topic-0"));
     }
 
     @Test
     void shouldGetAll() {
         when(interactiveQueriesService.getAll("store"))
-            .thenReturn(List.of(new StateStoreRecord(
-                "key1",
-                "value1",
-                1L,
-                new StateStoreHostInfo("host1", 1234)
-            )));
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store", false, false).getBody();
-
-        assertNotNull(responses);
-        assertNull(responses.get(0).getKey());
-        assertEquals("value1", responses.get(0).getValue());
-        assertNull(responses.get(0).getTimestamp());
-        assertNull(responses.get(0).getHostInfo());
-    }
-
-    @Test
-    void shouldGetAllWithMetadata() {
-        when(interactiveQueriesService.getAll("store"))
-            .thenReturn(List.of(new StateStoreRecord(
-                "key1",
-                "value1",
-                1L,
-                new StateStoreHostInfo("host1", 1234)
-            )));
-
-
-        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store", true, true).getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store").getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
         assertEquals("value1", responses.get(0).getValue());
         assertEquals(1L, responses.get(0).getTimestamp());
-        assertEquals("host1", responses.get(0).getHostInfo().host());
-        assertEquals(1234, responses.get(0).getHostInfo().port());
     }
 
     @Test
     void shouldGetByKey() {
         when(interactiveQueriesService.getByKey(eq("store"), eq("key")))
-            .thenReturn(new StateStoreRecord(
-                "key1",
-                "value1",
-                1L,
-                new StateStoreHostInfo("host1", 1234)
-            ));
+            .thenReturn(new StateStoreRecord("key1", "value1", 1L));
 
         StateStoreRecord response = interactiveQueriesController
-            .getByKey("store", "key", false, false).getBody();
-
-        assertNotNull(response);
-        assertNull(response.getKey());
-        assertEquals("value1", response.getValue());
-        assertNull(response.getTimestamp());
-        assertNull(response.getHostInfo());
-    }
-
-    @Test
-    void shouldGetByKeyWithMetadata() {
-        when(interactiveQueriesService.getByKey(eq("store"), eq("key")))
-            .thenReturn(new StateStoreRecord(
-                "key1",
-                "value1",
-                1L,
-                new StateStoreHostInfo("host1", 1234)
-            ));
-
-        StateStoreRecord response = interactiveQueriesController
-            .getByKey("store", "key", true, true).getBody();
+            .getByKey("store", "key").getBody();
 
         assertNotNull(response);
         assertEquals("key1", response.getKey());
         assertEquals("value1", response.getValue());
         assertEquals(1L, response.getTimestamp());
-        assertEquals("host1", response.getHostInfo().host());
-        assertEquals(1234, response.getHostInfo().port());
     }
 }

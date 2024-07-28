@@ -108,7 +108,7 @@ public class AvroToJsonConverter {
         for (Field field : inputRecord.getSchema().getFields()) {
             Object recordValue = inputRecord.get(field.name());
 
-            if ((recordValue instanceof Utf8 || recordValue instanceof Instant)) {
+            if (recordValue instanceof Utf8 || recordValue instanceof Instant) {
                 recordValue = recordValue.toString();
             }
 

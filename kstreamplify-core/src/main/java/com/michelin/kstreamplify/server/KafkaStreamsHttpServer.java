@@ -17,7 +17,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
-import com.michelin.kstreamplify.store.StateStoreHostInfo;
+import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -32,7 +32,6 @@ import java.util.Properties;
 import java.util.function.IntSupplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 
@@ -149,34 +148,28 @@ public class KafkaStreamsHttpServer {
 
     private Object getResponseForStoreEndpoints(HttpExchange exchange) {
         if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
-            return interactiveQueriesService.getStores();
+            return interactiveQueriesService.getStateStores();
         }
 
         String store = parsePathParam(exchange, 2);
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/info")) {
-            return interactiveQueriesService.getStreamsMetadata(store)
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/metadata")) {
+            return interactiveQueriesService.getStreamsMetadataForStore(store)
                 .stream()
-                .map(streamsMetadata -> new StateStoreHostInfo(streamsMetadata.host(), streamsMetadata.port()))
+                .map(streamsMetadata -> new StreamsMetadata(
+                    streamsMetadata.stateStoreNames(),
+                    streamsMetadata.hostInfo(),
+                    streamsMetadata.topicPartitions()))
                 .toList();
         }
 
         store = parsePathParam(exchange, 3);
-        Map<String, String> queryParams = parseQueryParams(exchange);
-        boolean includeKey = Boolean.parseBoolean(queryParams.getOrDefault("includeKey", "false"));
-        boolean includeMetadata = Boolean.parseBoolean(queryParams.getOrDefault("includeMetadata", "false"));
-
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*/.*")) {
             String key = parsePathParam(exchange, 4);
-            StateStoreRecord stateStoreRecord = interactiveQueriesService.getByKey(store, key);
-            return stateStoreRecord.updateAttributes(includeKey, includeMetadata);
+            return interactiveQueriesService.getByKey(store, key);
         }
 
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/key-value/.*")) {
-            List<StateStoreRecord> stateStoreRecords = interactiveQueriesService.getAll(store);
-            return stateStoreRecords
-                .stream()
-                .map(stateStoreRecord -> stateStoreRecord.updateAttributes(includeKey, includeMetadata))
-                .toList();
+            return interactiveQueriesService.getAll(store);
         }
 
         return null;
@@ -187,32 +180,6 @@ public class KafkaStreamsHttpServer {
             .toString()
             .split("\\?")[0]
             .split("/")[index];
-    }
-
-    /**
-     * Parse the query parameters.
-     *
-     * @param httpExchange The HTTP exchange
-     * @return The query parameters
-     */
-    private Map<String, String> parseQueryParams(HttpExchange httpExchange) {
-        List<String> parametersList = Arrays.stream(httpExchange
-            .getRequestURI()
-            .toString()
-            .split("\\?"))
-            .toList();
-
-        List<String> parameters = new ArrayList<>();
-        if (parametersList.size() > 1) {
-            parameters.addAll(Arrays.stream(parametersList.get(1)
-                .split("&"))
-                .toList());
-        }
-
-        return parameters
-            .stream()
-            .map(param -> Pair.of(param.split("=")[0], param.split("=")[1]))
-            .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
     }
 
     /**

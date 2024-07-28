@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.store.StateStoreHostInfo;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -71,21 +71,21 @@ public class InteractiveQueriesService {
      *
      * @return The stores
      */
-    public List<String> getStores() {
+    public Set<String> getStateStores() {
         checkStreamsRunning();
 
-        final Collection<StreamsMetadata> metadata = kafkaStreamsInitializer
+        final Collection<org.apache.kafka.streams.StreamsMetadata> metadata = kafkaStreamsInitializer
             .getKafkaStreams()
             .metadataForAllStreamsClients();
 
         if (metadata == null || metadata.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
         return metadata
             .stream()
             .flatMap(streamsMetadata -> streamsMetadata.stateStoreNames().stream())
-            .toList();
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -94,7 +94,7 @@ public class InteractiveQueriesService {
      * @param store The store
      * @return The hosts
      */
-    public Collection<StreamsMetadata> getStreamsMetadata(final String store) {
+    public Collection<org.apache.kafka.streams.StreamsMetadata> getStreamsMetadataForStore(final String store) {
         checkStreamsRunning();
 
         return kafkaStreamsInitializer
@@ -110,7 +110,7 @@ public class InteractiveQueriesService {
      */
     @SuppressWarnings("unchecked")
     public List<StateStoreRecord> getAll(String store) {
-        final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadata(store);
+        final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
             throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
@@ -122,7 +122,7 @@ public class InteractiveQueriesService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 List<StateStoreRecord> stateStoreRecordResponse = requestAllOtherInstance(metadata.hostInfo(),
-                    "/store/key-value/" + store + "?includeKey=true&includeMetadata=true");
+                    "/store/key-value/" + store);
                 results.addAll(stateStoreRecordResponse);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
@@ -145,22 +145,10 @@ public class InteractiveQueriesService {
                             ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
 
                             partitionsResult.add(
-                                new StateStoreRecord(
-                                    kv.key,
-                                    valueAndTimestamp.value(),
-                                    valueAndTimestamp.timestamp(),
-                                    new StateStoreHostInfo(metadata.hostInfo().host(), metadata.hostInfo().port())
-                                )
+                                new StateStoreRecord(kv.key, valueAndTimestamp.value(), valueAndTimestamp.timestamp())
                             );
                         } else {
-                            partitionsResult.add(
-                                new StateStoreRecord(
-                                    kv.key,
-                                    kv.value,
-                                    null,
-                                    new StateStoreHostInfo(metadata.hostInfo().host(), metadata.hostInfo().port())
-                                )
-                            );
+                            partitionsResult.add(new StateStoreRecord(kv.key, kv.value));
                         }
                     }));
 
@@ -191,11 +179,7 @@ public class InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return requestOtherInstance(host, "/store/key-value/"
-                + store
-                + "/"
-                + key
-                + "?includeKey=true&includeMetadata=true");
+            return requestOtherInstance(host, "/store/key-value/" + store + "/" + key);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
@@ -217,20 +201,10 @@ public class InteractiveQueriesService {
             ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) result.getOnlyPartitionResult()
                 .getResult();
 
-            return new StateStoreRecord(
-                key,
-                valueAndTimestamp.value(),
-                valueAndTimestamp.timestamp(),
-                new StateStoreHostInfo(host.host(), host.port())
-            );
+            return new StateStoreRecord(key, valueAndTimestamp.value(), valueAndTimestamp.timestamp());
         }
 
-        return new StateStoreRecord(
-            key,
-            result.getOnlyPartitionResult().getResult(),
-            null,
-            new StateStoreHostInfo(host.host(), host.port())
-        );
+        return new StateStoreRecord(key, result.getOnlyPartitionResult().getResult());
     }
 
     /**
