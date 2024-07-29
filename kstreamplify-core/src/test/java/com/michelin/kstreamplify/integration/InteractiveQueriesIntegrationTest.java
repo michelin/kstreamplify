@@ -50,6 +50,8 @@ import org.apache.kafka.streams.state.WindowStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
@@ -149,17 +151,22 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             "INPUT_TOPIC-1"), streamsMetadata.get(0).getTopicPartitions());
     }
 
-    @Test
-    void shouldGetByKeyWrongStore() throws IOException, InterruptedException {
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8081/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8081/store/key-value/WRONG_STORE,State store WRONG_STORE not found",
+    })
+    void shouldGetErrorWhenWrongKeyOrStore(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/person"))
+            .uri(URI.create(url))
             .GET()
             .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(404, response.statusCode());
-        assertEquals("State store WRONG_STORE not found", response.body());
+        assertEquals(message, response.body());
     }
 
     @Test

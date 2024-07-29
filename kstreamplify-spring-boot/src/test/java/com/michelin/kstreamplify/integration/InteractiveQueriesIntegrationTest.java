@@ -48,6 +48,8 @@ import org.apache.kafka.streams.state.WindowStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -140,22 +142,18 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             "INPUT_TOPIC-1"), streamsMetadata.getBody().get(0).getTopicPartitions());
     }
 
-    @Test
-    void shouldGetByKeyWrongStore() {
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8085/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8085/store/key-value/STRING_STRING_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8085/store/key-value/WRONG_STORE,State store WRONG_STORE not found",
+    })
+    void shouldGetErrorWhenWrongKeyOrStore(String url, String message) {
         ResponseEntity<String> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE/person", String.class);
+            .getForEntity(url, String.class);
 
         assertEquals(404, response.getStatusCode().value());
-        assertEquals("State store WRONG_STORE not found", response.getBody());
-    }
-
-    @Test
-    void shouldGetByKeyWrongKey() {
-        ResponseEntity<String> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_STORE/wrongKey", String.class);
-
-        assertEquals(404, response.getStatusCode().value());
-        assertEquals("Key wrongKey not found", response.getBody());
+        assertEquals(message, response.getBody());
     }
 
     @Test
@@ -222,15 +220,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((HashMap<?, ?>) response.getBody().getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().getValue()).get("birthDate"));
         assertNotNull(response.getBody().getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllWrongStore() {
-        ResponseEntity<String> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/WRONG_STORE", String.class);
-
-        assertEquals(404, response.getStatusCode().value());
-        assertEquals("State store WRONG_STORE not found", response.getBody());
     }
 
     @Test
