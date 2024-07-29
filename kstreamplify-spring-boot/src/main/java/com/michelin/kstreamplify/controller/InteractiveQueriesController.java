@@ -48,7 +48,7 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The hosts
      */
-    @GetMapping(value = "/{store}/metadata")
+    @GetMapping(value = "/metadata/{store}")
     public ResponseEntity<List<StreamsMetadata>> getStreamsMetadataForStore(@PathVariable("store") final String store) {
         return ResponseEntity
             .ok()
@@ -64,12 +64,12 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get all the values from the store.
+     * Get all records from the store.
      *
      * @param store The store
      * @return The values
      */
-    @GetMapping(value = "/key-value/{store}")
+    @GetMapping(value = "/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
@@ -78,13 +78,13 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get the key-value by key from the store.
+     * Get the record by key from the store.
      *
      * @param store The store
      * @param key The key
      * @return The value
      */
-    @GetMapping("/key-value/{store}/{key}")
+    @GetMapping("/{store}/{key}")
     public ResponseEntity<StateStoreRecord> getByKey(@PathVariable("store") String store,
                                                      @PathVariable("key") String key) {
         return ResponseEntity

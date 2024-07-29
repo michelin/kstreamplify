@@ -9,6 +9,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +60,9 @@ abstract class KafkaIntegrationTest {
             () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
     }
 
-    protected static void createTopics(String bootstrapServers, String... topics) {
-        var newTopics = Arrays.stream(topics)
-            .map(topic -> new NewTopic(topic, 2, (short) 1))
+    protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
+        var newTopics = Arrays.stream(topicPartitions)
+            .map(topicPartition -> new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1))
             .toList();
         try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);

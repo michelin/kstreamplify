@@ -30,8 +30,11 @@ import org.testcontainers.utility.DockerImageName;
 class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @BeforeAll
     static void globalSetUp() {
-        createTopics(broker.getBootstrapServers(),
-            "INPUT_TOPIC", "OUTPUT_TOPIC");
+        createTopics(
+            broker.getBootstrapServers(),
+            new TopicPartition("INPUT_TOPIC", 2),
+            new TopicPartition("OUTPUT_TOPIC", 2)
+        );
 
         initializer = new KafkaStreamInitializerStub(broker.getBootstrapServers());
         initializer.init(new KafkaStreamsStarterStub());

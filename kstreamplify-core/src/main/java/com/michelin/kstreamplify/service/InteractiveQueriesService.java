@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -121,9 +120,8 @@ public class InteractiveQueriesService {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                List<StateStoreRecord> stateStoreRecordResponse = requestAllOtherInstance(metadata.hostInfo(),
-                    "/store/key-value/" + store);
-                results.addAll(stateStoreRecordResponse);
+                List<StateStoreRecord> response = getAllOnOtherHost(metadata.hostInfo(), "store/" + store);
+                results.addAll(response);
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
@@ -132,11 +130,7 @@ public class InteractiveQueriesService {
                     .getKafkaStreams()
                     .query(StateQueryRequest
                         .inStore(store)
-                        .withQuery(rangeQuery)
-                        .withPartitions(metadata.topicPartitions()
-                            .stream()
-                            .map(TopicPartition::partition)
-                            .collect(Collectors.toSet())));
+                        .withQuery(rangeQuery));
 
                 List<StateStoreRecord> partitionsResult = new ArrayList<>();
                 result.getPartitionResults().forEach((key, queryResult) ->
@@ -145,7 +139,11 @@ public class InteractiveQueriesService {
                             ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
 
                             partitionsResult.add(
-                                new StateStoreRecord(kv.key, valueAndTimestamp.value(), valueAndTimestamp.timestamp())
+                                new StateStoreRecord(
+                                    kv.key,
+                                    valueAndTimestamp.value(),
+                                    valueAndTimestamp.timestamp()
+                                )
                             );
                         } else {
                             partitionsResult.add(new StateStoreRecord(kv.key, kv.value));
@@ -179,7 +177,7 @@ public class InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return requestOtherInstance(host, "/store/key-value/" + store + "/" + key);
+            return getByKeyOnOtherHost(host, "store/" + store + "/" + key);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
@@ -229,7 +227,7 @@ public class InteractiveQueriesService {
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    private List<StateStoreRecord> requestAllOtherInstance(HostInfo host, String endpointPath) {
+    private List<StateStoreRecord> getAllOnOtherHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
@@ -248,7 +246,7 @@ public class InteractiveQueriesService {
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    private StateStoreRecord requestOtherInstance(HostInfo host, String endpointPath) {
+    private StateStoreRecord getByKeyOnOtherHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, StateStoreRecord.class);

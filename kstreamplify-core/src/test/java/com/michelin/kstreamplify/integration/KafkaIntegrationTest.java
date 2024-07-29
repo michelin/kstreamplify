@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.testcontainers.containers.GenericContainer;
@@ -49,9 +50,9 @@ abstract class KafkaIntegrationTest {
         .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
         .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
-    protected static void createTopics(String bootstrapServers, String... topics) {
-        var newTopics = Arrays.stream(topics)
-            .map(topic -> new NewTopic(topic, 2, (short) 1))
+    protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
+        var newTopics = Arrays.stream(topicPartitions)
+            .map(topicPartition -> new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1))
             .toList();
         try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);

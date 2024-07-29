@@ -41,8 +41,11 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
 
     @BeforeAll
     static void globalSetUp() {
-        createTopics(broker.getBootstrapServers(),
-            "INPUT_TOPIC", "OUTPUT_TOPIC");
+        createTopics(
+            broker.getBootstrapServers(),
+            new TopicPartition("INPUT_TOPIC", 2),
+            new TopicPartition("OUTPUT_TOPIC", 2)
+        );
     }
 
     @BeforeEach
