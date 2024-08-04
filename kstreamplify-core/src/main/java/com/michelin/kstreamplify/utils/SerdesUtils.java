@@ -6,7 +6,10 @@ import org.apache.avro.specific.SpecificRecord;
 
 /**
  * The Serdes utils class.
+ *
+ * @deprecated Use {@link com.michelin.kstreamplify.serde.SerdesUtils}.
  */
+@Deprecated(forRemoval = true, since = "1.1.0")
 public final class SerdesUtils {
     private SerdesUtils() {
     }

@@ -39,7 +39,7 @@ an Issue to discuss your proposal first. This is not required but can save time 
 
 In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
 
-- Fork the repository to your own Github account
+- Fork the repository to your own GitHub account
 - Clone the project to your machine
 - Create a branch locally from master with a succinct but descriptive name
 - Commit changes to the branch

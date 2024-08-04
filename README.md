@@ -23,45 +23,56 @@ need to do:
 
 ## Table of Contents
 
-* [Features](#features)
+* [Overview](#overview)
 * [Dependencies](#dependencies)
     * [Java](#java)
     * [Spring Boot](#spring-boot)
     * [Unit Test](#unit-test)
-* [Getting Started](#getting-started)
+* [Features](#features)
+  * [Bootstrapping](#bootstrapping)
+    * [Create your first Kstreamplify application](#create-your-first-kstreamplify-application) 
     * [Properties Injection](#properties-injection)
-    * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
-    * [Error Handling](#error-handling)
-        * [Topology](#topology)
-        * [Production and Deserialization](#production-and-deserialization)
-        * [Avro Schema](#avro-schema)
-        * [Uncaught Exception Handler](#uncaught-exception-handler)
-    * [REST Endpoints](#rest-endpoints)
-    * [Hooks](#hooks)
-        * [On Start](#on-start)
-    * [Deduplication](#deduplication)
-        * [By Key](#by-key)
-        * [By Key and Value](#by-key-and-value)
-        * [By Predicate](#by-predicate)
-    * [Interactive Queries](#interactive-queries)
-    * [Open Telemetry](#open-telemetry)
-    * [Testing](#testing)
+  * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
+  * [Error Handling](#error-handling)
+    * [Topology](#topology)
+    * [Production and Deserialization](#production-and-deserialization)
+    * [Avro Schema](#avro-schema)
+    * [Uncaught Exception Handler](#uncaught-exception-handler)
+  * [Kubernetes](#kubernetes)
+  * [Hooks](#hooks)
+    * [On Start](#on-start)
+  * [Interactive Queries](#interactive-queries)
+    * [Application Server Configuration](#application-server-configuration)
+    * [Web Services](#web-services)
+    * [Service](#service)
+  * [Topology](#topology-2)
+  * [Deduplication](#deduplication)
+    * [By Key](#by-key)
+    * [By Key and Value](#by-key-and-value)
+    * [By Predicate](#by-predicate)
+  * [Open Telemetry](#open-telemetry)
+  * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
-## Features
+## Overview
 
-- **Easy bootstrapping**: Kafka Streams application bootstrapping is handled for you, allowing you to focus on topology
-  implementation.
+Wondering what makes Kstreamplify stand out? Here are some of the key features that make it a must-have for Kafka Streams:
 
-- **Avro Schema Serializer and Deserializer**: Common serializers and deserializers for all your Avro specific records.
+- **🚀 Bootstrapping**: Automatic startup, configuration, and initialization of Kafka Streams is handled for you. Focus on
+business implementation rather than the setup.
 
-- **Error Handling**: A strong error handling mechanism is provided for topology, production, and deserialization
-  errors, and it also allows routing them into a dead letter queue (DLQ) topic.
+- **📝 Avro Serializer and Deserializer**: Common serializers and deserializers for Avro.
 
-- **REST endpoints**: Some useful REST endpoints, including Kubernetes liveness and readiness probes.
+- **⛑️ Error Handling**: Catch and route errors to a dead-letter queue (DLQ) topic
 
-- **Testing**: The library eases the use of Topology Test Driver, making it easier to write your tests.
+- **☸️ Kubernetes**: Accurate readiness and liveness probes for Kubernetes deployment.
+
+- **🤿 Interactive Queries**: Dive into Kafka Streams state stores.
+
+- **🫧 Deduplication**: Remove duplicate events from a stream.
+
+- **🧪 Testing**: Automatic Topology Test Driver setup. Start writing your tests with minimal effort.
 
 ## Dependencies
 
@@ -85,7 +96,7 @@ To include the core Kstreamplify library in your project, add the following depe
 
 [![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-spring-boot/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-spring-boot)
 
-If you're using Spring Boot, you can integrate Kstreamplify with your Spring Boot application by adding the following
+If you are using Spring Boot, you can integrate Kstreamplify with your Spring Boot application by adding the following
 dependency:
 
 ```xml
@@ -113,12 +124,19 @@ For both Java and Spring Boot dependencies, a testing dependency is available to
 </dependency>
 ```
 
-## Getting Started
+## Features
 
-To begin using Kstreamplify, you simply need to set up a `KafkaStreamsStarter` bean within you Spring Boot context,
-overriding the `topology` method.
+Kstreamplify offers a wide range of features to simplify the development of Kafka Streams applications.
 
-For instance, you can start by creating a class annotated with `@Component`:
+### Bootstrapping
+
+Kstreamplify simplifies the bootstrapping of Kafka Streams applications by handling the startup, configuration, and
+initialization of Kafka Streams for you.
+
+#### Create your first Kstreamplify application
+
+To create a Kstreamplify application, define a `KafkaStreamsStarter` bean within your Spring Boot context and
+override the `KafkaStreamsStarter#topology()` method:
 
 ```java
 @Component
@@ -130,31 +148,12 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 }
 ```
 
-Alternatively, you can annotate a method that returns a `KafkaStreamsStarter` with `@Bean`:
-
-```java
-@Bean
-public KafkaStreamsStarter kafkaStreamsStarter() {
-    return new KafkaStreamsStarter() {
-        @Override
-        public void topology(StreamsBuilder streamsBuilder) {
-            // Your topology
-        }
-
-        @Override
-        public String dlqTopic() {
-            return "dlqTopic";
-        }
-    };
-}
-```
-
-### Properties Injection
+#### Properties Injection
 
 You can define all your Kafka Streams properties directly from the `application.yml` file as follows:
 
@@ -171,20 +170,20 @@ kafka:
     avro.remove.java.properties: true
 ```
 
-Note that all the properties have been moved under `kafka.properties`.
+Note that all the Kafka Streams properties have been moved under `kafka.properties`.
 
 ### Avro Serializer and Deserializer
 
-Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdesUtils` class as follows:
+Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdeUtils` class as follows:
 
 ```java
-SerdesUtils.<MyAvroValue>getSerdesForValue()
+SerdeUtils.<MyAvroValue>getValueSerde()
 ```
 
 or
 
 ```java
-SerdesUtils.<MyAvroValue>getSerdesForKey()
+SerdeUtils.<MyAvroValue>getKeySerde()
 ```
 
 Here is an example of using these methods in your topology:
@@ -195,42 +194,40 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getSerdesForValue()))
-            .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getSerdesForValue()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()));
     }
 }
 ```
 
 ### Error Handling
 
-The library provides the ability to handle errors that may occur in your topology as well as during the production or
+Kstreamplify provides the ability to handle errors that may occur in your topology as well as during the production or
 deserialization of records and route them to a dead-letter queue (DLQ) topic.
 
-To do this, the first step is to override the `dlqTopic` method and return the name of your DLQ topic:
+To do it, start by overriding the `dlqTopic` method and return the name of your DLQ topic:
 
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
-    public void topology(StreamsBuilder streamsBuilder) { }
+    public void topology(StreamsBuilder streamsBuilder) {
+    }
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 }
 ```
 
 #### Topology
 
-Kstreamplify provides utilities to handle all the unexpected errors that can occur in your topologies and route them to
-a dead-letter queue (DLQ) topic automatically.
+Kstreamplify provides utilities to handle errors that occur in your topology and route them to a DLQ topic
+automatically.
 
-The principle is simple: whenever you perform transformations on stream values, you can encapsulate the result as either
-success or failure. Failed records will be routed to your DLQ topic, while successful records will still be up for
-further processing.
-
-Here is a complete example of how to do this:
+The processing result is encapsulated and marked as either success or failure.
+Failed records will be routed to the DLQ topic, while successful records will still be up for further processing.
 
 ```java
 @Component
@@ -238,16 +235,16 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = streamsBuilder
-                .stream("inputTopic", Consumed.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.getValueSerde()));
 
         TopologyErrorHandler
-                .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
-                .to("outputTopic", Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+            .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.getValueSerde()));
     }
 
     @Override
     public String dlqTopic() {
-        return "dlqTopic";
+        return "DLQ_TOPIC";
     }
 
     private static ProcessingResult<KafkaPerson, KafkaPerson> toUpperCase(KafkaPerson value) {
@@ -261,49 +258,36 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-The first step is during the map values processing. The operation should return a new value of
-type `ProcessingResult<V, V2>`.
-- The first templatized parameter is the type of the new value after a successful transformation.
-- The second templatized parameter is the type of the current value for which the transformation failed.
+The map values processing returns a `ProcessingResult<V, V2>`, where:
+
+- The first parameter is the type of the new value after a successful transformation.
+- The second parameter is the type of the current value for which the transformation failed.
 
 You can use the following to mark the result as successful:
 
 ```java
-return ProcessingResult.success(value);
+ProcessingResult.success(value);
 ```
 
 Or the following in a catch clause to mark the result as failed:
 
 ```java
-return ProcessingResult.fail(e, value, "Something bad happened...");
+ProcessingResult.fail(e, value, "Something bad happened...");
 ```
 
-The `ProcessingResult.fail()` method takes the exception, the record that failed and a custom error message.
-
-The second step is sending the new stream of `ProcessingResult<V, V2>` to the `TopologyErrorHandler.catchErrors()`
-method, which will split the
-stream into two branches:
-
-- The first branch will contain the `ProcessingError` and will be routed to the DLQ topic as a `KafkaError` Avro objects
-  that contains
-  multiple useful information such as the topic, the partition, the offsets, the exception, and the custom error message
-  of the failed record.
-- The second branch will only contain the successful records and will be returned to continue the processing.
+The stream of `ProcessingResult<V,V2>` needs to be lightened of the failed records by sending them to the DLQ topic.
+This is done by invoking the `TopologyErrorHandler#catchErrors()` method.
+A healthy stream is then returned and can be further processed.
 
 #### Production and Deserialization
 
-The library provides handlers for production and deserialization errors, which can be used to route these errors to the
-configured DLQ topic.
-
-Here's how to use them:
+Kstreamplify provides production and deserialization handlers that send errors to the DLQ topic.
 
 ```yml
 kafka:
   properties:
-    ...
     default.production.exception.handler: com.michelin.kstreamplify.error.DlqProductionExceptionHandler
     default.deserialization.exception.handler: com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler
-    ...
 ```
 
 #### Avro Schema
@@ -313,40 +297,43 @@ available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify
 
 #### Uncaught Exception Handler
 
-You may bring your own uncaught exception handler if you choose to do so. This provides an ability to
-override the default behavior - for instance, there might be a special requirement to treat and handle certain
-exception types differently.
+Kstreamplify defines a default uncaught exception handler that catches all uncaught exceptions and shuts down the client.
 
-To do this, simply override the `uncaughtExceptionHandler` method and return your own custom uncaught
-exception handler that implements the standard `StreamsUncaughtExceptionHandler` interface.
+If you want to override this behavior, you can override the `KafkaStreamsStarter#uncaughtExceptionHandler()` method and return your own 
+uncaught exception handler.
 
 ```java
 @Override
 public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
     return throwable -> {
-        // Do something when an uncaught exception occurs
-        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
+        return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;
     };
 }
 ```
 
-### REST endpoints
+### Kubernetes
 
-The Kstreamplify library provides several REST endpoints, which are listed below:
+Kstreamplify provides readiness and liveness probes for Kubernetes deployment based on the Kafka Streams state.
 
-- `GET /ready`: This endpoint is used as a readiness probe for Kubernetes deployment.
-- `GET /liveness`: This endpoint is used as a liveness probe for Kubernetes deployment.
-- `GET /topology`: This endpoint returns the Kafka Streams topology as JSON.
+By default, the endpoints are available at `/ready` and `/liveness`.
+
+The path can be customized by setting the following properties:
+
+```yml
+kubernetes:
+  readiness:
+    path: custom-readiness
+  liveness:
+    path: custom-liveness
+```
 
 ### Hooks
 
-Kstreamplify offers the flexibility to execute custom code through hooks. These hooks can be defined by overriding
-specific methods.
+Kstreamplify offers the flexibility to execute custom code through hooks.
 
 #### On Start
 
-The `On Start` hook allows you to execute code right after the Kafka Streams instantiation. It provides the Kafka
-Streams instance as a parameter.
+The `On Start` hook allows you to execute code before starting the Kafka Streams instance.
 
 ```java
 @Component
@@ -358,35 +345,83 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-You can use this hook to perform any custom initialization or setup tasks for your Kafka Streams application.
+### Interactive Queries
+
+Kstreamplify wants to ease the use of [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) in Kafka Streams application.
+
+#### Application Server Configuration
+
+The "[application.server](https://docs.confluent.io/platform/current/streams/developer-guide/config-streams.html#application-server)" property value is determined from different sources by the following order of priority:
+
+1. The value of an environment variable whose name is defined by the `application.server.var.name` property.
+
+```yml
+kafka:
+  properties:
+    application.server.var.name: MY_APPLICATION_SERVER
+```
+
+2. The value of a default environment variable named `APPLICATION_SERVER`.
+3. `localhost`.
+
+#### Web Services
+
+Kstreamplify provides web services to query the state stores of your Kafka Streams application.
+It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
+
+Here is the list of supported state store types:
+- Key-Value
+
+Only state stores with String keys are supported.
+
+#### Service
+
+You can leverage the interactive queries service used by the web services layer to serve your own needs.
+
+```java
+@Component
+public class MyService {
+    @Autowired
+    InteractiveQueriesService interactiveQueriesService;
+}
+```
+
+<h3 id="topology-2">Topology</h4>
+
+Kstreamplify provides a web service to retrieve the Kafka Streams topology as JSON.
+
+By default, the endpoint is available at `/topology`.
+
+The path can be customized by setting the following properties:
+
+```yml
+topology:
+  path: custom-topology
+```
 
 ### Deduplication
 
-Kstreamplify facilitates deduplication of a stream based on various criteria using window stores within a specified time
-frame.
+Kstreamplify facilitates deduplication of a stream through the `DeduplicationUtils` class, based on various criteria
+and within a specified time frame.
 
-The `DeduplicationUtils` class provides three deduplication implementations. Each deduplication method takes a duration
-parameter that specifies how long a record will be kept in the window store for deduplication.
-
-All deduplication methods return a `KStream<String>, ProcessingResult<V, V2>`. You may want to direct the result to
-the `TopologyErrorHandler.catchErrors()` method.
+All deduplication methods return a `KStream<String, ProcessingResult<V,V2>` so you can redirect the result to the
+`TopologyErrorHandler#catchErrors()`.
 
 **Note**: Only streams with String keys and Avro values are supported.
 
 #### By Key
 
 ```java
-
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateKeys(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
@@ -394,17 +429,16 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 #### By Key and Value
 
 ```java
-
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
@@ -412,95 +446,57 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 #### By Predicate
 
 ```java
-
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> myStream = streamsBuilder
-            .stream("inputTopic");
+            .stream("INPUT_TOPIC");
 
         DeduplicationUtils
             .deduplicateWithPredicate(streamsBuilder, myStream, Duration.ofDays(60),
                 value -> value.getFirstName() + "#" + value.getLastName())
-            .to("outputTopicDeduplicated");
+            .to("OUTPUT_TOPIC");
     }
 }
 ```
 
 The given predicate will be used as a key in the window store. The stream will be deduplicated based on the predicate.
 
-### Interactive Queries
-
-Kstreamplify is designed to make your Kafka Streams instance ready
-for [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html),
-including support for RPC (Remote Procedure Call).
-
-The `application.server` property, which should contain the host:port information, is automatically handled by
-Kstreamplify.
-The property can be loaded in three different ways.
-By order of priority:
-
-- an environment variable whose name is defined by the `ip.env.var.name` property.
-
-```yml
-kafka:
-  properties:
-    ip.env.var.name: MY_APPLICATION_PORT_HOST
-```
-
-Where `MY_APPLICATION_PORT_HOST` contains the host:port information.
-
-- an environment variable named `MY_POD_IP`. This is particularly useful when loading host:port information from
-  Kubernetes.
-
-Here's an extract of a Kubernetes deployment which set the `MY_POD_IP` environment variable in a Kubernetes environment:
-
-```yml
-...
-containers:
-  env:
-    - name: MY_POD_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.podIP
-...
-```
-
-- If neither the variable environment nor the `MY_POD_IP` environment variable is set, Kstreamplify
-  sets `application.server` to the default value `localhost`.
-
 ### Open Telemetry
 
-The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) into your Kafka Streams application 
-by binding all the metrics of the Kafka Streams instance to the Spring Boot registry which is used by the Open Telemetry Java agent.
+The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) 
+and its Java agent in Kafka Streams applications by binding all Kafka Streams metrics to the Spring Boot registry.
 
 You can run your application with the Open Telemetry Java agent by including the following JVM options:
 
-```shell
+```console
 -javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
 ```
 
-It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in your Grafana dashboard.
+It also facilitates the addition of custom tags to the metrics, allowing you to use them to organize your metrics in
+your Grafana dashboard.
 
-```shell
--Dotel.resource.attributes=environment=production,service.name=myNamespace,service.name=myKafkaStreams,category=orders
+```console
+-Dotel.resource.attributes=environment=production,service.namespace=myNamespace,service.name=myKafkaStreams,category=orders
 ```
 
-All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in the logs 
-during the application startup.
+All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in
+the logs during the application startup.
 
 ### Testing
 
-For testing, you can create a test class that extends `KafkaStreamsStarterTest` and override the `getKafkaStreamsStarter` method to return your `KafkaStreamsStarter` class.
+Kstreamplify eases the use of the Topology Test Driver for testing Kafka Streams application.
 
-Here is an example:
+You can create a test class that extends `KafkaStreamsStarterTest`, override
+the `KafkaStreamsStarterTest#getKafkaStreamsStarter()` to provide your `KafkaStreamsStarter` implementation, 
+and start writing your tests.
 
 ```java
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     private TestInputTopic<String, KafkaPerson> inputTopic;
     private TestOutputTopic<String, KafkaPerson> outputTopic;
-    
+
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
         return new MyKafkaStreams();
@@ -508,11 +504,11 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
 
     @BeforeEach
     void setUp() {
-        inputTopic = testDriver.createInputTopic("inputTopic", new StringSerializer(),
-            SerdesUtils.<KafkaPerson>getSerdesForValue().serializer());
+        inputTopic = testDriver.createInputTopic("INPUT_TOPIC", new StringSerializer(),
+            SerdeUtils.<KafkaPerson>getValueSerde().serializer());
 
-        outputTopic = testDriver.createOutputTopic("outputTopic", new StringDeserializer(),
-            SerdesUtils.<KafkaPerson>getSerdesForValue().deserializer());
+        outputTopic = testDriver.createOutputTopic("OUTPUT_TOPIC", new StringDeserializer(),
+            SerdeUtils.<KafkaPerson>getValueSerde().deserializer());
     }
 
     @Test

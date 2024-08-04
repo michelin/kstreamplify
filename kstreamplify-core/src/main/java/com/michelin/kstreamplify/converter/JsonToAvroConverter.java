@@ -1,9 +1,12 @@
 package com.michelin.kstreamplify.converter;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.ToNumberPolicy;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -32,6 +35,25 @@ import org.apache.avro.specific.SpecificRecordBase;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonToAvroConverter {
+    private static final Gson gson = new GsonBuilder()
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+        .setPrettyPrinting()
+        .create();
+
+    /**
+     * Convert a json string to an object.
+     *
+     * @param json the json string
+     * @return the object
+     */
+    public static Object jsonToObject(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        return gson.fromJson(json, Object.class);
+    }
+
     /**
      * Convert a file in json to avro.
      *
@@ -52,9 +74,8 @@ public class JsonToAvroConverter {
      */
     public static SpecificRecordBase jsonToAvro(JsonObject jsonEvent, Schema schema) {
         try {
-            SpecificRecordBase message =
-                    baseClass(schema.getNamespace(), schema.getName()).getDeclaredConstructor()
-                            .newInstance();
+            SpecificRecordBase message = baseClass(schema.getNamespace(), schema.getName()).getDeclaredConstructor()
+                .newInstance();
             populateGenericRecordFromJson(jsonEvent, message);
             return message;
         } catch (Exception e) {
@@ -204,6 +225,7 @@ public class JsonToAvroConverter {
      * @param fieldName  the name to populate
      * @param result     the avro record populated
      */
+    @SuppressWarnings("unchecked")
     private static void populateFieldInRecordWithCorrespondingType(JsonObject jsonObject,
                                                                    String fieldName,
                                                                    GenericRecord result) {

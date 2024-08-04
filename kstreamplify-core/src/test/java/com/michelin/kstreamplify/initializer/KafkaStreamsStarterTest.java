@@ -10,8 +10,8 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.deduplication.DeduplicationUtils;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
-import com.michelin.kstreamplify.utils.SerdesUtils;
-import com.michelin.kstreamplify.utils.TopicWithSerde;
+import com.michelin.kstreamplify.serde.SerdesUtils;
+import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import java.io.IOException;
 import java.time.Duration;
@@ -27,7 +27,6 @@ import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.Test;
 
 class KafkaStreamsStarterTest {
-
     @Test
     void shouldInstantiateKafkaStreamsStarter() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
@@ -35,11 +34,11 @@ class KafkaStreamsStarterTest {
             Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
-        KafkaStreamsStarterImpl starter = new KafkaStreamsStarterImpl();
+        KafkaStreamsStarterStub starter = new KafkaStreamsStarterStub();
         starter.topology(builder);
 
         assertNotNull(builder.build().describe());
-        assertEquals("dlqTopicUnitTests", starter.dlqTopic());
+        assertEquals("DLQ_TOPIC", starter.dlqTopic());
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
@@ -49,17 +48,17 @@ class KafkaStreamsStarterTest {
     void shouldStartWithCustomUncaughtExceptionHandler() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
         KafkaStreamsExecutionContext.setSerdesConfig(
-                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+            Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
-        KafkaStreamsStarterImpl starter = new KafkaStreamsStarterImpl();
+        KafkaStreamsStarterStub starter = new KafkaStreamsStarterStub();
         starter.topology(builder);
 
         assertNotNull(builder.build().describe());
-        assertEquals("dlqTopicUnitTests", starter.dlqTopic());
+        assertEquals("DLQ_TOPIC", starter.dlqTopic());
         assertEquals(starter.uncaughtExceptionHandler()
-                        .handle(new Exception("Register a custom uncaught exception handler test.")),
-                REPLACE_THREAD);
+                .handle(new Exception("Register a custom uncaught exception handler test.")),
+            REPLACE_THREAD);
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
@@ -69,32 +68,29 @@ class KafkaStreamsStarterTest {
      * Kafka Streams Starter implementation used for unit tests purpose.
      */
     @Getter
-    static class KafkaStreamsStarterImpl extends KafkaStreamsStarter {
+    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         private boolean started;
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
-            var streams = TopicWithSerdesTestHelper.inputTopicWithSerdes().stream(streamsBuilder);
+            var streams = TopicWithSerdeStub.inputTopicWithSerde().stream(streamsBuilder);
 
             DeduplicationUtils.deduplicateKeys(streamsBuilder, streams,
-                "deduplicateKeysStoreName", "deduplicateKeysRepartitionName",
-                Duration.ZERO);
+                "deduplicateKeysStoreName", "deduplicateKeysRepartitionName", Duration.ZERO);
             DeduplicationUtils.deduplicateKeyValues(streamsBuilder, streams,
-                "deduplicateKeyValuesStoreName",
-                "deduplicateKeyValuesRepartitionName", Duration.ZERO);
+                "deduplicateKeyValuesStoreName", "deduplicateKeyValuesRepartitionName", Duration.ZERO);
             DeduplicationUtils.deduplicateWithPredicate(streamsBuilder, streams, Duration.ofMillis(1), null);
 
-            var enrichedStreams = streams.mapValues(KafkaStreamsStarterImpl::enrichValue);
-            var enrichedStreams2 = streams.mapValues(KafkaStreamsStarterImpl::enrichValue2);
+            var enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
+            var enrichedStreams2 = streams.mapValues(KafkaStreamsStarterStub::enrichValue2);
             var processingResults = TopologyErrorHandler.catchErrors(enrichedStreams);
             TopologyErrorHandler.catchErrors(enrichedStreams2, true);
-            TopicWithSerdesTestHelper.outputTopicWithSerdes().produce(processingResults);
-
+            TopicWithSerdeStub.outputTopicWithSerde().produce(processingResults);
         }
 
         @Override
         public String dlqTopic() {
-            return "dlqTopicUnitTests";
+            return "DLQ_TOPIC";
         }
 
         @Override
@@ -104,13 +100,12 @@ class KafkaStreamsStarterTest {
 
         @Override
         public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
-            return new CustomUncaughtExceptionHandler();
+            return new UncaughtExceptionHandlerStub();
         }
 
         private static ProcessingResult<String, String> enrichValue(KafkaError input) {
             if (input != null) {
-                String output = "output field";
-                return ProcessingResult.success(output);
+                return ProcessingResult.success("output field");
             } else {
                 return ProcessingResult.fail(new IOException("an exception occurred"), "output error");
             }
@@ -118,8 +113,7 @@ class KafkaStreamsStarterTest {
 
         private static ProcessingResult<String, String> enrichValue2(KafkaError input) {
             if (input != null) {
-                String output = "output field 2";
-                return ProcessingResult.success(output);
+                return ProcessingResult.success("output field 2");
             } else {
                 return ProcessingResult.fail(new IOException("an exception occurred"), "output error 2");
             }
@@ -132,25 +126,24 @@ class KafkaStreamsStarterTest {
      * @param <K> The key type
      * @param <V> The value type
      */
-    public static class TopicWithSerdesTestHelper<K, V> extends TopicWithSerde<K, V> {
-        private TopicWithSerdesTestHelper(String name, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
+    static class TopicWithSerdeStub<K, V> extends TopicWithSerde<K, V> {
+        private TopicWithSerdeStub(String name, String appName, Serde<K> keySerde, Serde<V> valueSerde) {
             super(name, appName, keySerde, valueSerde);
         }
 
-        public static TopicWithSerdesTestHelper<String, String> outputTopicWithSerdes() {
-            return new TopicWithSerdesTestHelper<>("OUTPUT_TOPIC", "APP_NAME",
+        public static TopicWithSerdeStub<String, String> outputTopicWithSerde() {
+            return new TopicWithSerdeStub<>("OUTPUT_TOPIC", "APP_NAME",
                 Serdes.String(), Serdes.String());
         }
 
-        public static TopicWithSerdesTestHelper<String, KafkaError> inputTopicWithSerdes() {
-            return new TopicWithSerdesTestHelper<>("INPUT_TOPIC", "APP_NAME",
-                Serdes.String(), SerdesUtils.getSerdesForValue());
+        public static TopicWithSerdeStub<String, KafkaError> inputTopicWithSerde() {
+            return new TopicWithSerdeStub<>("INPUT_TOPIC", "APP_NAME",
+                Serdes.String(), SerdesUtils.getValueSerdes());
         }
     }
 
-
     @Slf4j
-    static class CustomUncaughtExceptionHandler implements StreamsUncaughtExceptionHandler {
+    static class UncaughtExceptionHandlerStub implements StreamsUncaughtExceptionHandler {
         @Override
         public StreamThreadExceptionResponse handle(final Throwable t) {
             log.error("!Custom uncaught exception handler test!");

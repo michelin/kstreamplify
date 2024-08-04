@@ -1,8 +1,8 @@
 package com.michelin.kstreamplify.initializer;
 
-import static com.michelin.kstreamplify.constants.InitializerConstants.SERVER_PORT_PROPERTY;
-import static com.michelin.kstreamplify.constants.PropertyConstants.KAFKA_PROPERTIES_PREFIX;
-import static com.michelin.kstreamplify.constants.PropertyConstants.PROPERTY_SEPARATOR;
+import static com.michelin.kstreamplify.initializer.KafkaStreamsInitializer.SERVER_PORT_PROPERTY_NAME;
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
+import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,7 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.properties.PropertiesUtils;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Properties;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
@@ -28,7 +28,7 @@ class KafkaStreamsInitializerTest {
     void shouldInitProperties() {
         try (MockedStatic<PropertiesUtils> propertiesUtilsMockedStatic = mockStatic(PropertiesUtils.class)) {
             Properties properties = new Properties();
-            properties.put(SERVER_PORT_PROPERTY, 8080);
+            properties.put(SERVER_PORT_PROPERTY_NAME, 8080);
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.APPLICATION_ID_CONFIG, "appId");
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "prefix.self", "abc.");
 
@@ -52,7 +52,7 @@ class KafkaStreamsInitializerTest {
     void shouldShutdownClientOnUncaughtException() {
         try (MockedStatic<PropertiesUtils> propertiesUtilsMockedStatic = mockStatic(PropertiesUtils.class)) {
             Properties properties = new Properties();
-            properties.put(SERVER_PORT_PROPERTY, 8080);
+            properties.put(SERVER_PORT_PROPERTY_NAME, 8080);
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.APPLICATION_ID_CONFIG, "appId");
 
             propertiesUtilsMockedStatic.when(PropertiesUtils::loadProperties)

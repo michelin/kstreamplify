@@ -6,8 +6,8 @@ import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.utils.SerdesUtils;
-import com.michelin.kstreamplify.utils.TopicWithSerde;
+import com.michelin.kstreamplify.serde.SerdesUtils;
+import com.michelin.kstreamplify.serde.TopicWithSerde;
 import java.util.List;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -55,15 +55,13 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
                 KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream =
                     streamsBuilder
-                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(),
-                            SerdesUtils.<KafkaError>getSerdesForValue()))
+                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getValueSerdes()))
                         .mapValues(value -> value == null
                             ? ProcessingResult.fail(new NullPointerException(), null) :
                             ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(avroStream)
-                    .to(OUTPUT_AVRO_TOPIC,
-                        Produced.with(Serdes.String(), SerdesUtils.getSerdesForValue()));
+                    .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
             }
         };
     }
@@ -73,16 +71,16 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(),
             new StringSerializer());
         avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(),
-            SerdesUtils.<KafkaError>getSerdesForValue().serializer());
+            SerdesUtils.<KafkaError>getValueSerdes().serializer());
 
         stringOutputTopic =
             testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(),
                 new StringDeserializer());
         avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(),
-            SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+            SerdesUtils.<KafkaError>getValueSerdes().deserializer());
 
         dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(),
-            SerdesUtils.<KafkaError>getSerdesForValue().deserializer());
+            SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
     @Test

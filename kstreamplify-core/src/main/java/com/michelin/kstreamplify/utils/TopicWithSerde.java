@@ -1,8 +1,8 @@
 package com.michelin.kstreamplify.utils;
 
+import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 
-import static com.michelin.kstreamplify.constants.PropertyConstants.SELF;
-
+import com.michelin.kstreamplify.topic.TopicUtils;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +22,9 @@ import org.apache.kafka.streams.state.KeyValueStore;
  *
  * @param <K> The model used as the key avro of the topic. Can be String (Recommended)
  * @param <V> The model used as the value avro of the topic.
+ * @deprecated Use {@link com.michelin.kstreamplify.serde.TopicWithSerde}.
  */
+@Deprecated(forRemoval = true, since = "1.1.0")
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class TopicWithSerde<K, V> {
     /**
@@ -98,7 +100,7 @@ public class TopicWithSerde<K, V> {
      */
     @Override
     public String toString() {
-        return TopicUtils.prefixAndDynamicRemap(topicName, prefixPropertyKey);
+        return TopicUtils.remapAndPrefix(topicName, prefixPropertyKey);
     }
 
     /**

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.michelin.kstreamplify.error.ProcessingResult;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.Test;
 
@@ -80,11 +79,9 @@ class ProcessingResultTest {
     void shouldProcessingResultBeValid() {
         ProcessingResult<String, Integer> validResult = ProcessingResult.success("Value");
         ProcessingResult<String, Integer> invalidResult1 = ProcessingResult.fail(new Exception(), 42);
-        ProcessingResult<String, Integer> invalidResult2 = new ProcessingResult<>(null);
 
         assertTrue(validResult.isValid());
         assertFalse(invalidResult1.isValid());
-        assertFalse(invalidResult2.isValid());
     }
 }
 

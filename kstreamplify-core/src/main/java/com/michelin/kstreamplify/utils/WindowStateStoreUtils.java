@@ -6,8 +6,11 @@ import org.apache.kafka.streams.state.WindowStore;
 
 /**
  * The window state store utils.
+ *
+ * @deprecated Use {@link com.michelin.kstreamplify.store.WindowStateStoreUtils}.
  */
-public final class WindowStateStoreUtils {
+@Deprecated(forRemoval = true, since = "1.1.0")
+public class WindowStateStoreUtils {
     private WindowStateStoreUtils() {
     }
 

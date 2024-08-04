@@ -26,6 +26,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.ToNumberPolicy;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,6 +36,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
@@ -42,16 +45,46 @@ import org.apache.avro.util.Utf8;
 /**
  * The class to convert Avro to Json.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AvroToJsonConverter {
-    private AvroToJsonConverter() {
+    private static final Gson gson = new GsonBuilder()
+        .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
+        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+        .registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+        .setPrettyPrinting()
+        .create();
+
+    /**
+     * Convert the value to JSON.
+     *
+     * @param value The value
+     * @return The JSON
+     */
+    public static String convertObject(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof GenericRecord genericRecord) {
+            return convertRecord(genericRecord);
+        }
+
+        return gson.toJson(value);
     }
 
-    private static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
-            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
-            .registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
-            .setPrettyPrinting()
-            .create();
+    /**
+     * Convert the values to JSON.
+     *
+     * @param values The values
+     * @return The JSON
+     */
+    public static String convertObject(List<Object> values) {
+        return values.stream()
+            .map(AvroToJsonConverter::convertObject)
+            .toList()
+            .toString();
+    }
 
     /**
      * Convert the record from avro format to json format.
@@ -75,21 +108,21 @@ public class AvroToJsonConverter {
         for (Field field : inputRecord.getSchema().getFields()) {
             Object recordValue = inputRecord.get(field.name());
 
-            if ((recordValue instanceof Utf8 || recordValue instanceof Instant)) {
+            if (recordValue instanceof Utf8 || recordValue instanceof Instant) {
                 recordValue = recordValue.toString();
             }
 
             if (recordValue instanceof List<?> recordValueAsList) {
                 recordValue = recordValueAsList
-                        .stream()
-                        .map(value -> {
-                            if (value instanceof GenericRecord genericRecord) {
-                                return recordAsMap(genericRecord);
-                            } else {
-                                return value.toString();
-                            }
-                        })
-                        .toList();
+                    .stream()
+                    .map(value -> {
+                        if (value instanceof GenericRecord genericRecord) {
+                            return recordAsMap(genericRecord);
+                        } else {
+                            return value.toString();
+                        }
+                    })
+                    .toList();
             }
 
             if (recordValue instanceof Map<?, ?> recordValueAsMap) {
@@ -133,12 +166,12 @@ public class AvroToJsonConverter {
     }
 
     private static class LocalDateTimeTypeAdapter implements JsonSerializer<LocalDateTime>,
-            JsonDeserializer<LocalDateTime> {
+        JsonDeserializer<LocalDateTime> {
 
         private static final DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
         private static final DateTimeFormatter formatterNano =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
 
         @Override
         public JsonElement serialize(LocalDateTime localDateTime, Type srcType,

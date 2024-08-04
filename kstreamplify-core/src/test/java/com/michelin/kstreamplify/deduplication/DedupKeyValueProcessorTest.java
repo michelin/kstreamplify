@@ -51,11 +51,7 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldProcessNewRecord() {
-
-        // Create a KafkaError
         final KafkaError kafkaError = new KafkaError();
-
-        // Create a test record
         final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0);
 
         processor.process(record);
@@ -67,11 +63,7 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldProcessDuplicate() {
-
-        // Create a KafkaError
         final KafkaError kafkaError = new KafkaError();
-
-        // Create a test record
         final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0L);
 
         // Simulate hasNext() returning true once and then false
@@ -92,22 +84,17 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldThrowException() {
-
-        // Create a KafkaError
-        final KafkaError kafkaError = new KafkaError();
-
-        // Create a test record
-        final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0L);
+        final Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
 
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(null)
-                .thenThrow(new RuntimeException("Exception..."));
+            .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
-        processor.process(record);
+        processor.process(message);
 
         verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
-                .equals("Couldn't figure out what to do with the current payload: "
-                        + "An unlikely error occurred during deduplication transform")));
+            .equals("Could not figure out what to do with the current payload: "
+                + "An unlikely error occurred during deduplication transform")));
     }
 }

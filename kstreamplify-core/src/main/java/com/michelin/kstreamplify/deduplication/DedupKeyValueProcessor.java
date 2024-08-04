@@ -34,7 +34,7 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
-     * Retention window for the statestore. Used for fetching data.
+     * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
 
@@ -79,7 +79,7 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
             processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Couldn't figure out what to do with the current payload: "
+                "Could not figure out what to do with the current payload: "
                     + "An unlikely error occurred during deduplication transform"));
         }
     }

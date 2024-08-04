@@ -1,4 +1,8 @@
-com.michelin.kstreamplify.initializer.SpringKafkaStreamsInitializer
-com.michelin.kstreamplify.rest.SpringProbeController
-com.michelin.kstreamplify.properties.KafkaProperties
+com.michelin.kstreamplify.initializer.SpringBootKafkaStreamsInitializer
+com.michelin.kstreamplify.controller.KubernetesController
+com.michelin.kstreamplify.controller.TopologyController
+com.michelin.kstreamplify.controller.InteractiveQueriesController
+com.michelin.kstreamplify.controller.ControllerExceptionHandler
+com.michelin.kstreamplify.property.KafkaProperties
 com.michelin.kstreamplify.opentelemetry.OpenTelemetryConfig
+com.michelin.kstreamplify.config.BeanConfig
