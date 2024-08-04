@@ -76,6 +76,19 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
+    void shouldGetAllOnLocalhost() {
+        when(interactiveQueriesService.getAllOnLocalhost("store"))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController.getAllOnLocalhost("store").getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
     void shouldGetByKey() {
         when(interactiveQueriesService.getByKey("store", "key"))
             .thenReturn(new StateStoreRecord("key1", "value1", 1L));

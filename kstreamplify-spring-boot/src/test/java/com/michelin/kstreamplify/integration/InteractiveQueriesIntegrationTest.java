@@ -300,6 +300,19 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(response.getBody().get(0).getTimestamp());
     }
 
+    @Test
+    void shouldGetAllOnLocalhostInStringStringKeyValueStore() {
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
+            .exchange("http://localhost:8085/store/local/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
+            });
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
+    }
+
     /**
      * Kafka Streams starter implementation for integration tests.
      * The topology consumes events from multiple topics and stores them in dedicated stores

@@ -107,7 +107,6 @@ public class InteractiveQueriesService {
      * @param store The store
      * @return The values
      */
-    @SuppressWarnings("unchecked")
     public List<StateStoreRecord> getAll(String store) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
@@ -120,41 +119,61 @@ public class InteractiveQueriesService {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                List<StateStoreRecord> response = getAllOnOtherHost(metadata.hostInfo(), "store/" + store);
-                results.addAll(response);
+                results.addAll(getAllOnOtherHost(metadata.hostInfo(), "store/local/" + store));
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                RangeQuery<String, Object> rangeQuery = RangeQuery.withNoBounds();
-                StateQueryResult<KeyValueIterator<String, Object>> result = kafkaStreamsInitializer
-                    .getKafkaStreams()
-                    .query(StateQueryRequest
-                        .inStore(store)
-                        .withQuery(rangeQuery));
-
-                List<StateStoreRecord> partitionsResult = new ArrayList<>();
-                result.getPartitionResults().forEach((key, queryResult) ->
-                    queryResult.getResult().forEachRemaining(kv -> {
-                        if (kv.value instanceof ValueAndTimestamp<?>) {
-                            ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
-
-                            partitionsResult.add(
-                                new StateStoreRecord(
-                                    kv.key,
-                                    valueAndTimestamp.value(),
-                                    valueAndTimestamp.timestamp()
-                                )
-                            );
-                        } else {
-                            partitionsResult.add(new StateStoreRecord(kv.key, kv.value));
-                        }
-                    }));
-
-                results.addAll(partitionsResult);
+                results.addAll(queryAllRecords(store));
             }
         });
 
         return results;
+    }
+
+    /**
+     * Get all values from the store on the local host.
+     *
+     * @param store The store
+     * @return The values
+     */
+    public List<StateStoreRecord> getAllOnLocalhost(String store) {
+        final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
+
+        if (streamsMetadata == null || streamsMetadata.isEmpty()) {
+            throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
+        }
+
+        return queryAllRecords(store);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<StateStoreRecord> queryAllRecords(String store) {
+        RangeQuery<String, Object> rangeQuery = RangeQuery.withNoBounds();
+        StateQueryResult<KeyValueIterator<String, Object>> result = kafkaStreamsInitializer
+            .getKafkaStreams()
+            .query(StateQueryRequest
+                .inStore(store)
+                .withQuery(rangeQuery));
+
+        List<StateStoreRecord> partitionsResult = new ArrayList<>();
+        result.getPartitionResults().forEach((key, queryResult) ->
+            queryResult.getResult().forEachRemaining(kv -> {
+                if (kv.value instanceof ValueAndTimestamp<?>) {
+                    ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
+
+                    partitionsResult.add(
+                        new StateStoreRecord(
+                            kv.key,
+                            valueAndTimestamp.value(),
+                            valueAndTimestamp.timestamp()
+                        )
+                    );
+                } else {
+                    partitionsResult.add(new StateStoreRecord(kv.key, kv.value));
+                }
+            }));
+
+        return new ArrayList<>(partitionsResult);
     }
 
     /**

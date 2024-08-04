@@ -360,6 +360,22 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(body.get(0).getTimestamp());
     }
 
+    @Test
+    void shouldGetAllOnLocalhostInStringStringKeyValueStore() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8081/store/local/STRING_STRING_STORE"))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.get(0).getKey());
+        assertEquals("Doe", body.get(0).getValue());
+        assertNull(body.get(0).getTimestamp());
+    }
+
     /**
      * Kafka Streams starter implementation for integration tests.
      * The topology consumes events from multiple topics (string, Java, Avro) and stores them in dedicated stores

@@ -78,6 +78,20 @@ public class InteractiveQueriesController {
     }
 
     /**
+     * Get all records from the store on the local host.
+     *
+     * @param store The store
+     * @return The values
+     */
+    @GetMapping(value = "/local/{store}")
+    public ResponseEntity<List<StateStoreRecord>> getAllOnLocalhost(@PathVariable("store") String store) {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(interactiveQueriesService.getAllOnLocalhost(store));
+    }
+
+    /**
      * Get the record by key from the store.
      *
      * @param store The store

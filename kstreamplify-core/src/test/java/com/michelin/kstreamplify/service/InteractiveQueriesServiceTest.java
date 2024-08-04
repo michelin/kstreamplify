@@ -254,6 +254,49 @@ class InteractiveQueriesServiceTest {
     }
 
     @Test
+    void shouldGetAllOnLocalhostThrowsUnknownStoreExceptionWhenMetadataNull() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
+
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAllOnLocalhost("store"));
+    }
+
+    @Test
+    void shouldGetAllOnLocalhostThrowsUnknownStoreExceptionWhenMetadataEmpty() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
+
+        assertThrows(UnknownStateStoreException.class, () -> interactiveQueriesService.getAllOnLocalhost("store"));
+    }
+
+    @Test
+    void shouldGetAllOnLocalhost() {
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
+
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Object,
+            ValueAndTimestamp<Object>>>>any())).thenReturn(stateRangeQueryResult);
+
+        QueryResult<KeyValueIterator<Object, ValueAndTimestamp<Object>>> queryResult = QueryResult.forResult(iterator);
+        when(stateRangeQueryResult.getPartitionResults()).thenReturn(Map.of(0, queryResult));
+        doCallRealMethod().when(iterator).forEachRemaining(any());
+        when(iterator.hasNext())
+            .thenReturn(true)
+            .thenReturn(false);
+
+        PersonStub personStub = new PersonStub("John", "Doe");
+        when(iterator.next())
+            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(personStub, 150L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesService.getAllOnLocalhost("store");
+
+        assertEquals("key", responses.get(0).getKey());
+        assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) responses.get(0).getValue()).get("lastName"));
+        assertEquals(150L, responses.get(0).getTimestamp());
+    }
+
+    @Test
     void shouldHandleRuntimeExceptionWhenGettingAllOtherInstance() {
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
