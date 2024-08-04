@@ -144,8 +144,9 @@ public class KafkaStreamsHttpServer {
             return interactiveQueriesService.getStateStores();
         }
 
-        String store = parsePathParam(exchange, 3);
+        String store;
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/metadata/.*")) {
+            store = parsePathParam(exchange, 3);
             return interactiveQueriesService.getStreamsMetadataForStore(store)
                 .stream()
                 .map(streamsMetadata -> new StreamsMetadata(
@@ -156,6 +157,7 @@ public class KafkaStreamsHttpServer {
         }
 
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/local/.*")) {
+            store = parsePathParam(exchange, 3);
             return interactiveQueriesService.getAllOnLocalhost(store);
         }
 
