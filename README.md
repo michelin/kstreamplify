@@ -43,7 +43,8 @@ need to do:
     * [On Start](#on-start)
   * [Interactive Queries](#interactive-queries)
     * [Application Server Configuration](#application-server-configuration)
-    * [Querying State Stores](#querying-state-stores)
+    * [Web Services](#web-services)
+    * [Service](#service)
   * [Topology](#topology-2)
   * [Deduplication](#deduplication)
     * [By Key](#by-key)
@@ -363,9 +364,9 @@ kafka:
 2. The value of a default environment variable named `APPLICATION_SERVER`.
 3. `localhost`.
 
-#### Querying State Stores
+#### Web Services
 
-Kstreamplify provides REST endpoints to query the state stores of your Kafka Streams application.
+Kstreamplify provides web services to query the state stores of your Kafka Streams application.
 It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
 
 Here is the list of supported state store types:
@@ -373,9 +374,21 @@ Here is the list of supported state store types:
 
 Only state stores with String keys are supported.
 
+#### Service
+
+You can leverage the interactive queries service used by the web services layer to serve your own needs.
+
+```java
+@Component
+public class MyService {
+    @Autowired
+    InteractiveQueriesService interactiveQueriesService;
+}
+```
+
 <h3 id="topology-2">Topology</h4>
 
-Kstreamplify provides a REST endpoint to retrieve the Kafka Streams topology as JSON.
+Kstreamplify provides a web service to retrieve the Kafka Streams topology as JSON.
 
 By default, the endpoint is available at `/topology`.
 
