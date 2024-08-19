@@ -128,7 +128,7 @@
         <maven-gpg-plugin.version>3.2.5</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.8.0</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-        <maven-surefire-plugin.version>3.3.1</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.4.0</maven-surefire-plugin.version>
         <jacoco.version>0.8.12</jacoco.version>
         <spring-boot.version>3.3.2</spring-boot.version>
         <testcontainers.version>1.20.1</testcontainers.version>
