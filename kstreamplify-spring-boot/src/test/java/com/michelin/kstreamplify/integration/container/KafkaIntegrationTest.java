@@ -1,4 +1,4 @@
-package com.michelin.kstreamplify.integration;
+package com.michelin.kstreamplify.integration.container;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
@@ -23,9 +23,12 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
+/**
+ * Base class for Kafka integration tests.
+ */
 @Slf4j
-abstract class KafkaIntegrationTest {
-    protected static final String CONFLUENT_PLATFORM_VERSION = "7.6.1";
+public abstract class KafkaIntegrationTest {
+    protected static final String CONFLUENT_PLATFORM_VERSION = "7.7.0";
     protected static final Network NETWORK = Network.newNetwork();
 
     @Autowired
@@ -35,14 +38,14 @@ abstract class KafkaIntegrationTest {
     protected TestRestTemplate restTemplate;
 
     @Container
-    static KafkaContainer broker = new KafkaContainer(DockerImageName
+    protected static KafkaContainer broker = new KafkaContainer(DockerImageName
         .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
         .withNetwork(NETWORK)
         .withNetworkAliases("broker")
         .withKraft();
 
     @Container
-    static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
+    protected static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
         .parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
         .dependsOn(broker)
         .withNetwork(NETWORK)
@@ -50,7 +53,7 @@ abstract class KafkaIntegrationTest {
         .withExposedPorts(8081)
         .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
         .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
-        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "PLAINTEXT://broker:9092")
+        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9092")
         .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
     @DynamicPropertySource
