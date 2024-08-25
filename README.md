@@ -34,8 +34,9 @@ need to do:
     * [Properties Injection](#properties-injection)
   * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
   * [Error Handling](#error-handling)
-    * [Topology](#topology)
-    * [Production and Deserialization](#production-and-deserialization)
+    * [Set up DLQ Topic](#set-up-dlq-topic)
+    * [Processing Errors](#processing-errors)
+    * [Production and Deserialization Errors](#production-and-deserialization-errors)
     * [Avro Schema](#avro-schema)
     * [Uncaught Exception Handler](#uncaught-exception-handler)
   * [Kubernetes](#kubernetes)
@@ -64,7 +65,7 @@ business implementation rather than the setup.
 
 - **📝 Avro Serializer and Deserializer**: Common serializers and deserializers for Avro.
 
-- **⛑️ Error Handling**: Catch and route errors to a dead-letter queue (DLQ) topic
+- **⛑️ Error Handling**: Catch and route errors to a dead-letter queue (DLQ) topic.
 
 - **☸️ Kubernetes**: Accurate readiness and liveness probes for Kubernetes deployment.
 
@@ -202,10 +203,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 ### Error Handling
 
-Kstreamplify provides the ability to handle errors that may occur in your topology as well as during the production or
-deserialization of records and route them to a dead-letter queue (DLQ) topic.
+Kstreamplify provides the ability to handle errors and route them to a dead-letter queue (DLQ) topic.
 
-To do it, start by overriding the `dlqTopic` method and return the name of your DLQ topic:
+#### Set up DLQ Topic
+
+Override the `dlqTopic` method and return the name of your DLQ topic:
 
 ```java
 @Component
@@ -221,10 +223,9 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-#### Topology
+#### Processing Errors
 
-Kstreamplify provides utilities to handle errors that occur in your topology and route them to a DLQ topic
-automatically.
+Kstreamplify provides utilities to handle errors that occur during the processing of records and route them to a DLQ topic.
 
 The processing result is encapsulated and marked as either success or failure.
 Failed records will be routed to the DLQ topic, while successful records will still be up for further processing.
@@ -279,7 +280,7 @@ The stream of `ProcessingResult<V,V2>` needs to be lightened of the failed recor
 This is done by invoking the `TopologyErrorHandler#catchErrors()` method.
 A healthy stream is then returned and can be further processed.
 
-#### Production and Deserialization
+#### Production and Deserialization Errors
 
 Kstreamplify provides production and deserialization handlers that send errors to the DLQ topic.
 
