@@ -4,7 +4,6 @@ import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
-import org.apache.kafka.streams.StreamsConfig;
 import org.junit.jupiter.api.Test;
 
 class KafkaPropertiesTest {
