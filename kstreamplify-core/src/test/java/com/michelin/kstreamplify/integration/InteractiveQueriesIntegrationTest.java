@@ -107,10 +107,14 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         }
 
         initializer = new KafkaStreamInitializerStub(8081, Map.of(
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG, "appInteractiveQueriesId",
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG, "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries"
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
+            broker.getBootstrapServers(),
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
+            "appInteractiveQueriesId",
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
+            "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
+            "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries"
         ));
         initializer.init(new KafkaStreamsStarterStub());
     }
