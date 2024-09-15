@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import java.io.IOException;
 import java.net.URI;
@@ -20,7 +19,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
 @Testcontainers
-class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
+class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
     @BeforeAll
     static void globalSetUp() {
@@ -39,11 +37,13 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
             new TopicPartition("OUTPUT_TOPIC", 2)
         );
 
-        initializer = new KafkaStreamInitializerStub(Map.of(
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()
+        initializer = new KafkaStreamInitializerStub(8082, Map.of(
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
+            "kubernetes.readiness.path", "custom-readiness",
+            "kubernetes.liveness.path", "custom-liveness",
+            "topology.path", "custom-topology"
         ));
-
-        initializer.init(new KafkaStreamsStarterStub());
+        initializer.init(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub());
     }
 
     @BeforeEach
@@ -52,7 +52,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldInitAndRun() throws InterruptedException, IOException {
+    void shouldInitAndRunWithWebServicesExposedOnCustomPaths() throws InterruptedException, IOException {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
@@ -60,7 +60,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
-        assertEquals(8080, streamsMetadata.get(0).hostInfo().port());
+        assertEquals(8082, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
@@ -76,12 +76,12 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
             KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
-        assertEquals("localhost:8080",
+        assertEquals("localhost:8082",
             KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         HttpRequest requestReady = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/ready"))
+            .uri(URI.create("http://localhost:8082/custom-readiness"))
             .GET()
             .build();
 
@@ -90,7 +90,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseReady.statusCode());
 
         HttpRequest requestLiveness = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/liveness"))
+            .uri(URI.create("http://localhost:8082/custom-liveness"))
             .GET()
             .build();
 
@@ -99,7 +99,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseLiveness.statusCode());
 
         HttpRequest requestTopology = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/topology"))
+            .uri(URI.create("http://localhost:8082/custom-topology"))
             .GET()
             .build();
 
@@ -115,25 +115,5 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                   <-- KSTREAM-SOURCE-0000000000
 
             """, responseTopology.body());
-    }
-
-    @Slf4j
-    static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-        @Override
-        public void topology(StreamsBuilder streamsBuilder) {
-            streamsBuilder
-                .stream("INPUT_TOPIC")
-                .to("OUTPUT_TOPIC");
-        }
-
-        @Override
-        public String dlqTopic() {
-            return "DLQ_TOPIC";
-        }
-
-        @Override
-        public void onStart(KafkaStreams kafkaStreams) {
-            log.info("Starting Kafka Streams from integration tests!");
-        }
     }
 }

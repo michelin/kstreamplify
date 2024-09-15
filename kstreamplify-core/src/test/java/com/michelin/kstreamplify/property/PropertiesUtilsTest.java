@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.property;
 
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
@@ -14,7 +15,7 @@ class PropertiesUtilsTest {
         assertTrue(properties.containsKey("server.port"));
         assertTrue(properties.containsValue(8080));
 
-        assertTrue(properties.containsKey("kafka.properties.application.id"));
+        assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
     }
 
@@ -22,7 +23,7 @@ class PropertiesUtilsTest {
     void shouldLoadKafkaProperties() {
         Properties properties = PropertiesUtils.loadKafkaProperties(PropertiesUtils.loadProperties());
 
-        assertTrue(properties.containsKey("application.id"));
+        assertTrue(properties.containsKey(APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
     }
 }

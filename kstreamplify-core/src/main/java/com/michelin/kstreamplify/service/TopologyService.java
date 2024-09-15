@@ -13,7 +13,7 @@ public class TopologyService {
     /**
      * The topology path property.
      */
-    public static final String TOPOLOGY_PROPERTY = "topology.topology-path";
+    public static final String TOPOLOGY_PATH_PROPERTY_NAME = "topology.path";
 
     /**
      * The default topology path.

@@ -1,9 +1,13 @@
 package com.michelin.kstreamplify.integration;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
+import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -102,12 +106,16 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
                 .get();
         }
 
-        initializer = new KafkaStreamInitializerStub(
-            8081,
-            "appInteractiveQueriesId",
+        initializer = new KafkaStreamInitializerStub(8081, Map.of(
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
             broker.getBootstrapServers(),
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
+            "appInteractiveQueriesId",
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
             "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
-            "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries");
+            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
+            "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries"
+        ));
         initializer.init(new KafkaStreamsStarterStub());
     }
 
