@@ -6,7 +6,7 @@ import static com.michelin.kstreamplify.service.KubernetesService.DEFAULT_READIN
 import static com.michelin.kstreamplify.service.KubernetesService.LIVENESS_PATH_PROPERTY_NAME;
 import static com.michelin.kstreamplify.service.KubernetesService.READINESS_PATH_PROPERTY_NAME;
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_DEFAULT_PATH;
-import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PROPERTY;
+import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PATH_PROPERTY_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
@@ -94,7 +94,7 @@ public class KafkaStreamsHttpServer {
 
     private void createTopologyEndpoint() {
         String topologyEndpointPath = (String) kafkaStreamsInitializer.getProperties()
-            .getOrDefault(TOPOLOGY_PROPERTY, TOPOLOGY_DEFAULT_PATH);
+            .getOrDefault(TOPOLOGY_PATH_PROPERTY_NAME, TOPOLOGY_DEFAULT_PATH);
 
         server.createContext("/" + topologyEndpointPath,
             (exchange -> {

@@ -1,5 +1,6 @@
 package com.michelin.kstreamplify.property;
 
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
@@ -11,13 +12,13 @@ class KafkaPropertiesTest {
 
     @Test
     void shouldLoadProperties() {
-        Map<String, String> props = Map.of(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
+        Map<String, String> props = Map.of(APPLICATION_ID_CONFIG, "appId");
 
         kafkaProperties.setProperties(props);
 
-        assertTrue(kafkaProperties.getProperties().containsKey("application.id"));
+        assertTrue(kafkaProperties.getProperties().containsKey(APPLICATION_ID_CONFIG));
         assertTrue(kafkaProperties.getProperties().containsValue("appId"));
-        assertTrue(kafkaProperties.asProperties().containsKey("application.id"));
+        assertTrue(kafkaProperties.asProperties().containsKey(APPLICATION_ID_CONFIG));
         assertTrue(kafkaProperties.asProperties().containsValue("appId"));
     }
 }

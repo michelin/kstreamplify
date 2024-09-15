@@ -6,9 +6,11 @@ import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Properties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -98,13 +100,10 @@ public abstract class KafkaIntegrationTest {
     @AllArgsConstructor
     public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
         private Integer newServerPort;
-        private String applicationId;
-        private String bootstrapServers;
-        private String schemaRegistryUrl;
-        private String stateDir;
+        private Map<String, String> additionalProperties;
 
-        public KafkaStreamInitializerStub(String bootstrapServers) {
-            this.bootstrapServers = bootstrapServers;
+        public KafkaStreamInitializerStub(Map<String, String> properties) {
+            this.additionalProperties = properties;
         }
 
         /**
@@ -114,27 +113,17 @@ public abstract class KafkaIntegrationTest {
         @Override
         protected void initProperties() {
             super.initProperties();
-            KafkaStreamsExecutionContext.getProperties()
-                .setProperty(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
             if (newServerPort != null) {
                 serverPort = newServerPort;
             }
 
-            if (applicationId != null) {
-                KafkaStreamsExecutionContext.getProperties()
-                    .setProperty("application.id", applicationId);
-            }
+            properties.putAll(additionalProperties);
 
-            if (schemaRegistryUrl != null) {
-                KafkaStreamsExecutionContext.getProperties()
-                    .setProperty(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-            }
-
-            if (stateDir != null) {
-                KafkaStreamsExecutionContext.getProperties()
-                    .setProperty("state.dir", stateDir);
-            }
+            Properties convertedAdditionalProperties = new Properties();
+            convertedAdditionalProperties.putAll(additionalProperties);
+            kafkaProperties.putAll(PropertiesUtils.loadKafkaProperties(convertedAdditionalProperties));
+            KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
         }
     }
 }
