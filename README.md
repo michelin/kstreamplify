@@ -51,6 +51,7 @@ need to do:
   * [By Key and Value](#by-key-and-value)
   * [By Predicate](#by-predicate)
 * [Open Telemetry](#open-telemetry)
+* [Swagger](#swagger)
 * [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
