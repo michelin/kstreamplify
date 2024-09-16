@@ -25,34 +25,33 @@ need to do:
 
 * [Overview](#overview)
 * [Dependencies](#dependencies)
-    * [Java](#java)
+  * [Java](#java)
     * [Spring Boot](#spring-boot)
     * [Unit Test](#unit-test)
-* [Features](#features)
-  * [Bootstrapping](#bootstrapping)
-    * [Create your first Kstreamplify application](#create-your-first-kstreamplify-application) 
-    * [Properties Injection](#properties-injection)
-  * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
-  * [Error Handling](#error-handling)
-    * [Set up DLQ Topic](#set-up-dlq-topic)
-    * [Processing Errors](#processing-errors)
-    * [Production and Deserialization Errors](#production-and-deserialization-errors)
-    * [Avro Schema](#avro-schema)
-    * [Uncaught Exception Handler](#uncaught-exception-handler)
-  * [Kubernetes](#kubernetes)
-  * [Hooks](#hooks)
-    * [On Start](#on-start)
-  * [Interactive Queries](#interactive-queries)
-    * [Application Server Configuration](#application-server-configuration)
-    * [Web Services](#web-services)
-    * [Service](#service)
-  * [Topology](#topology-2)
-  * [Deduplication](#deduplication)
-    * [By Key](#by-key)
-    * [By Key and Value](#by-key-and-value)
-    * [By Predicate](#by-predicate)
-  * [Open Telemetry](#open-telemetry)
-  * [Testing](#testing)
+* [Bootstrapping](#bootstrapping)
+  * [Create your first Kstreamplify application](#create-your-first-kstreamplify-application) 
+  * [Properties Injection](#properties-injection)
+* [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
+* [Error Handling](#error-handling)
+  * [Set up DLQ Topic](#set-up-dlq-topic)
+  * [Processing Errors](#processing-errors)
+  * [Production and Deserialization Errors](#production-and-deserialization-errors)
+  * [Avro Schema](#avro-schema)
+  * [Uncaught Exception Handler](#uncaught-exception-handler)
+* [Kubernetes](#kubernetes)
+* [Hooks](#hooks)
+  * [On Start](#on-start)
+* [Interactive Queries](#interactive-queries)
+  * [Application Server Configuration](#application-server-configuration)
+  * [Web Services](#web-services)
+  * [Service](#service)
+* [Topology](#topology-2)
+* [Deduplication](#deduplication)
+  * [By Key](#by-key)
+  * [By Key and Value](#by-key-and-value)
+  * [By Predicate](#by-predicate)
+* [Open Telemetry](#open-telemetry)
+* [Testing](#testing)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
@@ -125,16 +124,12 @@ For both Java and Spring Boot dependencies, a testing dependency is available to
 </dependency>
 ```
 
-## Features
-
-Kstreamplify offers a wide range of features to simplify the development of Kafka Streams applications.
-
-### Bootstrapping
+## Bootstrapping
 
 Kstreamplify simplifies the bootstrapping of Kafka Streams applications by handling the startup, configuration, and
 initialization of Kafka Streams for you.
 
-#### Create your first Kstreamplify application
+### Create your first Kstreamplify application
 
 To create a Kstreamplify application, define a `KafkaStreamsStarter` bean within your Spring Boot context and
 override the `KafkaStreamsStarter#topology()` method:
@@ -154,7 +149,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-#### Properties Injection
+### Properties Injection
 
 You can define all your Kafka Streams properties directly from the `application.yml` file as follows:
 
@@ -173,7 +168,7 @@ kafka:
 
 Note that all the Kafka Streams properties have been moved under `kafka.properties`.
 
-### Avro Serializer and Deserializer
+## Avro Serializer and Deserializer
 
 Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdeUtils` class as follows:
 
@@ -201,11 +196,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### Error Handling
+## Error Handling
 
 Kstreamplify provides the ability to handle errors and route them to a dead-letter queue (DLQ) topic.
 
-#### Set up DLQ Topic
+### Set up DLQ Topic
 
 Override the `dlqTopic` method and return the name of your DLQ topic:
 
@@ -223,7 +218,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-#### Processing Errors
+### Processing Errors
 
 Kstreamplify provides utilities to handle errors that occur during the processing of records and route them to a DLQ topic.
 
@@ -280,7 +275,7 @@ The stream of `ProcessingResult<V,V2>` needs to be lightened of the failed recor
 This is done by invoking the `TopologyErrorHandler#catchErrors()` method.
 A healthy stream is then returned and can be further processed.
 
-#### Production and Deserialization Errors
+### Production and Deserialization Errors
 
 Kstreamplify provides production and deserialization handlers that send errors to the DLQ topic.
 
@@ -291,12 +286,12 @@ kafka:
     default.deserialization.exception.handler: com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler
 ```
 
-#### Avro Schema
+### Avro Schema
 
 An Avro schema needs to be deployed in a Schema Registry on top of the DLQ topic. It is
 available [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
 
-#### Uncaught Exception Handler
+### Uncaught Exception Handler
 
 Kstreamplify defines a default uncaught exception handler that catches all uncaught exceptions and shuts down the client.
 
@@ -312,7 +307,7 @@ public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
 }
 ```
 
-### Kubernetes
+## Kubernetes
 
 Kstreamplify provides readiness and liveness probes for Kubernetes deployment based on the Kafka Streams state.
 
@@ -328,11 +323,11 @@ kubernetes:
     path: custom-liveness
 ```
 
-### Hooks
+## Hooks
 
 Kstreamplify offers the flexibility to execute custom code through hooks.
 
-#### On Start
+### On Start
 
 The `On Start` hook allows you to execute code before starting the Kafka Streams instance.
 
@@ -346,11 +341,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### Interactive Queries
+## Interactive Queries
 
 Kstreamplify wants to ease the use of [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) in Kafka Streams application.
 
-#### Application Server Configuration
+### Application Server Configuration
 
 The "[application.server](https://docs.confluent.io/platform/current/streams/developer-guide/config-streams.html#application-server)" property value is determined from different sources by the following order of priority:
 
@@ -365,7 +360,7 @@ kafka:
 2. The value of a default environment variable named `APPLICATION_SERVER`.
 3. `localhost`.
 
-#### Web Services
+### Web Services
 
 Kstreamplify provides web services to query the state stores of your Kafka Streams application.
 It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
@@ -375,7 +370,7 @@ Here is the list of supported state store types:
 
 Only state stores with String keys are supported.
 
-#### Service
+### Service
 
 You can leverage the interactive queries service used by the web services layer to serve your own needs.
 
@@ -387,7 +382,7 @@ public class MyService {
 }
 ```
 
-<h3 id="topology-2">Topology</h4>
+## Topology
 
 Kstreamplify provides a web service to retrieve the Kafka Streams topology as JSON.
 
@@ -400,7 +395,7 @@ topology:
   path: custom-topology
 ```
 
-### Deduplication
+## Deduplication
 
 Kstreamplify facilitates deduplication of a stream through the `DeduplicationUtils` class, based on various criteria
 and within a specified time frame.
@@ -410,7 +405,7 @@ All deduplication methods return a `KStream<String, ProcessingResult<V,V2>` so y
 
 **Note**: Only streams with String keys and Avro values are supported.
 
-#### By Key
+### By Key
 
 ```java
 @Component
@@ -427,7 +422,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-#### By Key and Value
+### By Key and Value
 
 ```java
 @Component
@@ -444,7 +439,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-#### By Predicate
+### By Predicate
 
 ```java
 @Component
@@ -464,7 +459,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 The given predicate will be used as a key in the window store. The stream will be deduplicated based on the predicate.
 
-### Open Telemetry
+## Open Telemetry
 
 The Kstreamplify Spring Boot module simplifies the integration of [Open Telemetry](https://opentelemetry.io/) 
 and its Java agent in Kafka Streams applications by binding all Kafka Streams metrics to the Spring Boot registry.
@@ -485,7 +480,17 @@ your Grafana dashboard.
 All the tags specified in the `otel.resource.attributes` property will be included in the metrics and can be observed in
 the logs during the application startup.
 
-### Testing
+## Swagger
+
+The Kstreamplify Spring Boot dependency uses [Springdoc](https://springdoc.org/) to generate an API documentation for Kafka Streams.
+
+By default:
+- The Swagger UI page is available at `http://host:port/swagger-ui/index.html`.
+- The OpenAPI description is available at `http://host:port/v3/api-docs`.
+
+Both can be customized by using the [Springdoc properties](https://springdoc.org/#properties).
+
+## Testing
 
 Kstreamplify eases the use of the Topology Test Driver for testing Kafka Streams application.
 

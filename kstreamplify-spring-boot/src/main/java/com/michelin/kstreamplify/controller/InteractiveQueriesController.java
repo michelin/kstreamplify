@@ -4,6 +4,12 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/store")
 @ConditionalOnBean(KafkaStreamsStarter.class)
+@Tag(name = "Interactive Queries", description = "Interactive Queries Controller")
 public class InteractiveQueriesController {
 
     /**
@@ -34,6 +41,12 @@ public class InteractiveQueriesController {
      *
      * @return The stores
      */
+    @Operation(summary = "Get the state stores")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = Set.class))
+        }),
+    })
     @GetMapping
     public ResponseEntity<Set<String>> getStores() {
         return ResponseEntity
@@ -48,6 +61,16 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The hosts
      */
+    @Operation(summary = "Get the streams metadata for a store")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = StreamsMetadata.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
     @GetMapping(value = "/metadata/{store}")
     public ResponseEntity<List<StreamsMetadata>> getStreamsMetadataForStore(@PathVariable("store") final String store) {
         return ResponseEntity
@@ -69,6 +92,18 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The values
      */
+    @Operation(summary = "Get all records from a store")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
     @GetMapping(value = "/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store) {
         return ResponseEntity
@@ -83,6 +118,18 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The values
      */
+    @Operation(summary = "Get all records from a store on the local host")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
     @GetMapping(value = "/local/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAllOnLocalhost(@PathVariable("store") String store) {
         return ResponseEntity
@@ -98,6 +145,22 @@ public class InteractiveQueriesController {
      * @param key The key
      * @return The value
      */
+    @Operation(summary = "Get a record by key from a store")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = StateStoreRecord.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Key not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
     @GetMapping("/{store}/{key}")
     public ResponseEntity<StateStoreRecord> getByKey(@PathVariable("store") String store,
                                                      @PathVariable("key") String key) {
