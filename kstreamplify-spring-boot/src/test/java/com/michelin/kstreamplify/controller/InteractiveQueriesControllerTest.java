@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.service.InteractiveQueriesService;
+import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.util.List;
 import java.util.Set;
@@ -24,14 +24,14 @@ class InteractiveQueriesControllerTest {
     private StreamsMetadata streamsMetadata;
 
     @Mock
-    private InteractiveQueriesService interactiveQueriesService;
+    private KeyValueStoreService keyValueStoreService;
 
     @InjectMocks
     private InteractiveQueriesController interactiveQueriesController;
 
     @Test
     void shouldGetStores() {
-        when(interactiveQueriesService.getStateStores())
+        when(keyValueStoreService.getStateStores())
             .thenReturn(Set.of("store1", "store2"));
 
         assertEquals(Set.of("store1", "store2"), interactiveQueriesController.getStores().getBody());
@@ -48,7 +48,7 @@ class InteractiveQueriesControllerTest {
         when(streamsMetadata.topicPartitions())
             .thenReturn(Set.of(new TopicPartition("topic", 0)));
 
-        when(interactiveQueriesService.getStreamsMetadataForStore("store"))
+        when(keyValueStoreService.getStreamsMetadataForStore("store"))
             .thenReturn(List.of(streamsMetadata));
 
         List<com.michelin.kstreamplify.store.StreamsMetadata> response =
@@ -63,7 +63,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAll() {
-        when(interactiveQueriesService.getAll("store"))
+        when(keyValueStoreService.getAll("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController.getAll("store").getBody();
@@ -76,7 +76,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllOnLocalhost() {
-        when(interactiveQueriesService.getAllOnLocalhost("store"))
+        when(keyValueStoreService.getAllOnLocalhost("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController.getAllOnLocalhost("store").getBody();
@@ -89,7 +89,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetByKey() {
-        when(interactiveQueriesService.getByKey("store", "key"))
+        when(keyValueStoreService.getByKey("store", "key"))
             .thenReturn(new StateStoreRecord("key1", "value1", 1L));
 
         StateStoreRecord response = interactiveQueriesController

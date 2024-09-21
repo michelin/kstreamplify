@@ -1,6 +1,5 @@
 package com.michelin.kstreamplify.server;
 
-import static com.michelin.kstreamplify.service.InteractiveQueriesService.DEFAULT_STORE_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.DEFAULT_LIVENESS_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.DEFAULT_READINESS_PATH;
 import static com.michelin.kstreamplify.service.KubernetesService.LIVENESS_PATH_PROPERTY_NAME;
@@ -14,9 +13,9 @@ import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.service.InteractiveQueriesService;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
+import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -32,11 +31,13 @@ import org.apache.kafka.streams.errors.UnknownStateStoreException;
  * Kafka Streams HTTP server.
  */
 public class KafkaStreamsHttpServer {
+    private static final String DEFAULT_STORE_PATH = "store";
+    private static final String DEFAULT_KEY_VALUE_PATH = "key-value";
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
     private final ObjectMapper objectMapper;
     private final KubernetesService kubernetesService;
     private final TopologyService topologyService;
-    private final InteractiveQueriesService interactiveQueriesService;
+    private final KeyValueStoreService keyValueStoreService;
 
     /**
      * The HTTP server.
@@ -53,7 +54,7 @@ public class KafkaStreamsHttpServer {
         this.objectMapper = new ObjectMapper();
         this.kubernetesService = new KubernetesService(kafkaStreamsInitializer);
         this.topologyService = new TopologyService(kafkaStreamsInitializer);
-        this.interactiveQueriesService = new InteractiveQueriesService(kafkaStreamsInitializer);
+        this.keyValueStoreService = new KeyValueStoreService(kafkaStreamsInitializer);
     }
 
     /**
@@ -141,13 +142,13 @@ public class KafkaStreamsHttpServer {
 
     private Object getResponseForStoreEndpoints(HttpExchange exchange) {
         if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
-            return interactiveQueriesService.getStateStores();
+            return keyValueStoreService.getStateStores();
         }
 
         String store;
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/metadata/.*")) {
             store = parsePathParam(exchange, 3);
-            return interactiveQueriesService.getStreamsMetadataForStore(store)
+            return keyValueStoreService.getStreamsMetadataForStore(store)
                 .stream()
                 .map(streamsMetadata -> new StreamsMetadata(
                     streamsMetadata.stateStoreNames(),
@@ -156,19 +157,22 @@ public class KafkaStreamsHttpServer {
                 .toList();
         }
 
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/local/.*")) {
-            store = parsePathParam(exchange, 3);
-            return interactiveQueriesService.getAllOnLocalhost(store);
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/local/.*")) {
+            store = parsePathParam(exchange, 4);
+            return keyValueStoreService.getAllOnLocalhost(store);
         }
 
-        store = parsePathParam(exchange, 2);
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*/.*")) {
-            String key = parsePathParam(exchange, 3);
-            return interactiveQueriesService.getByKey(store, key);
+        store = parsePathParam(exchange, 3);
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/.*/.*")) {
+            String key = parsePathParam(exchange, 4);
+            return keyValueStoreService.getByKey(store, key);
         }
 
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/.*")) {
-            return interactiveQueriesService.getAll(store);
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/.*")) {
+            return keyValueStoreService.getAll(store);
         }
 
         return null;

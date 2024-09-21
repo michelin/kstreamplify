@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.service.InteractiveQueriesService;
+import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,10 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class InteractiveQueriesController {
 
     /**
-     * The store service.
+     * The key-value store service.
      */
     @Autowired
-    private InteractiveQueriesService interactiveQueriesService;
+    private KeyValueStoreService keyValueStoreService;
 
     /**
      * Get the stores.
@@ -52,7 +52,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getStateStores());
+            .body(keyValueStoreService.getStateStores());
     }
 
     /**
@@ -76,7 +76,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getStreamsMetadataForStore(store)
+            .body(keyValueStoreService.getStreamsMetadataForStore(store)
                 .stream()
                 .map(streamsMetadata -> new StreamsMetadata(
                     streamsMetadata.stateStoreNames(),
@@ -104,12 +104,12 @@ public class InteractiveQueriesController {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
         }),
     })
-    @GetMapping(value = "/{store}")
+    @GetMapping(value = "/key-value/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getAll(store));
+            .body(keyValueStoreService.getAll(store));
     }
 
     /**
@@ -130,12 +130,12 @@ public class InteractiveQueriesController {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
         }),
     })
-    @GetMapping(value = "/local/{store}")
+    @GetMapping(value = "/key-value/local/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAllOnLocalhost(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getAllOnLocalhost(store));
+            .body(keyValueStoreService.getAllOnLocalhost(store));
     }
 
     /**
@@ -161,12 +161,12 @@ public class InteractiveQueriesController {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
         }),
     })
-    @GetMapping("/{store}/{key}")
+    @GetMapping("/key-value/{store}/{key}")
     public ResponseEntity<StateStoreRecord> getByKey(@PathVariable("store") String store,
                                                      @PathVariable("key") String key) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(interactiveQueriesService.getByKey(store, key));
+            .body(keyValueStoreService.getByKey(store, key));
     }
 }
