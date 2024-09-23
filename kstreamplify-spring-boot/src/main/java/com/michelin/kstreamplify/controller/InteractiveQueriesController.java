@@ -131,7 +131,8 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/key-value/local/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalhost(@PathVariable("store") String store) {
+    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalhost(@PathVariable("store")
+                                                                                       String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)

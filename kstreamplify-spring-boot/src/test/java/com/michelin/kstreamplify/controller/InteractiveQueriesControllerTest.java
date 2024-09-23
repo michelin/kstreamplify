@@ -79,7 +79,8 @@ class InteractiveQueriesControllerTest {
         when(keyValueStoreService.getAllOnLocalhost("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStoreOnLocalhost("store").getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStoreOnLocalhost("store")
+            .getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
