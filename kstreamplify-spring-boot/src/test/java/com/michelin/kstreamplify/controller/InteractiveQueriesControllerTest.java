@@ -66,7 +66,7 @@ class InteractiveQueriesControllerTest {
         when(keyValueStoreService.getAll("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAll("store").getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStore("store").getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
@@ -79,7 +79,7 @@ class InteractiveQueriesControllerTest {
         when(keyValueStoreService.getAllOnLocalhost("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAllOnLocalhost("store").getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStoreOnLocalhost("store").getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
@@ -93,7 +93,7 @@ class InteractiveQueriesControllerTest {
             .thenReturn(new StateStoreRecord("key1", "value1", 1L));
 
         StateStoreRecord response = interactiveQueriesController
-            .getByKey("store", "key").getBody();
+            .getByKeyInKeyValueStore("store", "key").getBody();
 
         assertNotNull(response);
         assertEquals("key1", response.getKey());

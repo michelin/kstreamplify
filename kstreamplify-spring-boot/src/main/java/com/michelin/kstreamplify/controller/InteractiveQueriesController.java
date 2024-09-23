@@ -2,6 +2,7 @@ package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,12 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnBean(KafkaStreamsStarter.class)
 @Tag(name = "Interactive Queries", description = "Interactive Queries Controller")
 public class InteractiveQueriesController {
-
-    /**
-     * The key-value store service.
-     */
     @Autowired
     private KeyValueStoreService keyValueStoreService;
+
+    @Autowired
+    private WindowStoreService windowStoreService;
 
     /**
      * Get the stores.
@@ -87,12 +87,12 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get all records from the store.
+     * Get all records from the key-value store.
      *
      * @param store The store
      * @return The values
      */
-    @Operation(summary = "Get all records from a store")
+    @Operation(summary = "Get all records from a key-value store")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "OK", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
@@ -105,7 +105,7 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/key-value/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAll(@PathVariable("store") String store) {
+    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStore(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -113,12 +113,12 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get all records from the store on the local host.
+     * Get all records from the key-value store on the local host.
      *
      * @param store The store
      * @return The values
      */
-    @Operation(summary = "Get all records from a store on the local host")
+    @Operation(summary = "Get all records from a key-value store on the local host")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "OK", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
@@ -131,7 +131,7 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/key-value/local/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAllOnLocalhost(@PathVariable("store") String store) {
+    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalhost(@PathVariable("store") String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -139,13 +139,13 @@ public class InteractiveQueriesController {
     }
 
     /**
-     * Get the record by key from the store.
+     * Get the record by key from the key-value store.
      *
      * @param store The store
      * @param key The key
      * @return The value
      */
-    @Operation(summary = "Get a record by key from a store")
+    @Operation(summary = "Get a record by key from a key-value store")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "OK", content = {
             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -162,11 +162,95 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping("/key-value/{store}/{key}")
-    public ResponseEntity<StateStoreRecord> getByKey(@PathVariable("store") String store,
-                                                     @PathVariable("key") String key) {
+    public ResponseEntity<StateStoreRecord> getByKeyInKeyValueStore(@PathVariable("store") String store,
+                                                                    @PathVariable("key") String key) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
             .body(keyValueStoreService.getByKey(store, key));
+    }
+
+    /**
+     * Get all records from the window store.
+     *
+     * @param store The store
+     * @return The values
+     */
+    @Operation(summary = "Get all records from a window store")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
+    @GetMapping(value = "/window/{store}")
+    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStore(@PathVariable("store") String store) {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(windowStoreService.getAll(store));
+    }
+
+    /**
+     * Get all records from the window store on the local host.
+     *
+     * @param store The store
+     * @return The values
+     */
+    @Operation(summary = "Get all records from a window store on the local host")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = List.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
+    @GetMapping(value = "/window/local/{store}")
+    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStoreOnLocalhost(@PathVariable("store") String store) {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(windowStoreService.getAllOnLocalhost(store));
+    }
+
+    /**
+     * Get the record by key from the window store.
+     *
+     * @param store The store
+     * @param key The key
+     * @return The value
+     */
+    @Operation(summary = "Get a record by key from a window store")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = StateStoreRecord.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Key not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "404", description = "Store not found", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+        @ApiResponse(responseCode = "503", description = "Kafka Streams not running", content = {
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
+        }),
+    })
+    @GetMapping("/window/{store}/{key}")
+    public ResponseEntity<List<StateStoreRecord>> getByKeyInWindowStore(@PathVariable("store") String store,
+                                                                        @PathVariable("key") String key) {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(windowStoreService.getByKey(store, key));
     }
 }

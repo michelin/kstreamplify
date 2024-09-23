@@ -185,6 +185,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8081/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
         "http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey,Key wrongKey not found",
         "http://localhost:8081/store/key-value/WRONG_STORE,State store WRONG_STORE not found",
+        "http://localhost:8081/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8081/store/window/WRONG_STORE,State store WRONG_STORE not found",
     })
     void shouldGetErrorWhenWrongKeyOrStore(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -199,20 +202,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyWrongKey() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        assertEquals(404, response.statusCode());
-        assertEquals("Key wrongKey not found", response.body());
-    }
-
-    @Test
-    void shouldGetByKeyWrongStoreType() throws IOException, InterruptedException {
+    void shouldGetErrorWhenQueryingNotKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
@@ -288,19 +278,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) body.getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
         assertNotNull(body.getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllWrongStore() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/key-value/WRONG_STORE/key"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        assertEquals(404, response.statusCode());
-        assertEquals("State store WRONG_STORE not found", response.body());
     }
 
     @Test

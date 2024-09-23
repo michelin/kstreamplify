@@ -16,6 +16,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -32,12 +33,14 @@ import org.apache.kafka.streams.errors.UnknownStateStoreException;
  */
 public class KafkaStreamsHttpServer {
     private static final String DEFAULT_STORE_PATH = "store";
-    private static final String DEFAULT_KEY_VALUE_PATH = "key-value";
+    private static final String DEFAULT_KEY_VALUE_STORE_PATH = "key-value";
+    private static final String DEFAULT_WINDOW_STORE_PATH = "window";
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
     private final ObjectMapper objectMapper;
     private final KubernetesService kubernetesService;
     private final TopologyService topologyService;
     private final KeyValueStoreService keyValueStoreService;
+    private final WindowStoreService windowStoreService;
 
     /**
      * The HTTP server.
@@ -55,6 +58,7 @@ public class KafkaStreamsHttpServer {
         this.kubernetesService = new KubernetesService(kafkaStreamsInitializer);
         this.topologyService = new TopologyService(kafkaStreamsInitializer);
         this.keyValueStoreService = new KeyValueStoreService(kafkaStreamsInitializer);
+        this.windowStoreService = new WindowStoreService(kafkaStreamsInitializer);
     }
 
     /**
@@ -158,21 +162,38 @@ public class KafkaStreamsHttpServer {
         }
 
         if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/local/.*")) {
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/local/.*")) {
             store = parsePathParam(exchange, 4);
             return keyValueStoreService.getAllOnLocalhost(store);
         }
 
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/local/.*")) {
+            store = parsePathParam(exchange, 4);
+            return windowStoreService.getAllOnLocalhost(store);
+        }
+
         store = parsePathParam(exchange, 3);
         if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/.*/.*")) {
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*/.*")) {
             String key = parsePathParam(exchange, 4);
             return keyValueStoreService.getByKey(store, key);
         }
 
         if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_PATH + "/.*")) {
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*")) {
             return keyValueStoreService.getAll(store);
+        }
+
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*/.*")) {
+            String key = parsePathParam(exchange, 4);
+            return windowStoreService.getByKey(store, key);
+        }
+
+        if (exchange.getRequestURI().toString()
+            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*")) {
+            return windowStoreService.getAll(store);
         }
 
         return null;

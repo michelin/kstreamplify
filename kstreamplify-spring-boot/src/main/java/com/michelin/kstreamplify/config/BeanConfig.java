@@ -5,6 +5,7 @@ import com.michelin.kstreamplify.initializer.SpringBootKafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,5 +47,16 @@ public class BeanConfig {
     @Bean
     KeyValueStoreService keyValueStoreService(SpringBootKafkaStreamsInitializer initializer) {
         return new KeyValueStoreService(initializer);
+    }
+
+    /**
+     * Register the window store service as a bean.
+     *
+     * @param initializer The Kafka Streams initializer
+     * @return The key-value store service
+     */
+    @Bean
+    WindowStoreService windowStoreService(SpringBootKafkaStreamsInitializer initializer) {
+        return new WindowStoreService(initializer);
     }
 }
