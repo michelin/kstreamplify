@@ -47,12 +47,12 @@ public abstract class KafkaStreamsStarterTest {
         Properties properties = new Properties();
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getName());
+        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, getStoragePath() );
 
         KafkaStreamsExecutionContext.registerProperties(properties);
         KafkaStreamsExecutionContext.setSerdesConfig(Collections
             .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-                "mock://" + getClass().getName()));
+                "mock://" + getClass().getSimpleName()));
 
         var starter = getKafkaStreamsStarter();
 
@@ -85,13 +85,22 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
+     * Default storage path for the storage directory.
+     *
+     * @return The default storage path
+     */
+    protected String getStoragePath() {
+        return STATE_DIR + getClass().getSimpleName();
+    }
+    
+    /**
      * Method to close everything properly at the end of the test.
      */
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        Files.deleteIfExists(Paths.get(STATE_DIR + getClass().getName()));
-        MockSchemaRegistry.dropScope("mock://" + getClass().getName());
+        Files.deleteIfExists(Paths.get( getStoragePath() ));
+        MockSchemaRegistry.dropScope("mock://" + getClass().getSimpleName());
     }
 
     /**
