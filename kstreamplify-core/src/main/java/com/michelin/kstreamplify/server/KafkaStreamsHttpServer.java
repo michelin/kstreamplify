@@ -23,8 +23,14 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.function.IntSupplier;
+import java.util.stream.Collectors;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 
@@ -167,33 +173,39 @@ public class KafkaStreamsHttpServer {
             return keyValueStoreService.getAllOnLocalhost(store);
         }
 
-        if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/local/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
+                                                            + "/" + DEFAULT_WINDOW_STORE_PATH + "/local/.*")) {
             store = parsePathParam(exchange, 4);
-            return windowStoreService.getAllOnLocalhost(store);
+            Instant instantFrom = parseRequestParam(exchange, "timeFrom").map(Instant::parse).orElse(Instant.EPOCH);
+            Instant instantTo = parseRequestParam(exchange, "timeTo").map(Instant::parse).orElse(Instant.now());
+            return windowStoreService.getAllOnLocalHost(store, instantFrom, instantTo);
         }
 
         store = parsePathParam(exchange, 3);
-        if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
+                                                            + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*/.*")) {
             String key = parsePathParam(exchange, 4);
             return keyValueStoreService.getByKey(store, key);
         }
 
-        if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
+                                                            + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*")) {
             return keyValueStoreService.getAll(store);
         }
 
-        if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
+                                                            + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*/.*")) {
             String key = parsePathParam(exchange, 4);
-            return windowStoreService.getByKey(store, key);
+            Instant instantFrom = parseRequestParam(exchange, "timeFrom").map(Instant::parse).orElse(Instant.EPOCH);
+            Instant instantTo = parseRequestParam(exchange, "timeTo").map(Instant::parse).orElse(Instant.now());
+            return windowStoreService.getByKey(store, key, instantFrom, instantTo);
         }
 
-        if (exchange.getRequestURI().toString()
-            .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*")) {
-            return windowStoreService.getAll(store);
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
+                                                            + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*")) {
+            Instant instantFrom = parseRequestParam(exchange, "timeFrom").map(Instant::parse).orElse(Instant.EPOCH);
+            Instant instantTo = parseRequestParam(exchange, "timeTo").map(Instant::parse).orElse(Instant.now());
+            return windowStoreService.getAll(store, instantFrom, instantTo);
         }
 
         return null;
@@ -204,6 +216,26 @@ public class KafkaStreamsHttpServer {
             .toString()
             .split("\\?")[0]
             .split("/")[index];
+    }
+
+    private Optional<String> parseRequestParam(HttpExchange exchange, String key) {
+        String[] uriAndParams = exchange.getRequestURI()
+                .toString()
+                .split("\\?");
+
+        if (uriAndParams.length == 1) {
+            return Optional.empty();
+        }
+
+        List<String> params = Arrays.asList(uriAndParams[1]
+            .split("&"));
+
+        Map<String, String> keyValue = params
+            .stream()
+            .map(param -> param.split("="))
+            .collect(Collectors.toMap(param -> param[0], param -> param[1]));
+
+        return Optional.ofNullable(keyValue.get(key));
     }
 
     /**

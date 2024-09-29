@@ -339,7 +339,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAllInStringAvroWindowStoreFromService() {
-        List<StateStoreRecord> stateQueryData = windowStoreService.getAll("STRING_AVRO_WINDOW_STORE");
+        List<StateStoreRecord> stateQueryData = windowStoreService
+            .getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
 
         assertEquals("person", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
@@ -399,7 +400,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKeyInStringAvroWindowStoreFromService() {
-        List<StateStoreRecord> stateStoreRecord = windowStoreService.getByKey("STRING_AVRO_WINDOW_STORE", "person");
+        List<StateStoreRecord> stateStoreRecord = windowStoreService
+            .getByKey("STRING_AVRO_WINDOW_STORE", "person", Instant.EPOCH, Instant.now());
 
         assertEquals("person", stateStoreRecord.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));

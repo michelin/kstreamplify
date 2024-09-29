@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -175,6 +178,8 @@ public class InteractiveQueriesController {
      * Get all records from the window store.
      *
      * @param store The store
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The values
      */
     @Operation(summary = "Get all records from a window store")
@@ -190,17 +195,25 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/window/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStore(@PathVariable("store") String store) {
+    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStore(@PathVariable("store") String store,
+                                                                      @RequestParam("timeFrom")
+                                                                        Optional<String> timeFrom,
+                                                                      @RequestParam("timeTo") Optional<String> timeTo) {
+        Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
+        Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(windowStoreService.getAll(store));
+            .body(windowStoreService.getAll(store, instantFrom, instantTo));
     }
 
     /**
      * Get all records from the window store on the local host.
      *
      * @param store The store
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The values
      */
     @Operation(summary = "Get all records from a window store on the local host")
@@ -216,11 +229,18 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/window/local/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStoreOnLocalhost(@PathVariable("store") String store) {
+    public ResponseEntity<List<StateStoreRecord>> getAllInWindowStoreOnLocalHost(@PathVariable("store") String store,
+                                                                                 @RequestParam("timeFrom")
+                                                                                    Optional<String> timeFrom,
+                                                                                 @RequestParam("timeTo")
+                                                                                    Optional<String> timeTo) {
+        Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
+        Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(windowStoreService.getAllOnLocalhost(store));
+            .body(windowStoreService.getAllOnLocalHost(store, instantFrom, instantTo));
     }
 
     /**
@@ -228,6 +248,8 @@ public class InteractiveQueriesController {
      *
      * @param store The store
      * @param key The key
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The value
      */
     @Operation(summary = "Get a record by key from a window store")
@@ -248,10 +270,17 @@ public class InteractiveQueriesController {
     })
     @GetMapping("/window/{store}/{key}")
     public ResponseEntity<List<StateStoreRecord>> getByKeyInWindowStore(@PathVariable("store") String store,
-                                                                        @PathVariable("key") String key) {
+                                                                        @PathVariable("key") String key,
+                                                                        @RequestParam("timeFrom")
+                                                                            Optional<String> timeFrom,
+                                                                        @RequestParam("timeTo")
+                                                                            Optional<String> timeTo) {
+        Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
+        Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
+
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(windowStoreService.getByKey(store, key));
+            .body(windowStoreService.getByKey(store, key, instantFrom, instantTo));
     }
 }

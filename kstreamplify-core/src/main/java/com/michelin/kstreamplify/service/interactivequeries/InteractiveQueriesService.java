@@ -102,13 +102,13 @@ abstract class InteractiveQueriesService {
     }
 
     /**
-     * Request other instance.
+     * Request remote instance.
      *
      * @param host        The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    protected List<StateStoreRecord> getAllOnOtherHost(HostInfo host, String endpointPath) {
+    protected List<StateStoreRecord> getAllOnRemoteHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
@@ -121,13 +121,13 @@ abstract class InteractiveQueriesService {
     }
 
     /**
-     * Request other instance.
+     * Request remote instance.
      *
      * @param host        The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
-    protected StateStoreRecord getByKeyOnOtherHost(HostInfo host, String endpointPath) {
+    protected StateStoreRecord getByKeyOnRemoteHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
             return objectMapper.readValue(jsonResponse, StateStoreRecord.class);
@@ -140,7 +140,7 @@ abstract class InteractiveQueriesService {
     }
 
     /**
-     * Send request to the host.
+     * Send request to the remote host.
      *
      * @param host          The host
      * @param endpointPath The endpoint path

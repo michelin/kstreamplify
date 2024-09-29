@@ -66,7 +66,7 @@ public class KeyValueStoreService extends InteractiveQueriesService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 results.addAll(
-                    getAllOnOtherHost(metadata.hostInfo(), "store/key-value/local/" + store)
+                    getAllOnRemoteHost(metadata.hostInfo(), "store/key-value/local/" + store)
                 );
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
@@ -97,7 +97,7 @@ public class KeyValueStoreService extends InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return getByKeyOnOtherHost(host, "store/key-value/" + store + "/" + key);
+            return getByKeyOnRemoteHost(host, "store/key-value/" + store + "/" + key);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,

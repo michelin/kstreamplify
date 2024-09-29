@@ -15,8 +15,6 @@ import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.query.KeyQuery;
-import org.apache.kafka.streams.query.RangeQuery;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.query.WindowKeyQuery;
@@ -56,9 +54,11 @@ public class WindowStoreService extends InteractiveQueriesService {
      * Get all values from the store.
      *
      * @param store The store
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The values
      */
-    public List<StateStoreRecord> getAll(String store) {
+    public List<StateStoreRecord> getAll(String store, Instant timeFrom, Instant timeTo) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
@@ -71,12 +71,15 @@ public class WindowStoreService extends InteractiveQueriesService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 results.addAll(
-                    getAllOnOtherHost(metadata.hostInfo(), "store/window/local/" + store)
+                    getAllOnRemoteHost(
+                        metadata.hostInfo(),
+                        "store/window/local/" + store + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+                    )
                 );
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                results.addAll(executeRangeQuery(store));
+                results.addAll(executeWindowRangeQuery(store, timeFrom, timeTo));
             }
         });
 
@@ -88,9 +91,11 @@ public class WindowStoreService extends InteractiveQueriesService {
      *
      * @param store The store name
      * @param key   The key
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The value
      */
-    public List<StateStoreRecord> getByKey(String store, String key) {
+    public List<StateStoreRecord> getByKey(String store, String key, Instant timeFrom, Instant timeTo) {
         KeyQueryMetadata keyQueryMetadata = getKeyQueryMetadata(store, key, new StringSerializer());
 
         if (keyQueryMetadata == null) {
@@ -102,35 +107,40 @@ public class WindowStoreService extends InteractiveQueriesService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return getAllOnOtherHost(host, "store/window/" + store + "/" + key);
+            return getAllOnRemoteHost(
+                host,
+                "store/window/" + store + "/" + key + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+            );
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
             host.host(), host.port());
 
-        return executeKeyQuery(keyQueryMetadata, store, key);
+        return executeKeyQuery(keyQueryMetadata, store, key, timeFrom, timeTo);
     }
 
     /**
      * Get all values from the store on the local host.
      *
      * @param store The store
+     * @param timeFrom The time from
+     * @param timeTo The time to
      * @return The values
      */
-    public List<StateStoreRecord> getAllOnLocalhost(String store) {
+    public List<StateStoreRecord> getAllOnLocalHost(String store, Instant timeFrom, Instant timeTo) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
             throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
         }
 
-        return executeRangeQuery(store);
+        return executeWindowRangeQuery(store, timeFrom, timeTo);
     }
 
     @SuppressWarnings("unchecked")
-    private List<StateStoreRecord> executeRangeQuery(String store) {
+    private List<StateStoreRecord> executeWindowRangeQuery(String store, Instant timeFrom, Instant timeTo) {
         WindowRangeQuery<String, Object> windowRangeQuery = WindowRangeQuery
-            .withWindowStartRange(Instant.EPOCH, Instant.now());
+            .withWindowStartRange(timeFrom, timeTo);
 
         StateQueryResult<KeyValueIterator<Windowed<String>, Object>> result = kafkaStreamsInitializer
             .getKafkaStreams()
@@ -160,9 +170,13 @@ public class WindowStoreService extends InteractiveQueriesService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key) {
+    private List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata,
+                                                   String store,
+                                                   String key,
+                                                   Instant timeFrom,
+                                                   Instant timeTo) {
         WindowKeyQuery<String, Object> windowKeyQuery = WindowKeyQuery
-            .withKeyAndWindowStartRange(key, Instant.EPOCH, Instant.now());
+            .withKeyAndWindowStartRange(key, timeFrom, timeTo);
 
         StateQueryResult<WindowStoreIterator<Object>> result = kafkaStreamsInitializer
             .getKafkaStreams()
