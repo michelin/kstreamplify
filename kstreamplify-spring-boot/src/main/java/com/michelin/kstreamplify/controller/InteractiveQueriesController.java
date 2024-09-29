@@ -134,12 +134,12 @@ public class InteractiveQueriesController {
         }),
     })
     @GetMapping(value = "/key-value/local/{store}")
-    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalhost(@PathVariable("store")
+    public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalHost(@PathVariable("store")
                                                                                        String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(keyValueStoreService.getAllOnLocalhost(store));
+            .body(keyValueStoreService.getAllOnLocalHost(store));
     }
 
     /**

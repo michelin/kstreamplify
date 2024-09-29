@@ -309,7 +309,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllOnLocalhostInStringStringKeyValueStore() {
+    void shouldGetAllOnLocalHostInStringStringKeyValueStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/key-value/local/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
             });
@@ -367,7 +367,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllOnLocalhostInStringAvroWindowStore() {
+    void shouldGetAllOnLocalHostInStringAvroWindowStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/window/local/STRING_AVRO_WINDOW_STORE", GET, null, new ParameterizedTypeReference<>() {
             });

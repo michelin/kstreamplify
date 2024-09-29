@@ -170,7 +170,7 @@ public class KafkaStreamsHttpServer {
         if (exchange.getRequestURI().toString()
             .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/local/.*")) {
             store = parsePathParam(exchange, 4);
-            return keyValueStoreService.getAllOnLocalhost(store);
+            return keyValueStoreService.getAllOnLocalHost(store);
         }
 
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH

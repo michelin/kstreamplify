@@ -112,7 +112,7 @@ public class KeyValueStoreService extends InteractiveQueriesService {
      * @param store The store
      * @return The values
      */
-    public List<StateStoreRecord> getAllOnLocalhost(String store) {
+    public List<StateStoreRecord> getAllOnLocalHost(String store) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {

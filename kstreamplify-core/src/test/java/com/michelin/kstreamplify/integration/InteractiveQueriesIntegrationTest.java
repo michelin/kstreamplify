@@ -347,7 +347,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllOnLocalhostInStringStringKeyValueStore() throws IOException, InterruptedException {
+    void shouldGetAllOnLocalHostInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/local/STRING_STRING_STORE"))
             .GET()

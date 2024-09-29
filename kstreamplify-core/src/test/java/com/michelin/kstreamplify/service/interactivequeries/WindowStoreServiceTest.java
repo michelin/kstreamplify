@@ -16,6 +16,7 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -29,12 +30,15 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.kstream.internals.TimeWindow;
 import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -43,7 +47,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class KeyValueStoreServiceTest {
+class WindowStoreServiceTest {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in REBALANCING state";
 
     @Mock
@@ -59,23 +63,26 @@ class KeyValueStoreServiceTest {
     private KafkaStreams kafkaStreams;
 
     @Mock
-    private StateQueryResult<KeyValueIterator<Object, ValueAndTimestamp<Object>>> stateRangeQueryResult;
+    private StateQueryResult<KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>>> stateWindowRangeQueryResult;
 
     @Mock
-    private KeyValueIterator<Object, ValueAndTimestamp<Object>> iterator;
+    private KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>> iterator;
 
     @Mock
-    private StateQueryResult<ValueAndTimestamp<Object>> stateKeyQueryResult;
+    private StateQueryResult<WindowStoreIterator<ValueAndTimestamp<Object>>> stateWindowKeyQueryResult;
+
+    @Mock
+    private WindowStoreIterator<ValueAndTimestamp<Object>> windowStoreIterator;
 
     @Mock
     private HttpResponse<String> httpResponse;
 
     @InjectMocks
-    private KeyValueStoreService keyValueStoreService;
+    private WindowStoreService windowStoreService;
 
     @Test
-    void shouldConstructKeyValueService() {
-        KeyValueStoreService service = new KeyValueStoreService(kafkaStreamsInitializer);
+    void shouldConstructWindowService() {
+        WindowStoreService service = new WindowStoreService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
     }
 
@@ -91,7 +98,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getStateStores());
+            () -> windowStoreService.getStateStores());
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -107,7 +114,7 @@ class KeyValueStoreServiceTest {
         when(streamsMetadata.stateStoreNames())
             .thenReturn(Set.of("store1", "store2"));
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = windowStoreService.getStateStores();
         
         assertTrue(stores.contains("store1"));
         assertTrue(stores.contains("store2"));
@@ -121,7 +128,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(null);
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = windowStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -134,7 +141,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(Collections.emptyList());
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = windowStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -151,7 +158,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getStreamsMetadataForStore("store"));
+            () -> windowStoreService.getStreamsMetadataForStore("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -164,7 +171,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(List.of(streamsMetadata));
 
-        Collection<StreamsMetadata> streamsMetadataResponse = keyValueStoreService
+        Collection<StreamsMetadata> streamsMetadataResponse = windowStoreService
             .getStreamsMetadataForStore("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
@@ -181,8 +188,9 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.state())
             .thenReturn(KafkaStreams.State.REBALANCING);
 
+        Instant instant = Instant.now();
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getAll("store"));
+            () -> windowStoreService.getAll("store", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -195,7 +203,8 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAll("store"));
+        Instant instant = Instant.now();
+        assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
     }
 
     @Test
@@ -206,7 +215,8 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAll("store"));
+        Instant instant = Instant.now();
+        assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
     }
 
     @Test
@@ -224,11 +234,11 @@ class KeyValueStoreServiceTest {
         when(kafkaStreamsInitializer.getHostInfo())
             .thenReturn(hostInfo);
 
-        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Object,
-            ValueAndTimestamp<Object>>>>any()))
-            .thenReturn(stateRangeQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers
+            .<StateQueryRequest<KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>>>>any()))
+            .thenReturn(stateWindowRangeQueryResult);
 
-        when(stateRangeQueryResult.getPartitionResults())
+        when(stateWindowRangeQueryResult.getPartitionResults())
             .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
@@ -237,9 +247,12 @@ class KeyValueStoreServiceTest {
             .thenReturn(false);
 
         when(iterator.next())
-            .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+            .thenReturn(KeyValue.pair(
+                new Windowed<>("key", new TimeWindow(0L, 150L)),
+                ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
+            );
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAll("store");
+        List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -276,7 +289,7 @@ class KeyValueStoreServiceTest {
               }
             ]""");
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAll("store");
+        List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -292,7 +305,9 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAllOnLocalHost("store"));
+        Instant instant = Instant.now();
+        assertThrows(UnknownStateStoreException.class,
+            () -> windowStoreService.getAllOnLocalHost("store", instant, instant));
     }
 
     @Test
@@ -303,7 +318,9 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAllOnLocalHost("store"));
+        Instant instant = Instant.now();
+        assertThrows(UnknownStateStoreException.class,
+            () -> windowStoreService.getAllOnLocalHost("store", instant, instant));
     }
 
     @Test
@@ -314,11 +331,11 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(List.of(streamsMetadata));
 
-        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Object,
-            ValueAndTimestamp<Object>>>>any()))
-            .thenReturn(stateRangeQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers
+            .<StateQueryRequest<KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>>>>any()))
+            .thenReturn(stateWindowRangeQueryResult);
 
-        when(stateRangeQueryResult.getPartitionResults())
+        when(stateWindowRangeQueryResult.getPartitionResults())
             .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
@@ -328,11 +345,12 @@ class KeyValueStoreServiceTest {
 
         when(iterator.next())
             .thenReturn(KeyValue.pair(
-                "key",
+                new Windowed<>("key", new TimeWindow(0L, 150L)),
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAllOnLocalHost("store");
+        Instant instant = Instant.now();
+        List<StateStoreRecord> responses = windowStoreService.getAllOnLocalHost("store", instant, instant);
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -357,8 +375,9 @@ class KeyValueStoreServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
             .thenThrow(new RuntimeException("Error"));
 
+        Instant instant = Instant.now();
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueStoreService.getAll("store"));
+            () -> windowStoreService.getAll("store", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
@@ -374,8 +393,9 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.state())
             .thenReturn(KafkaStreams.State.REBALANCING);
 
+        Instant instant = Instant.now();
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getByKey("store", "key"));
+            () -> windowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -388,8 +408,9 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
             .thenReturn(null);
 
+        Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class, () ->
-            keyValueStoreService.getByKey("store", "key"));
+            windowStoreService.getByKey("store", "key", instant, instant));
     }
 
     @Test
@@ -407,18 +428,31 @@ class KeyValueStoreServiceTest {
         when(kafkaStreamsInitializer.getHostInfo())
             .thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<ValueAndTimestamp<Object>>>any()))
-            .thenReturn(stateKeyQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers
+            .<StateQueryRequest<WindowStoreIterator<ValueAndTimestamp<Object>>>>any()))
+            .thenReturn(stateWindowKeyQueryResult);
 
-        when(stateKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+        when(stateWindowKeyQueryResult.getOnlyPartitionResult())
+            .thenReturn(QueryResult.forResult(windowStoreIterator));
 
-        StateStoreRecord response = keyValueStoreService.getByKey("store", "key");
+        doCallRealMethod().when(windowStoreIterator).forEachRemaining(any());
+        when(windowStoreIterator.hasNext())
+            .thenReturn(true)
+            .thenReturn(true)
+            .thenReturn(false);
 
-        assertEquals("key", response.getKey());
-        assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getValue()).get("lastName"));
-        assertEquals(150L, response.getTimestamp());
+        when(windowStoreIterator.next())
+            .thenReturn(KeyValue.pair(
+                0L,
+                ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
+            );
+
+        List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
+
+        assertEquals("key", responses.get(0).getKey());
+        assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) responses.get(0).getValue()).get("lastName"));
+        assertEquals(150L, responses.get(0).getTimestamp());
     }
 
     @Test
@@ -440,22 +474,24 @@ class KeyValueStoreServiceTest {
             .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
         when(httpResponse.body()).thenReturn("""              
-              {
-                "key": "key",
-                "value": {
-                  "firstName": "John",
-                  "lastName": "Doe"
-                },
-                "timestamp": 150
-              }
+              [
+                {
+                  "key": "key",
+                  "value": {
+                    "firstName": "John",
+                    "lastName": "Doe"
+                  },
+                  "timestamp": 150
+                }
+              ]
             """);
 
-        StateStoreRecord response = keyValueStoreService.getByKey("store", "key");
+        List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
 
-        assertEquals("key", response.getKey());
-        assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getValue()).get("lastName"));
-        assertEquals(150L, response.getTimestamp());
+        assertEquals("key", responses.get(0).getKey());
+        assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) responses.get(0).getValue()).get("lastName"));
+        assertEquals(150L, responses.get(0).getTimestamp());
     }
 
     @Test
@@ -469,14 +505,16 @@ class KeyValueStoreServiceTest {
         when(kafkaStreamsInitializer.getHostInfo())
             .thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<ValueAndTimestamp<Object>>>any()))
-            .thenReturn(stateKeyQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers
+            .<StateQueryRequest<WindowStoreIterator<ValueAndTimestamp<Object>>>>any()))
+            .thenReturn(stateWindowKeyQueryResult);
 
-        when(stateKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(null);
+        when(stateWindowKeyQueryResult.getOnlyPartitionResult())
+            .thenReturn(QueryResult.forResult(windowStoreIterator));
 
+        Instant instant = Instant.now();
         UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-            keyValueStoreService.getByKey("store", "unknownKey"));
+            windowStoreService.getByKey("store", "unknownKey", instant, instant));
 
         assertEquals("Key unknownKey not found", exception.getMessage());
     }
@@ -487,11 +525,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8085),
-                Collections.emptySet(),
-                0)
-            );
+            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
 
         when(kafkaStreamsInitializer.getHostInfo())
             .thenReturn(new HostInfo("localhost", 8080));
@@ -499,8 +533,9 @@ class KeyValueStoreServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
             .thenThrow(new RuntimeException("Error"));
 
+        Instant instant = Instant.now();
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueStoreService.getByKey("store", "key"));
+            () -> windowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
