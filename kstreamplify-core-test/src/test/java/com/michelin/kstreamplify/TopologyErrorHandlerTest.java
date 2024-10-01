@@ -16,7 +16,6 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -25,6 +24,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     private static final String AVRO_TOPIC = "avroTopic";
@@ -160,8 +160,8 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
      * Test the default storage path.
      */
     @Test
-    void testDefaultStoragePath() {
+    void shouldValidateDefaultStorageDir() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(), properties.getProperty(StreamsConfig.STATE_DIR_CONFIG));
+        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(), properties.getProperty(STATE_DIR_CONFIG));
     }
 }

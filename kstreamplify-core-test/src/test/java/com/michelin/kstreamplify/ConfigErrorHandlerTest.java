@@ -3,11 +3,13 @@ package com.michelin.kstreamplify;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.Properties;
+
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 class ConfigErrorHandlerTest extends KafkaStreamsStarterTest {
 
@@ -28,18 +30,26 @@ class ConfigErrorHandlerTest extends KafkaStreamsStarterTest {
         };
     }
 
+    /**
+     * Overwrite the default storage path.
+     *
+     * @return the new/overwrite properties
+     */
     @Override
-    protected String getStoragePath() {
-        return SPECIFIC_STORAGE_PATH;
+    protected HashMap<String, String> getSpecificProperties() {
+        HashMap<String, String> propertiesMap = new HashMap<>();
+        propertiesMap.put(STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH);
+        
+        return propertiesMap;
     }
 
     /**
      * Test when the default storage path is override.
      */
     @Test
-    void testSpecificStoragePath() {
+    void shouldValidateStorageDirHasBeenOverride(){
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals(SPECIFIC_STORAGE_PATH, properties.getProperty(StreamsConfig.STATE_DIR_CONFIG));
+        Assertions.assertEquals(SPECIFIC_STORAGE_PATH, properties.getProperty(STATE_DIR_CONFIG));
     }
 
 }
