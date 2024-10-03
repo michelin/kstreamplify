@@ -1,7 +1,7 @@
 package com.michelin.kstreamplify;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -161,7 +161,7 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     @Test
     void shouldValidateDefaultStorageDir() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName()
-                                , properties.getProperty(STATE_DIR_CONFIG));
+        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(),
+                                properties.getProperty(STATE_DIR_CONFIG));
     }
 }
