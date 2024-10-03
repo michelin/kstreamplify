@@ -1,14 +1,17 @@
 package com.michelin.kstreamplify;
 
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.error.TopologyErrorHandler;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.serde.TopicWithSerde;
 import java.util.List;
+import java.util.Properties;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -18,6 +21,7 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -149,5 +153,15 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
         assertEquals("TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
             + "valueDeserializer=StringDeserializer, size=0]", outputTopic.toString());
+    }
+
+    /**
+     * Test the default storage path.
+     */
+    @Test
+    void shouldValidateDefaultStorageDir() {
+        Properties properties = KafkaStreamsExecutionContext.getProperties();
+        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(),
+                                properties.getProperty(STATE_DIR_CONFIG));
     }
 }

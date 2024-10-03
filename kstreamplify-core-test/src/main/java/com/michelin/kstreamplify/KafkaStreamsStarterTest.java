@@ -1,5 +1,7 @@
 package com.michelin.kstreamplify;
 
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
@@ -12,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -44,17 +47,14 @@ public abstract class KafkaStreamsStarterTest {
      */
     @BeforeEach
     void generalSetUp() {
-        Properties properties = new Properties();
-        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getName());
+        Properties properties = getProperties();
 
         KafkaStreamsExecutionContext.registerProperties(properties);
         KafkaStreamsExecutionContext.setSerdesConfig(Collections
             .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-                "mock://" + getClass().getName()));
+                "mock://" + getClass().getSimpleName()));
 
-        var starter = getKafkaStreamsStarter();
+        KafkaStreamsStarter starter = getKafkaStreamsStarter();
 
         KafkaStreamsExecutionContext.setDlqTopicName(starter.dlqTopic());
 
@@ -68,6 +68,28 @@ public abstract class KafkaStreamsStarterTest {
             new StringDeserializer(), SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
+    /** 
+     * Get the properties for the test.
+     *
+     * @return The properties for the test
+     */
+    private Properties getProperties() {
+        Properties properties = new Properties();
+
+        // Default properties
+        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
+        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
+        
+        // Add specific properties or overwrite default properties
+        HashMap<String, String> propertiesMap = getSpecificProperties();
+        if (propertiesMap != null && !propertiesMap.isEmpty()) {
+            properties.putAll(propertiesMap);
+        }
+        
+        return properties;
+    }
+    
     /**
      * Method to override to provide the KafkaStreamsStarter to test.
      *
@@ -85,13 +107,22 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
+     * Create/Overwrite properties.
+     *
+     * @return new/overwrite properties
+     */
+    protected HashMap<String, String> getSpecificProperties() {
+        return new HashMap<>();
+    }
+    
+    /**
      * Method to close everything properly at the end of the test.
      */
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        Files.deleteIfExists(Paths.get(STATE_DIR + getClass().getName()));
-        MockSchemaRegistry.dropScope("mock://" + getClass().getName());
+        Files.deleteIfExists(Paths.get(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
+        MockSchemaRegistry.dropScope("mock://" + getClass().getSimpleName());
     }
 
     /**
