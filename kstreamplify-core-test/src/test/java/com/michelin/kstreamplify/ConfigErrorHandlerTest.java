@@ -1,15 +1,14 @@
 package com.michelin.kstreamplify;
 
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Properties;
-
-import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class ConfigErrorHandlerTest extends KafkaStreamsStarterTest {
 

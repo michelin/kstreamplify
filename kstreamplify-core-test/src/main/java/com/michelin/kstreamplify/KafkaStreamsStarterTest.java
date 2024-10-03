@@ -1,5 +1,7 @@
 package com.michelin.kstreamplify;
 
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
@@ -22,8 +24,6 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 /**
  * <p>The main test class to extend to execute unit tests on topology</p>.
@@ -49,7 +49,7 @@ public abstract class KafkaStreamsStarterTest {
     void generalSetUp() {
         Properties properties = getProperties();
 
-        KafkaStreamsExecutionContext.registerProperties( properties );
+        KafkaStreamsExecutionContext.registerProperties(properties);
         KafkaStreamsExecutionContext.setSerdesConfig(Collections
             .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 "mock://" + getClass().getSimpleName()));
@@ -79,11 +79,11 @@ public abstract class KafkaStreamsStarterTest {
         // Default properties
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName() );
+        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
         
         // Add specific properties or overwrite default properties
         HashMap<String, String> propertiesMap = getSpecificProperties();
-        if (propertiesMap != null && !propertiesMap.isEmpty() ) {
+        if (propertiesMap != null && !propertiesMap.isEmpty()) {
             properties.putAll(propertiesMap);
         }
         
@@ -111,7 +111,9 @@ public abstract class KafkaStreamsStarterTest {
      *
      * @return new/overwrite properties
      */
-    protected HashMap<String, String> getSpecificProperties() {return new HashMap<>();}
+    protected HashMap<String, String> getSpecificProperties() {
+        return new HashMap<>();
+    }
     
     /**
      * Method to close everything properly at the end of the test.
@@ -119,7 +121,7 @@ public abstract class KafkaStreamsStarterTest {
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        Files.deleteIfExists(Paths.get( KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG) ));
+        Files.deleteIfExists(Paths.get(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
         MockSchemaRegistry.dropScope("mock://" + getClass().getSimpleName());
     }
 
