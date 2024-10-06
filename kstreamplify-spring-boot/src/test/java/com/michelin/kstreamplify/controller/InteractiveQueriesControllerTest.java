@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
 import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;

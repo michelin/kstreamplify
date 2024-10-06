@@ -20,6 +20,7 @@ import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -252,141 +253,10 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllInStringStringKeyValueStore() {
+    void shouldGetByKeyInStringAvroTimestampedWindowStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals("Doe", response.getBody().get(0).getValue());
-        assertNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/key-value/STRING_AVRO_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroKeyValueStoreFromService() {
-        List<StateStoreRecord> stateQueryData = keyValueStoreService.getAll("STRING_AVRO_STORE");
-
-        assertEquals("person", stateQueryData.get(0).getKey());
-        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
-        assertNull(stateQueryData.get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroTimestampedKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/key-value/STRING_AVRO_TIMESTAMPED_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNotNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllOnLocalHostInStringStringKeyValueStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/key-value/local/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals("Doe", response.getBody().get(0).getValue());
-        assertNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroWindowStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroWindowStoreFromService() {
-        List<StateStoreRecord> stateQueryData = windowStoreService
-            .getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
-
-        assertEquals("person", stateQueryData.get(0).getKey());
-        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
-        assertNull(stateQueryData.get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroTimestampedWindowStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNotNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllOnLocalHostInStringAvroWindowStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/window/local/STRING_AVRO_WINDOW_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
-
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNull(response.getBody().get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetByKeyInStringAvroWindowStore() {
-        ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE/person", GET, null, new ParameterizedTypeReference<>() {
-            });
+            .exchange("http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person", GET, null,
+                new ParameterizedTypeReference<>() {});
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -395,7 +265,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("John", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNull(response.getBody().get(0).getTimestamp());
+        assertNotNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test
@@ -412,19 +282,86 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyInStringAvroTimestampedWindowStore() {
+    void shouldGetAllInStringStringKeyValueStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person", GET, null,
-                new ParameterizedTypeReference<>() {});
+            .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
+            });
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals("person", response.getBody().get(0).getKey());
-        assertEquals(1, ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8085/store/key-value/STRING_AVRO_STORE",
+        "http://localhost:8085/store/key-value/local/STRING_AVRO_STORE",
+        "http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8085/store/window/local/STRING_AVRO_WINDOW_STORE"
+    })
+    void shouldGetAllInStringAvroStores(String url) {
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
+            .exchange(url, GET, null, new ParameterizedTypeReference<>() {
+            });
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNull(response.getBody().get(0).getTimestamp());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8085/store/key-value/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8085/store/key-value/local/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
+        "http://localhost:8085/store/window/local/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
+        "http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person"
+    })
+    void shouldGetWithTimestamp(String url) {
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate
+            .exchange(url, GET, null, new ParameterizedTypeReference<>() {
+            });
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("person", response.getBody().get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
         assertNotNull(response.getBody().get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInStringAvroKeyValueStoreFromService() {
+        List<StateStoreRecord> stateQueryData = keyValueStoreService.getAll("STRING_AVRO_STORE");
+
+        assertEquals("person", stateQueryData.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
+        assertNull(stateQueryData.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInStringAvroWindowStoreFromService() {
+        List<StateStoreRecord> stateQueryData = windowStoreService
+            .getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
+
+        assertEquals("person", stateQueryData.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
+        assertNull(stateQueryData.get(0).getTimestamp());
     }
 
     /**
