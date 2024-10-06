@@ -12,7 +12,6 @@
     <artifactId>kstreamplify-spring-boot</artifactId>
 
     <properties>
-        <kstreamplify-core.version>1.0.3-SNAPSHOT</kstreamplify-core.version>
         <springdoc.version>2.6.0</springdoc.version>
     </properties>
 
@@ -52,7 +51,7 @@
         <dependency>
             <groupId>com.michelin</groupId>
             <artifactId>kstreamplify-core</artifactId>
-            <version>${kstreamplify-core.version}</version>
+            <version>1.0.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>

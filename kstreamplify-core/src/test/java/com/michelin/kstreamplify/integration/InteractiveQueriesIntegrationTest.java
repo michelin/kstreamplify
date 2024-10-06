@@ -18,7 +18,8 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import com.michelin.kstreamplify.serde.SerdesUtils;
-import com.michelin.kstreamplify.service.InteractiveQueriesService;
+import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -62,7 +63,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
-    private final InteractiveQueriesService interactiveQueriesService = new InteractiveQueriesService(initializer);
+    private final KeyValueStoreService keyValueStoreService = new KeyValueStoreService(initializer);
+    private final WindowStoreService windowStoreService = new WindowStoreService(initializer);
 
     @BeforeAll
     static void globalSetUp() throws ExecutionException, InterruptedException {
@@ -182,9 +184,12 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8081/store/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8081/store/STRING_STRING_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8081/store/WRONG_STORE,State store WRONG_STORE not found",
+        "http://localhost:8081/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8081/store/key-value/STRING_STRING_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8081/store/key-value/WRONG_STORE,State store WRONG_STORE not found",
+        "http://localhost:8081/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8081/store/window/WRONG_STORE,State store WRONG_STORE not found",
     })
     void shouldGetErrorWhenWrongKeyOrStore(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -199,22 +204,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyWrongKey() throws IOException, InterruptedException {
+    void shouldGetErrorWhenQueryingNotKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE/wrongKey"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        assertEquals(404, response.statusCode());
-        assertEquals("Key wrongKey not found", response.body());
-    }
-
-    @Test
-    void shouldGetByKeyWrongStoreType() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_WINDOW_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
             .build();
 
@@ -227,7 +219,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE/person"))
             .GET()
             .build();
 
@@ -243,7 +235,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_STORE/person"))
             .GET()
             .build();
 
@@ -260,8 +252,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyInStringAvroKeyValueStoreFromInteractiveQueriesService() {
-        StateStoreRecord stateStoreRecord = interactiveQueriesService.getByKey("STRING_AVRO_STORE", "person");
+    void shouldGetByKeyInStringAvroKeyValueStoreFromService() {
+        StateStoreRecord stateStoreRecord = keyValueStoreService.getByKey("STRING_AVRO_STORE", "person");
 
         assertEquals("person", stateStoreRecord.getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
@@ -274,7 +266,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_TIMESTAMPED_STORE/person"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE/person"))
             .GET()
             .build();
 
@@ -291,38 +283,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllWrongStore() throws IOException, InterruptedException {
+    void shouldGetByKeyInStringAvroWindowStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/WRONG_STORE/key"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-        assertEquals(404, response.statusCode());
-        assertEquals("State store WRONG_STORE not found", response.body());
-    }
-
-    @Test
-    void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_STRING_STORE"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
-
-        assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
-        assertEquals("Doe", body.get(0).getValue());
-        assertNull(body.get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetAllInStringAvroKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_STORE"))
+            .uri(URI.create("http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
             .build();
 
@@ -339,21 +302,74 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllInStringAvroKeyValueStoreFromInteractiveQueriesService() {
-        List<StateStoreRecord> stateQueryData = interactiveQueriesService.getAll("STRING_AVRO_STORE");
+    void shouldGetByKeyInStringAvroWindowStoreFromService() {
+        List<StateStoreRecord> stateStoreRecord = windowStoreService.getByKey(
+            "STRING_AVRO_WINDOW_STORE",
+            "person",
+            Instant.EPOCH,
+            Instant.now()
+        );
 
-        assertEquals("person", stateQueryData.get(0).getKey());
-        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
-        assertNull(stateQueryData.get(0).getTimestamp());
+        assertEquals("person", stateStoreRecord.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("birthDate"));
+        assertNull(stateStoreRecord.get(0).getTimestamp());
     }
 
     @Test
-    void shouldGetAllInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
+    void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/STRING_AVRO_TIMESTAMPED_STORE"))
+            .uri(URI.create("http://localhost:8081/store/key-value/STRING_STRING_STORE"))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.get(0).getKey());
+        assertEquals("Doe", body.get(0).getValue());
+        assertNull(body.get(0).getTimestamp());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8081/store/key-value/STRING_AVRO_STORE",
+        "http://localhost:8081/store/key-value/local/STRING_AVRO_STORE",
+        "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8081/store/window/local/STRING_AVRO_WINDOW_STORE"
+    })
+    void shouldGetAllInStringAvroStores(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+
+        assertEquals(200, response.statusCode());
+        assertEquals("person", body.get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
+        assertNull(body.get(0).getTimestamp());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8081/store/key-value/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8081/store/key-value/local/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8081/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
+        "http://localhost:8081/store/window/local/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
+        "http://localhost:8081/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person"
+    })
+    void shouldGetWithTimestamp(String url) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
             .GET()
             .build();
 
@@ -370,19 +386,28 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetAllOnLocalhostInStringStringKeyValueStore() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/local/STRING_STRING_STORE"))
-            .GET()
-            .build();
+    void shouldGetAllInStringAvroKeyValueStoreFromService() {
+        List<StateStoreRecord> stateQueryData = keyValueStoreService.getAll("STRING_AVRO_STORE");
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        assertEquals("person", stateQueryData.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
+        assertNull(stateQueryData.get(0).getTimestamp());
+    }
 
-        assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
-        assertEquals("Doe", body.get(0).getValue());
-        assertNull(body.get(0).getTimestamp());
+    @Test
+    void shouldGetAllInStringAvroWindowStoreFromService() {
+        List<StateStoreRecord> stateQueryData = windowStoreService
+            .getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
+
+        assertEquals("person", stateQueryData.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
+        assertNull(stateQueryData.get(0).getTimestamp());
     }
 
     /**
