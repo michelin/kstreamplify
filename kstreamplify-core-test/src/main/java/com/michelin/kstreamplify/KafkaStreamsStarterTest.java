@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -82,7 +83,7 @@ public abstract class KafkaStreamsStarterTest {
         properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
         
         // Add specific properties or overwrite default properties
-        HashMap<String, String> propertiesMap = getSpecificProperties();
+        Map<String, String> propertiesMap = getSpecificProperties();
         if (propertiesMap != null && !propertiesMap.isEmpty()) {
             properties.putAll(propertiesMap);
         }
@@ -111,8 +112,8 @@ public abstract class KafkaStreamsStarterTest {
      *
      * @return new/overwrite properties
      */
-    protected HashMap<String, String> getSpecificProperties() {
-        return new HashMap<>();
+    protected Map<String, String> getSpecificProperties() {
+        return Collections.emptyMap();
     }
     
     /**

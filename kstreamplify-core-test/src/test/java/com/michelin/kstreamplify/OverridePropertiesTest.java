@@ -5,6 +5,7 @@ import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +26,7 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
 
             @Override
             public void topology(StreamsBuilder streamsBuilder) {
+                // Do nothing
             }
         };
     }
@@ -32,14 +34,13 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
     /**
      * Overwrite the default storage path.
      *
-     * @return the new/overwrite properties
+     * @return the new properties
      */
     @Override
-    protected HashMap<String, String> getSpecificProperties() {
-        HashMap<String, String> propertiesMap = new HashMap<>();
-        propertiesMap.put(STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH);
-        
-        return propertiesMap;
+    protected Map<String, String> getSpecificProperties() {
+        return Map.of(
+            STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH
+        );
     }
 
     /**
@@ -50,5 +51,4 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
         Assertions.assertEquals(SPECIFIC_STORAGE_PATH, properties.getProperty(STATE_DIR_CONFIG));
     }
-
 }
