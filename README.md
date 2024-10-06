@@ -53,6 +53,8 @@ need to do:
 * [Open Telemetry](#open-telemetry)
 * [Swagger](#swagger)
 * [Testing](#testing)
+  * [Create your first test](#create-your-first-test)
+  * [Override Properties](#override-properties)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
@@ -501,6 +503,8 @@ Both can be customized by using the [Springdoc properties](https://springdoc.org
 
 Kstreamplify eases the use of the Topology Test Driver for testing Kafka Streams application.
 
+### Create your first test
+
 You can create a test class that extends `KafkaStreamsStarterTest`, override
 the `KafkaStreamsStarterTest#getKafkaStreamsStarter()` to provide your `KafkaStreamsStarter` implementation, 
 and start writing your tests.
@@ -539,6 +543,22 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
         assertThat(errors.get(0).key).isEqualTo("1");
         assertThat(errors.get(0).value.getContextMessage()).isEqualTo("Something bad happened...");
         assertThat(errors.get(0).value.getOffset()).isZero();
+    }
+}
+```
+
+### Override Properties
+
+Kstreamplify runs the tests with default properties. 
+It is possible to provide additional properties or override the default ones:
+
+```java
+public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
+    @Override
+    protected Map<String, String> getSpecificProperties() {
+        return Map.of(
+            STATE_DIR_CONFIG, "/tmp/kafka-streams"
+        );
     }
 }
 ```
