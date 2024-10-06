@@ -4,7 +4,6 @@ import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.streams.StreamsBuilder;
