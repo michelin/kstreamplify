@@ -44,7 +44,7 @@ need to do:
 * [Interactive Queries](#interactive-queries)
   * [Application Server Configuration](#application-server-configuration)
   * [Web Services](#web-services)
-  * [Service](#service)
+  * [Services](#services)
 * [Topology](#topology)
 * [Deduplication](#deduplication)
   * [By Key](#by-key)
@@ -367,19 +367,25 @@ Kstreamplify provides web services to query the state stores of your Kafka Strea
 It handles state stores being on different Kafka Streams instances by providing an [RPC layer](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html#adding-an-rpc-layer-to-your-application).
 
 Here is the list of supported state store types:
-- Key-Value
+- Key-Value store
+- Window store
 
 Only state stores with String keys are supported.
 
-### Service
+You can use the [Swagger UI](#swagger) to see the available endpoints.
 
-You can leverage the interactive queries service used by the web services layer to serve your own needs.
+### Services
+
+You can leverage the interactive queries services used by the web services layer to serve your own needs.
 
 ```java
 @Component
 public class MyService {
     @Autowired
-    InteractiveQueriesService interactiveQueriesService;
+    KeyValueStoreService keyValueStoreService;
+
+    @Autowired
+    WindowStoreService windowStoreService;
 }
 ```
 
