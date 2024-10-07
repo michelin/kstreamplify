@@ -6,7 +6,7 @@
 
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.1.0</version>
     <name>kstreamplify</name>
     <description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
     <url>https://github.com/michelin/kstreamplify</url>
