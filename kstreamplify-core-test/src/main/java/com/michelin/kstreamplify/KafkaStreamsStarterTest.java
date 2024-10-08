@@ -134,8 +134,11 @@ public abstract class KafkaStreamsStarterTest {
      * @return The corresponding TestInputTopic
      */
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createInputTopic(topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().serializer(), topicWithSerde.getValueSerde().serializer());
+        return this.testDriver.createInputTopic(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().serializer(),
+                topicWithSerde.getValueSerde().serializer()
+        );
     }
 
     /**
@@ -151,8 +154,13 @@ public abstract class KafkaStreamsStarterTest {
     @Deprecated(since = "1.1.0")
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(
             com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createInputTopic(topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde().serializer(), topicWithSerde.getValueSerde().serializer());
+        return createInputTestTopic(
+            new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde(),
+                topicWithSerde.getValueSerde()
+            )
+        );
     }
 
     /**
@@ -164,9 +172,11 @@ public abstract class KafkaStreamsStarterTest {
      * @return The corresponding TestOutputTopic
      */
     protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createOutputTopic(topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().deserializer(),
-            topicWithSerde.getValueSerde().deserializer());
+        return this.testDriver.createOutputTopic(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().deserializer(),
+                topicWithSerde.getValueSerde().deserializer()
+        );
     }
 
     /**
@@ -180,10 +190,13 @@ public abstract class KafkaStreamsStarterTest {
      * @deprecated Use {@link #createOutputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")
-    protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(
-            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createOutputTopic(topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde().deserializer(),
-                topicWithSerde.getValueSerde().deserializer());
+    protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
+        return createOutputTestTopic(
+            new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde(),
+                topicWithSerde.getValueSerde()
+            )
+        );
     }
 }
