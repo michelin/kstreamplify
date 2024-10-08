@@ -153,7 +153,8 @@ public abstract class KafkaStreamsStarterTest {
      */
     @Deprecated(since = "1.1.0")
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(
-            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
+            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
+    ) {
         return createInputTestTopic(
             new TopicWithSerde<>(
                 topicWithSerde.getUnPrefixedName(),
@@ -190,7 +191,9 @@ public abstract class KafkaStreamsStarterTest {
      * @deprecated Use {@link #createOutputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")
-    protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
+    protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(
+        com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
+    ) {
         return createOutputTestTopic(
             new TopicWithSerde<>(
                 topicWithSerde.getUnPrefixedName(),
