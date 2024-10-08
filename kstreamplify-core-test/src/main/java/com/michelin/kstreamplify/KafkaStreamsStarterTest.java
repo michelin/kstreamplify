@@ -133,10 +133,35 @@ public abstract class KafkaStreamsStarterTest {
      * @param <V>            The serializable type of the value
      * @return The corresponding TestInputTopic
      */
+    protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
+        return this.testDriver.createInputTopic(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().serializer(),
+                topicWithSerde.getValueSerde().serializer()
+        );
+    }
+
+    /**
+     * Creates an input test topic on the testDriver using the provided topicWithSerde.
+     *
+     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param <K>            The serializable type of the key
+     * @param <V>            The serializable type of the value
+     * @return The corresponding TestInputTopic
+     *
+     * @deprecated Use {@link #createInputTestTopic(TopicWithSerde)}
+     */
+    @Deprecated(since = "1.1.0")
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(
-        TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createInputTopic(topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().serializer(), topicWithSerde.getValueSerde().serializer());
+            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
+    ) {
+        return createInputTestTopic(
+            new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde(),
+                topicWithSerde.getValueSerde()
+            )
+        );
     }
 
     /**
@@ -147,10 +172,34 @@ public abstract class KafkaStreamsStarterTest {
      * @param <V>            The serializable type of the value
      * @return The corresponding TestOutputTopic
      */
+    protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
+        return this.testDriver.createOutputTopic(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().deserializer(),
+                topicWithSerde.getValueSerde().deserializer()
+        );
+    }
+
+    /**
+     * Creates an output test topic on the testDriver using the provided topicWithSerde.
+     *
+     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param <K>            The serializable type of the key
+     * @param <V>            The serializable type of the value
+     * @return The corresponding TestOutputTopic
+     *
+     * @deprecated Use {@link #createOutputTestTopic(TopicWithSerde)}
+     */
+    @Deprecated(since = "1.1.0")
     protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(
-        TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createOutputTopic(topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().deserializer(),
-            topicWithSerde.getValueSerde().deserializer());
+        com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
+    ) {
+        return createOutputTestTopic(
+            new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde(),
+                topicWithSerde.getValueSerde()
+            )
+        );
     }
 }

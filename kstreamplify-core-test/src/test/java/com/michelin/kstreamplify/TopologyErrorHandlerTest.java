@@ -141,6 +141,34 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
+    void shouldCreateInputAndOutputTopicsWithDeprecatedSerde() {
+        TestInputTopic<String, String> inputTopic = createInputTestTopic(
+                new com.michelin.kstreamplify.utils.TopicWithSerde<>(
+                        "INPUT_TOPIC",
+                "APP_NAME",
+                        Serdes.String(),
+                        Serdes.String()
+                )
+        );
+
+        assertEquals("TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
+                + "valueSerializer=StringSerializer]", inputTopic.toString());
+
+        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(
+                new com.michelin.kstreamplify.utils.TopicWithSerde<>(
+                        "OUTPUT_TOPIC",
+                "APP_NAME",
+                        Serdes.String(),
+                        Serdes.String()
+                )
+        );
+
+        assertEquals("TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
+                + "valueDeserializer=StringDeserializer, size=0]", outputTopic.toString());
+    }
+
+    @Test
     void shouldCreateInputAndOutputTopicsWithSerde() {
         TestInputTopic<String, String> inputTopic = createInputTestTopic(new TopicWithSerde<>("INPUT_TOPIC",
             "APP_NAME", Serdes.String(), Serdes.String()));
