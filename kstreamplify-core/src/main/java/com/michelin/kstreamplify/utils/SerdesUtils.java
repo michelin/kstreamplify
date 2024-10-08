@@ -9,7 +9,7 @@ import org.apache.avro.specific.SpecificRecord;
  *
  * @deprecated Use {@link com.michelin.kstreamplify.serde.SerdesUtils}.
  */
-@Deprecated(forRemoval = true, since = "1.1.0")
+@Deprecated(since = "1.1.0")
 public final class SerdesUtils {
     private SerdesUtils() {
     }
