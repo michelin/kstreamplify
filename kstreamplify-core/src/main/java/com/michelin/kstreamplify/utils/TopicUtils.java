@@ -12,7 +12,7 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
  *
  * @deprecated Use {@link com.michelin.kstreamplify.topic.TopicUtils}.
  */
-@Deprecated(forRemoval = true, since = "1.1.0")
+@Deprecated(since = "1.1.0")
 public final class TopicUtils {
     private TopicUtils() {
     }
