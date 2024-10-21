@@ -1,6 +1,5 @@
 package com.michelin.kstreamplify.integration.container;
 
-import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,10 +18,10 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -37,11 +36,10 @@ public abstract class KafkaIntegrationTest {
     protected static KafkaStreamsInitializer initializer;
 
     @Container
-    protected static KafkaContainer broker = new KafkaContainer(DockerImageName
+    protected static ConfluentKafkaContainer broker = new ConfluentKafkaContainer(DockerImageName
         .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
         .withNetwork(NETWORK)
-        .withNetworkAliases("broker")
-        .withKraft();
+        .withNetworkAliases("broker");
 
     @Container
     protected static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
@@ -52,7 +50,7 @@ public abstract class KafkaIntegrationTest {
         .withExposedPorts(8081)
         .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
         .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
-        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9092")
+        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9093")
         .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
     protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
