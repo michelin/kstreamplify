@@ -52,9 +52,9 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>Wraps a record's value with ProcessingResult.success(V value).</p>
-     * <p>The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.</p>
+     * Wraps a record's value with ProcessingResult.success(V value).
+     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
+     * for automatic DLQ redirection on failed records.
      *
      * @param message The resulting successful Record from the processor that needs to be wrapped in a ProcessingResult
      * @param <K>     The type of the record key
@@ -68,13 +68,9 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Wraps a key, value and timestamp in a Record with ProcessingResult#success(V value) as value.
-     * </p>
-     * <p>
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
      * for automatic DLQ redirection on failed records.
-     * </p>
      *
      * @param key       The key to put in the resulting record
      * @param value     The successful value to put in the resulting record
@@ -89,13 +85,9 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Create a failed processing result.
-     * </p>
-     * <p>
      * If you are using this in a Processor, refer to
      * {@link ProcessingResult#wrapRecordFailure(Exception, Record)} for easier syntax.
-     * </p>
      *
      * @param e                 The exception
      * @param failedRecordValue The failed Kafka record
@@ -108,14 +100,10 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Create a failed processing result.
-     * </p>
-     * <p>
      * If you are using this in a Processor, refer to
      * {@link ProcessingResult#wrapRecordFailure(Exception, Record, String)}
      * for easier syntax.
-     * </p>
      *
      * @param e                 The exception
      * @param failedRecordValue The failed Kafka record
@@ -129,13 +117,9 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Wraps a record's value with {@link ProcessingResult#fail(Exception, Object)} )}.
-     * </p>
-     * <p>
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
      * DLQ redirection on failed records.
-     * </p>
      *
      * @param e            The initial exception
      * @param failedRecord The resulting failed Record from
@@ -152,13 +136,9 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Wraps a record's value with {@link ProcessingResult#fail(Exception, Object, String)}.
-     * </p>
-     * <p>
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
      * for automatic DLQ redirection on failed records.
-     * </p>
      *
      * @param e              The initial exception
      * @param failedRecord   The resulting failed Record from
@@ -178,10 +158,10 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>Wraps a key, value and timestamp in a Record with {@link ProcessingResult#fail(Exception, Object, String)}
-     * as value.</p>
-     * <p>The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
-     * DLQ redirection on failed records.</p>
+     * Wraps a key, value and timestamp in a Record with {@link ProcessingResult#fail(Exception, Object, String)}
+     * as value.
+     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
+     * DLQ redirection on failed records.
      *
      * @param e           The initial exception
      * @param key         The key to put in the resulting record
@@ -201,14 +181,10 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * <p>
      * Wraps a key, value and timestamp in a Record
      * with {@link ProcessingResult#fail(Exception, Object, String)} as value.
-     * </p>
-     * <p>
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
      * DLQ redirection on failed records.
-     * </p>
      *
      * @param e              The initial exception
      * @param key            The key to put in the resulting record

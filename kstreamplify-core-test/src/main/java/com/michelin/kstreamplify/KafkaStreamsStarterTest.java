@@ -26,8 +26,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 /**
- * <p>The main test class to extend to execute unit tests on topology</p>.
- * <p>It provides a {@link TopologyTestDriver} and a {@link TestOutputTopic} for the DLQ</p>
+ * The main test class to extend to execute unit tests on topology.
+ * It provides a {@link TopologyTestDriver} and a {@link TestOutputTopic} for the DLQ.
  */
 public abstract class KafkaStreamsStarterTest {
     private static final String STATE_DIR = "/tmp/kafka-streams/";

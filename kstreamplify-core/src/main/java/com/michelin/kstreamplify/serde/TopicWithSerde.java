@@ -35,17 +35,17 @@ public class TopicWithSerde<K, V> {
     private final String topicName;
 
     /**
-     * <p>Name of the property key defined under kafka.properties.prefix.
-     * Used to prefix the topicName dynamically at runtime.</p>
-     * <p>For instance, with the given following configuration :</p>
+     * Name of the property key defined under kafka.properties.prefix.
+     * Used to prefix the topicName dynamically at runtime.
+     * For instance, with the given following configuration:
      * <pre>{@code
      * kafka:
      *   properties:
      *     prefix:
      *       nsKey: "myNamespacePrefix."
      * }</pre>
-     * <p>If the topic name is {@code myTopic} , at stream initialization the topic name wil resolve
-     * to {@code myNamespacePrefix.myTopic}</p>
+     * If the topic name is {@code myTopic}, at stream initialization the topic name wil resolve
+     * to {@code myNamespacePrefix.myTopic}.
      */
     private final String prefixPropertyKey;
 
@@ -62,17 +62,16 @@ public class TopicWithSerde<K, V> {
     private final Serde<V> valueSerde;
 
     /**
-     * <p>Additional constructor which uses default parameter "self" for prefixPropertyKey.</p>
-     *
-     * <p>For instance, with the given following configuration :</p>
+     * Additional constructor which uses default parameter "self" for prefixPropertyKey.
+     * For instance, with the given following configuration:
      * <pre>{@code
      * kafka:
      *   properties:
      *     prefix:
      *       self: "myNamespacePrefix."
      * }</pre>
-     * <p>If the topic name is {@code myTopic} , at stream initialization the topic name wil resolve
-     * to {@code myNamespacePrefix.myTopic}</p>
+     * If the topic name is {@code myTopic}, at stream initialization the topic name wil resolve
+     * to {@code myNamespacePrefix.myTopic}.
      *
      * @param topicName  Name of the topic
      * @param keySerde   Key serde for the topic

@@ -27,18 +27,18 @@ public final class TopicUtils {
     public static final String REMAP_PROPERTY_NAME = "remap";
 
     /**
-     * <p>Prefix the given topic name with the configured prefix and applies the dynamic remap.</p>
-     * <p>Prefix is retrieved at runtime from kafka.properties.prefix.[prefixPropertyKey]</p>
+     * Prefix the given topic name with the configured prefix and applies the dynamic remap.
+     * Prefix is retrieved at runtime from kafka.properties.prefix.[prefixPropertyKey].
      * <pre>{@code
      * kafka:
      *   properties:
      *     prefix:
      *       self: "myNamespacePrefix."
      * }</pre>
-     * <p>This allows interactions with multiple topics from different owners/namespaces</p>
-     * <p>If not provided, prefixing will not occur.</p>
+     * This allows interactions with multiple topics from different owners/namespaces.
+     * If not provided, prefixing will not occur.
      * <br/>
-     * <p>Dynamic remap is retrieved from the configuration like so:</p>
+     * Dynamic remap is retrieved from the configuration like so:
      * <pre>{@code
      * kafka:
      *   properties:
@@ -46,7 +46,7 @@ public final class TopicUtils {
      *       remap:
      *          myInitialTopicName: "myRemappedTopicName"
      * }</pre>
-     * <p>It can be applied to both input and output topics</p>
+     * It can be applied to both input and output topics.
      *
      * @param topicName         The topicName that needs to be prefixed and remapped
      * @param prefixPropertyKey The prefixPropertyKey matching the configuration file

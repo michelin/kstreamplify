@@ -16,8 +16,8 @@ public abstract class KafkaStreamsStarter {
     public abstract void topology(StreamsBuilder streamsBuilder);
 
     /**
-     * <p>Define the dead letter queue (DLQ) topic</p>.
-     * <p>If you don't want to use the DLQ topic, you can return {@link org.apache.commons.lang3.StringUtils#EMPTY}</p>
+     * Define the dead letter queue (DLQ) topic.
+     * If you don't want to use the DLQ topic, you can return {@link org.apache.commons.lang3.StringUtils#EMPTY}.
      *
      * @return The dead letter queue (DLQ) topic
      */
