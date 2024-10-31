@@ -27,8 +27,8 @@ public final class DeduplicationUtils {
     private static final String DEFAULT_REPARTITION = "Repartition";
 
     /**
-     * <p>Deduplicate the input stream on the input key using a window store for the given period of time.</p>
-     * <p>This constructor should not be used if using the deduplicator multiple times in the same topology</p>
+     * Deduplicate the input stream on the input key using a window store for the given period of time.
+     * This constructor should not be used if using the deduplicator multiple times in the same topology.
      *
      * @param streamsBuilder Stream builder instance for topology editing
      * @param initialStream  Stream containing the events that should be deduplicated
@@ -78,8 +78,8 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * <p>Deduplicate the input stream on the input key and value using a window store for the given period of time.</p>
-     * <p>This constructor should not be used if using the deduplicator multiple times in the same topology</p>
+     * Deduplicate the input stream on the input key and value using a window store for the given period of time.
+     * This constructor should not be used if using the deduplicator multiple times in the same topology.
      *
      * @param streamsBuilder Stream builder instance for topology editing
      * @param initialStream  Stream containing the events that should be deduplicated
@@ -99,8 +99,8 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * <p>Deduplicate the input stream on the input key and Value using a window store for the given period of time.</p>
-     * <p>The input stream should have a String key</p>
+     * Deduplicate the input stream on the input key and Value using a window store for the given period of time.
+     * The input stream should have a String key.
      *
      * @param streamsBuilder  Stream builder instance for topology editing
      * @param initialStream   Stream containing the events that should be deduplicated
@@ -130,11 +130,11 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * <p>Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record
-     * to generate a unique signature for the record.</p>
-     * <p>Uses a window store for the given period of time.</p>
-     * <p>The input stream should have a String key.</p>
-     * <p>⚠ This constructor should not be used if using the deduplicator multiple times in the same topology.
+     * Deduplicate the input stream by applying the deduplicationKeyExtractor function on each record
+     * to generate a unique signature for the record.
+     * Uses a window store for the given period of time.
+     * The input stream should have a String key.
+     * This constructor should not be used if using the deduplicator multiple times in the same topology.
      * Use {@link
      * DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName,
      * String repartitionName, Duration, Function)}
@@ -162,10 +162,10 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * <p>Deduplicate the input stream by applying the deduplicationKeyExtractor function
-     * on each record to generate a unique signature for the record.</p>
-     * <p>Uses a window store for the given period of time.</p>
-     * <p>The input stream should have a String key.</p>
+     * Deduplicate the input stream by applying the deduplicationKeyExtractor function
+     * on each record to generate a unique signature for the record.
+     * Uses a window store for the given period of time.
+     * The input stream should have a String key.
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
