@@ -138,7 +138,7 @@ public final class DeduplicationUtils {
      * Use {@link
      * DeduplicationUtils#deduplicateWithPredicate(StreamsBuilder, KStream, String storeName,
      * String repartitionName, Duration, Function)}
-     * in this scenario.</p>
+     * in this scenario.
      *
      * @param streamsBuilder            Stream builder instance for topology editing
      * @param initialStream             Stream containing the events that should be deduplicated
