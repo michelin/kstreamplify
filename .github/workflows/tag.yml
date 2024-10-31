@@ -10,7 +10,7 @@ on:
 jobs:
   tag:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/hotfix/v')
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
