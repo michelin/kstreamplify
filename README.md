@@ -1,6 +1,6 @@
 # Kstreamplify
 
-[![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/on_push_main.yml)
+[![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml)
 [![Sonatype Nexus (Releases)](https://img.shields.io/nexus/r/com.michelin/kstreamplify?server=https%3A%2F%2Fs01.oss.sonatype.org%2F&style=for-the-badge&logo=sonatype)](https://central.sonatype.com/search?q=com.michelin.kstreamplify&sort=name)
 [![GitHub release](https://img.shields.io/github/v/release/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify/releases)
 [![GitHub commits since latest release (by SemVer)](https://img.shields.io/github/commits-since/michelin/kstreamplify/latest?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify/commits/main)
