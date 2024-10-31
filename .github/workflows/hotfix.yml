@@ -1,0 +1,32 @@
+name: Hotfix
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_version:
+        description: 'Tag version'
+        required: true
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CI_CD_TOKEN }}
+
+      - name: Create hotfix branch
+        run: |
+          START_TAG=v${{ github.event.inputs.tag_version }}
+          echo "Start from tag $START_TAG"
+          MAJOR_MINOR_DIGIT=$(echo "$START_TAG" | cut -d '.' -f 1-2)
+          PATCH_DIGIT=$(echo "$START_TAG" | cut -d '.' -f 3)
+          NEW_PATCH_DIGIT=$((PATCH_DIGIT + 1))
+          HOTFIX_VERSION="${MAJOR_MINOR_DIGIT}.${NEW_PATCH_DIGIT}"
+          HOTFIX_BRANCH_NAME="hotfix/$HOTFIX_VERSION"
+          echo "Create hotfix branch $HOTFIX_BRANCH_NAME"
+          git fetch --all
+          git checkout tags/$START_TAG -b $HOTFIX_BRANCH_NAME
+          git push origin $HOTFIX_BRANCH_NAME
