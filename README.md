@@ -173,16 +173,16 @@ Note that all the Kafka Streams properties have been moved under `kafka.properti
 
 ## Avro Serializer and Deserializer
 
-Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdeUtils` class as follows:
+Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdesUtils` class as follows:
 
 ```java
-SerdeUtils.<MyAvroValue>getValueSerde()
+SerdesUtils.<MyAvroValue>getValueSerde()
 ```
 
 or
 
 ```java
-SerdeUtils.<MyAvroValue>getKeySerde()
+SerdesUtils.<MyAvroValue>getKeySerde()
 ```
 
 Here is an example of using these methods in your topology:
@@ -193,8 +193,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()))
-            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.<KafkaPerson>getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerde()))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerde()));
     }
 }
 ```
@@ -234,11 +234,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = streamsBuilder
-            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdeUtils.getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerde()));
 
         TopologyErrorHandler
             .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
-            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdeUtils.getValueSerde()));
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.getValueSerde()));
     }
 
     @Override
@@ -522,10 +522,10 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     @BeforeEach
     void setUp() {
         inputTopic = testDriver.createInputTopic("INPUT_TOPIC", new StringSerializer(),
-            SerdeUtils.<KafkaPerson>getValueSerde().serializer());
+            SerdesUtils.<KafkaPerson>getValueSerde().serializer());
 
         outputTopic = testDriver.createOutputTopic("OUTPUT_TOPIC", new StringDeserializer(),
-            SerdeUtils.<KafkaPerson>getValueSerde().deserializer());
+            SerdesUtils.<KafkaPerson>getValueSerde().deserializer());
     }
 
     @Test
