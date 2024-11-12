@@ -48,6 +48,12 @@
       "name": "topic",
       "type": "string",
       "doc": "Source topic of erroneous message"
+    },
+    {
+      "name": "applicationId",
+      "type": ["null",  "string"],
+      "doc": "Application id of the application that produced the erroneous message",
+      "default": null
     }
   ]
 }
