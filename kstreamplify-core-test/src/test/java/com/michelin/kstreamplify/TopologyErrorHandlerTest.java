@@ -103,9 +103,13 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         stringInputTopic.pipeInput("key", "error");
 
         var resultDlq = dlqTopic.readValuesToList();
-        var resultOutput = stringOutputTopic.readValuesToList();
-
         assertEquals(1, resultDlq.size());
+        var record = resultDlq.getFirst();
+        assertEquals(record.getApplicationId(), "test");
+        assertEquals(record.getTopic(), "stringTopic");
+        assertEquals(record.getValue(), "error");
+
+        var resultOutput = stringOutputTopic.readValuesToList();
         assertEquals(0, resultOutput.size());
     }
 
