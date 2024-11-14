@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 
 /**
@@ -58,7 +59,9 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                     .setOffset(-1)
                     .setPartition(
                         producerRecord.partition() == null ? -1 : producerRecord.partition())
-                    .setTopic(producerRecord.topic());
+                    .setTopic(producerRecord.topic())
+                    .setApplicationId(
+                        KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG));
 
                 producer.send(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(),
                     producerRecord.key(), builder.build())).get();

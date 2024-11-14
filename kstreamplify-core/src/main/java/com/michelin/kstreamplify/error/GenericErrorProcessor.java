@@ -36,6 +36,7 @@ class GenericErrorProcessor<V> extends ContextualFixedKeyProcessor<String, Proce
                 recordMetadata != null && recordMetadata.topic() != null ? recordMetadata.topic() :
                     "Outside topic context")
             .setValue(fixedKeyRecord.value().getKafkaRecord())
+            .setApplicationId(context().applicationId())
             .build();
 
         context().forward(fixedKeyRecord.withValue(error));

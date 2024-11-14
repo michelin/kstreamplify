@@ -45,6 +45,7 @@ class ProcessingErrorTest {
             .setPartition(1)
             .setTopic("Topic")
             .setValue("Value")
+            .setApplicationId("ApplicationId")
             .build();
 
         ProcessingError<KafkaError> processingError = new ProcessingError<>(exception, contextMessage, kafkaRecord);
@@ -57,6 +58,7 @@ class ProcessingErrorTest {
               "offset": 1,
               "cause": "Cause",
               "topic": "Topic",
+              "applicationId": "ApplicationId",
               "value": "Value"
             }""", processingError.getKafkaRecord());
     }

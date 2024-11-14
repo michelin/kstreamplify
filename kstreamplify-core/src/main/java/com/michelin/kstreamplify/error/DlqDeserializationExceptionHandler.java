@@ -58,7 +58,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     "An exception occurred during the stream internal deserialization")
                 .setOffset(consumerRecord.offset())
                 .setPartition(consumerRecord.partition())
-                .setTopic(consumerRecord.topic());
+                .setTopic(consumerRecord.topic())
+                .setApplicationId(processorContext.applicationId());
 
             boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
             // If the cause of this exception is a KafkaException and if getCause == sourceException
