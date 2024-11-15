@@ -99,7 +99,7 @@ public class KafkaStreamsInitializer {
 
         kafkaStreamsStarter.topology(streamsBuilder);
 
-        topology = streamsBuilder.build();
+        topology = streamsBuilder.build(KafkaStreamsExecutionContext.getProperties());
         log.info("Topology description:\n {}", topology.describe());
 
         kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
