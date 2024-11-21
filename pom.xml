@@ -118,7 +118,7 @@
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <gson.version>2.11.0</gson.version>
         <junit-jupiter.version>5.11.3</junit-jupiter.version>
-        <kafka.version>3.6.1</kafka.version>
+        <kafka.version>3.6.2</kafka.version>
         <kafka-streams-avro-serde.version>7.7.1</kafka-streams-avro-serde.version>
         <lombok.version>1.18.36</lombok.version>
         <mockito.version>5.14.2</mockito.version>
