@@ -73,10 +73,5 @@ public class KafkaStreamsExecutionContext {
         }
 
         KafkaStreamsExecutionContext.properties = properties;
-        StringBuilder stringBuilderProperties = new StringBuilder("Kafka Stream properties:\n");
-        properties.forEach(
-            (key, value) -> stringBuilderProperties.append("\t").append(key).append(" = ")
-                .append(value).append("\n"));
-        log.info(stringBuilderProperties.toString());
     }
 }
