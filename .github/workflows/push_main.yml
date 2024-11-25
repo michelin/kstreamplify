@@ -1,8 +1,9 @@
-name: Continuous integration
+name: Push Main
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - 'main'
 
 jobs:
   build:
@@ -28,7 +29,7 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Check Style
+      - name: Check style
         run: mvn checkstyle:check
 
       - name: Build
@@ -40,7 +41,7 @@ jobs:
       - name: Test
         run: mvn test
 
-      - name: Publish Test Report
+      - name: Publish test report
         if: always()
         uses: mikepenz/action-junit-report@v4
         with:
