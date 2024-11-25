@@ -2,23 +2,45 @@
   "categories": [
     {
       "title": "## :sparkles: New features",
-      "labels": ["feature"]
+      "labels": [
+        "feature"
+      ]
     },
     {
       "title": "## :bug: Bug fixes",
-      "labels": ["bug"]
+      "labels": [
+        "bug"
+      ]
     },
     {
       "title": "## :zap: Improvements",
-      "labels": ["enhancement"]
+      "labels": [
+        "enhancement"
+      ]
     },
     {
       "title": "## :memo: Documentation",
-      "labels": ["documentation"]
+      "labels": [
+        "documentation"
+      ]
     },
     {
       "title": "## :arrow_up: Dependency updates",
-      "labels": ["dependencies"]
+      "labels": [
+        "dependencies"
+      ]
+    },
+    {
+      "title": "## :test_tube: Tests",
+      "labels": [
+        "test"
+      ]
+    },
+    {
+      "title": "## :green_heart: CI/CD",
+      "labels": [
+        "ci/cd"
+      ]
     }
   ],
   "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
