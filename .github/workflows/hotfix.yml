@@ -15,6 +15,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.CI_CD_TOKEN }}
 
       - name: Create hotfix branch
