@@ -131,7 +131,7 @@
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <jacoco.version>0.8.12</jacoco.version>
         <spring-boot.version>3.4.0</spring-boot.version>
-        <testcontainers.version>1.20.3</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
