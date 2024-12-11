@@ -10,9 +10,6 @@
 [![SonarCloud Tests](https://img.shields.io/sonar/tests/michelin_kstreamplify/main?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud)](https://sonarcloud.io/component_measures?metric=tests&view=list&id=michelin_kstreamplify)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-Are you looking to enhance your development experience and accelerate the implementation of Kafka Streams? Look no
-further – Kstreamplify is tailor-made for you!
-
 **Kstreamplify** is a Java library that empowers you to swiftly create Kafka Streams-based applications, offering a host
 of additional advanced features.
 
