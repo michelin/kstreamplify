@@ -420,9 +420,9 @@ public static TopicWithSerde<String, KafkaPerson> inputTopic() {
 }
 ```
 
-The topic `staging.team1.INPUT_TOPIC` will be consumed when running the application with the staging `application.yml` file.
+> The topic `staging.team1.INPUT_TOPIC` will be consumed when running the application with the staging `application.yml` file.
 
-When not specifying a prefix, the prefix `self` is used by default.
+When not specifying a prefix, `self` is used by default.
 
 ## Interactive Queries
 
