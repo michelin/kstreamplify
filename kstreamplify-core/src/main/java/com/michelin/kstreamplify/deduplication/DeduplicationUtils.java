@@ -2,17 +2,20 @@ package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.serde.SerdesUtils;
-import java.time.Duration;
-import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Repartitioned;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
+
+import java.time.Duration;
+import java.util.function.Function;
 
 /**
  * Deduplication utility class. Only streams with String keys are supported.
@@ -40,11 +43,11 @@ public final class DeduplicationUtils {
      * @return KStream with a processingResult
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
         return deduplicateKeys(streamsBuilder, initialStream,
-            DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
-            windowDuration);
+                DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
+                windowDuration);
     }
 
     /**
@@ -62,19 +65,51 @@ public final class DeduplicationUtils {
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
-        String repartitionName, Duration windowDuration) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration) {
+
+        return deduplicateKeys(
+                streamsBuilder, initialStream, storeName,
+                repartitionName, windowDuration, null);
+    }
+
+
+    /**
+     * Deduplicate the input stream on the input key using a window store for the given period of time.
+     *
+     * @param streamsBuilder             Stream builder instance for topology editing
+     * @param initialStream              Stream containing the events that should be deduplicated
+     * @param storeName                  State store name
+     * @param repartitionName            Repartition topic name
+     * @param windowDuration             Window of time to keep in the window store
+     * @param timestampKeyValueStoreName timestamp key value store used for state store migration
+     * @param <V>                        Generic Type of the Stream value.
+     *                                   Key type is not implemented because using anything other than
+     *                                   a String as the key is retarded.
+     *                                   You can quote me on this.
+     * @return Resulting de-duplicated Stream
+     */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration, String timestampKeyValueStoreName) {
 
         StoreBuilder<WindowStore<String, String>> dedupWindowStore = Stores.windowStoreBuilder(
-            Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), Serdes.String());
+                Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
+                Serdes.String(), Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
+        StoreBuilder<TimestampedKeyValueStore<String, String>> oldDeduplicatedStream;
+        if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
+            oldDeduplicatedStream = Stores.timestampedKeyValueStoreBuilder(
+                    Stores.persistentTimestampedKeyValueStore(timestampKeyValueStoreName),
+                    Serdes.String(), Serdes.String());
+            streamsBuilder.addStateStore(oldDeduplicatedStream);
+        }
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
-                .withName(repartitionName));
-        return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration),
-            storeName);
+                Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
+                        .withName(repartitionName));
+        return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration, timestampKeyValueStoreName),
+                storeName);
     }
 
     /**
@@ -91,11 +126,11 @@ public final class DeduplicationUtils {
      * @return KStream with a processingResult
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
         return deduplicateKeyValues(streamsBuilder, initialStream,
-            DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
-            windowDuration);
+                DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
+                windowDuration);
     }
 
     /**
@@ -114,19 +149,19 @@ public final class DeduplicationUtils {
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
-        String repartitionName, Duration windowDuration) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration) {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
-            Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdesUtils.getValueSerdes());
+                Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
+                Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
-                .withName(repartitionName));
+                Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
+                        .withName(repartitionName));
         return repartitioned.process(() -> new DedupKeyValueProcessor<>(storeName, windowDuration),
-            storeName);
+                storeName);
     }
 
     /**
@@ -154,11 +189,11 @@ public final class DeduplicationUtils {
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration,
-        Function<V, String> deduplicationKeyExtractor) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration,
+            Function<V, String> deduplicationKeyExtractor) {
         return deduplicateWithPredicate(streamsBuilder, initialStream,
-            DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
-            windowDuration, deduplicationKeyExtractor);
+                DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE, DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
+                windowDuration, deduplicationKeyExtractor);
     }
 
     /**
@@ -183,20 +218,20 @@ public final class DeduplicationUtils {
      * @return Resulting de-duplicated Stream
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(
-        StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
-        String repartitionName, Duration windowDuration,
-        Function<V, String> deduplicationKeyExtractor) {
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration,
+            Function<V, String> deduplicationKeyExtractor) {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
-            Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
-            Serdes.String(), SerdesUtils.getValueSerdes());
+                Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
+                Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
         var repartitioned = initialStream.repartition(
-            Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
-                .withName(repartitionName));
+                Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
+                        .withName(repartitionName));
         return repartitioned.process(
-            () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,
-                deduplicationKeyExtractor), storeName);
+                () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,
+                        deduplicationKeyExtractor), storeName);
     }
 }
