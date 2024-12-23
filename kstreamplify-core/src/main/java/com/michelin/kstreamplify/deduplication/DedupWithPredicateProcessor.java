@@ -6,9 +6,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 
@@ -18,8 +20,8 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <K> The type of the key
  * @param <V> The type of the value
  */
-public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
-    implements Processor<K, V, K, ProcessingResult<V, V>> {
+public class DedupWithPredicateProcessor<K, V extends SpecificRecord> extends AbstractDedup<V>
+        implements Processor<K, V, K, ProcessingResult<V, V>> {
 
     /**
      * Kstream context for this transformer.
@@ -37,6 +39,11 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
+     * TimestampKeyValue store name, initialized @ construction.
+     */
+    private final String timestampKeyValueStoreName;
+
+    /**
      * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
@@ -52,10 +59,13 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
      * @param windowStoreName           Name of the deduplication state store
      * @param retentionWindowDuration   Retention window duration
      * @param deduplicationKeyExtractor Deduplication function
+     * @param timestampKeyValueStoreName The name of timestamp key value state store
      */
     public DedupWithPredicateProcessor(String windowStoreName, Duration retentionWindowDuration,
-                                       Function<V, String> deduplicationKeyExtractor) {
+                                       Function<V, String> deduplicationKeyExtractor,
+                                       String timestampKeyValueStoreName) {
         this.windowStoreName = windowStoreName;
+        this.timestampKeyValueStoreName = timestampKeyValueStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
         this.deduplicationKeyExtractor = deduplicationKeyExtractor;
     }
@@ -64,6 +74,11 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
     public void init(ProcessorContext<K, ProcessingResult<V, V>> context) {
         this.processorContext = context;
         dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
+        if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
+            TimestampedKeyValueStore<String, V> timestampKeyValueStore = this
+                    .processorContext.getStateStore(timestampKeyValueStoreName);
+            migrateDataToWindowStore(timestampKeyValueStore, dedupWindowStore);
+        }
     }
 
     @Override
@@ -75,8 +90,8 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
             try (var resultIterator = dedupWindowStore.backwardFetch(identifier,
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
@@ -91,8 +106,8 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
 
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Could not figure out what to do with the current payload: "
-                    + "An unlikely error occurred during deduplication transform"));
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

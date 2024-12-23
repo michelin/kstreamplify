@@ -1,26 +1,23 @@
 package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
-import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
-import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Transformer class for the deduplication mechanism on keys of a given topic.
  *
  * @param <V> The type of the value
  */
-public class DedupKeyProcessor<V extends SpecificRecord>
+public class DedupKeyProcessor<V extends SpecificRecord> extends AbstractDedup<String>
         implements Processor<String, V, String, ProcessingResult<V, V>> {
 
     /**
@@ -32,11 +29,6 @@ public class DedupKeyProcessor<V extends SpecificRecord>
      * Window store containing all the records seen on the given window.
      */
     private WindowStore<String, String> dedupWindowStore;
-
-    /**
-     * TimestampKeyValue store containing all the records to migrate into Window store.
-     */
-    private TimestampedKeyValueStore<String, String> timestampKeyValueStore;
 
     /**
      * Window store name, initialized @ construction.
@@ -59,8 +51,10 @@ public class DedupKeyProcessor<V extends SpecificRecord>
      *
      * @param windowStoreName         The name of the constructor
      * @param retentionWindowDuration The retentionWindow Duration
+     * @param timestampKeyValueStoreName The name of timestamp key value state store
      */
-    public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration, String timestampKeyValueStoreName) {
+    public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration,
+                             String timestampKeyValueStoreName) {
         this.windowStoreName = windowStoreName;
         this.timestampKeyValueStoreName = timestampKeyValueStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
@@ -71,26 +65,10 @@ public class DedupKeyProcessor<V extends SpecificRecord>
         processorContext = context;
         dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
         if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
-            timestampKeyValueStore = this.processorContext.getStateStore(timestampKeyValueStoreName);
-            migrateDataToWindowStore();
+            TimestampedKeyValueStore<String, String> timestampKeyValueStore = this
+                    .processorContext.getStateStore(timestampKeyValueStoreName);
+            migrateDataToWindowStore(timestampKeyValueStore, dedupWindowStore);
         }
-    }
-
-    private void migrateDataToWindowStore() {
-        KeyValueIterator<String, ValueAndTimestamp<String>> iterator = timestampKeyValueStore.all();
-
-        while (iterator.hasNext()) {
-            KeyValue<String, ValueAndTimestamp<String>> entry = iterator.next();
-            String key = entry.key;
-            String value = entry.value.value();
-
-
-            // Insérer les données dans le WindowStore
-            dedupWindowStore.put(key, value, entry.value.timestamp());
-            timestampKeyValueStore.delete(key);
-        }
-
-        iterator.close();
     }
 
     @Override

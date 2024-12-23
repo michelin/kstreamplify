@@ -5,9 +5,11 @@ import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
 
 /**
@@ -15,8 +17,8 @@ import org.apache.kafka.streams.state.WindowStore;
  *
  * @param <V> The type of the value
  */
-public class DedupKeyValueProcessor<V extends SpecificRecord>
-    implements Processor<String, V, String, ProcessingResult<V, V>> {
+public class DedupKeyValueProcessor<V extends SpecificRecord> extends AbstractDedup<V>
+        implements Processor<String, V, String, ProcessingResult<V, V>> {
 
     /**
      * Kstream context for this transformer.
@@ -34,6 +36,10 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
     private final String windowStoreName;
 
     /**
+     * TimestampKeyValue store name, initialized @ construction.
+     */
+    private final String timestampKeyValueStoreName;
+    /**
      * Retention window for the state store. Used for fetching data.
      */
     private final Duration retentionWindowDuration;
@@ -43,9 +49,12 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
      *
      * @param windowStoreName      The window store name
      * @param retentionWindowHours The retention window duration
+     * @param timestampKeyValueStoreName The name of timestamp key value state store
      */
-    public DedupKeyValueProcessor(String windowStoreName, Duration retentionWindowHours) {
+    public DedupKeyValueProcessor(String windowStoreName, Duration retentionWindowHours,
+                                  String timestampKeyValueStoreName) {
         this.windowStoreName = windowStoreName;
+        this.timestampKeyValueStoreName = timestampKeyValueStoreName;
         this.retentionWindowDuration = retentionWindowHours;
     }
 
@@ -54,6 +63,11 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
         this.processorContext = context;
 
         dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
+        if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
+            TimestampedKeyValueStore<String, V> timestampKeyValueStore = this
+                    .processorContext.getStateStore(timestampKeyValueStoreName);
+            migrateDataToWindowStore(timestampKeyValueStore, dedupWindowStore);
+        }
     }
 
     @Override
@@ -64,8 +78,8 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
             try (var resultIterator = dedupWindowStore.backwardFetch(message.key(),
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (message.value().equals(currentKeyValue.value)) {
@@ -79,8 +93,8 @@ public class DedupKeyValueProcessor<V extends SpecificRecord>
             processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
         } catch (Exception e) {
             processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Could not figure out what to do with the current payload: "
-                    + "An unlikely error occurred during deduplication transform"));
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

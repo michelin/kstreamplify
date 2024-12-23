@@ -2,6 +2,10 @@ package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.serde.SerdesUtils;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +18,6 @@ import org.apache.kafka.streams.state.Stores;
 import org.apache.kafka.streams.state.TimestampedKeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-import java.util.function.Function;
 
 /**
  * Deduplication utility class. Only streams with String keys are supported.
@@ -97,19 +99,23 @@ public final class DeduplicationUtils {
                 Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
                 Serdes.String(), Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
-        StoreBuilder<TimestampedKeyValueStore<String, String>> oldDeduplicatedStream;
+
+        List<String> strings = new ArrayList<>(List.of(storeName));
         if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
-            oldDeduplicatedStream = Stores.timestampedKeyValueStoreBuilder(
+            StoreBuilder<TimestampedKeyValueStore<String, String>> oldDeduplicatedStream = Stores
+                    .timestampedKeyValueStoreBuilder(
                     Stores.persistentTimestampedKeyValueStore(timestampKeyValueStoreName),
                     Serdes.String(), Serdes.String());
             streamsBuilder.addStateStore(oldDeduplicatedStream);
+            strings.add(timestampKeyValueStoreName);
         }
 
         var repartitioned = initialStream.repartition(
                 Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
-        return repartitioned.process(() -> new DedupKeyProcessor<>(storeName, windowDuration, timestampKeyValueStoreName),
-                storeName);
+        return repartitioned.process(() ->
+                        new DedupKeyProcessor<>(storeName, windowDuration, timestampKeyValueStoreName),
+                strings.toArray(new String[0]));
     }
 
     /**
@@ -151,17 +157,51 @@ public final class DeduplicationUtils {
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
             String repartitionName, Duration windowDuration) {
+        return deduplicateKeyValues(streamsBuilder, initialStream, storeName,
+                repartitionName, windowDuration, null);
+    }
+
+    /**
+     * Deduplicate the input stream on the input key and Value using a window store for the given period of time.
+     * The input stream should have a String key.
+     *
+     * @param streamsBuilder             Stream builder instance for topology editing
+     * @param initialStream              Stream containing the events that should be deduplicated
+     * @param storeName                  State store name
+     * @param repartitionName            Repartition topic name
+     * @param windowDuration             Window of time to keep in the window store
+     * @param timestampKeyValueStoreName timestamp key value store used for state store migration
+     * @param <V>                        Generic Type of the Stream value.
+     *                                   Key type is not implemented because using anything other
+     *                                   than a String as the key is retarded.
+     *                                   You can quote me on this.
+     * @return Resulting de-duplicated Stream
+     */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration, String timestampKeyValueStoreName) {
 
         StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
                 Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
                 Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
+        List<String> strings = new ArrayList<>(List.of(storeName));
+        if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
+            StoreBuilder<TimestampedKeyValueStore<String, String>> oldDeduplicatedStream = Stores
+                    .timestampedKeyValueStoreBuilder(
+                    Stores.persistentTimestampedKeyValueStore(timestampKeyValueStoreName),
+                    Serdes.String(), Serdes.String());
+            streamsBuilder.addStateStore(oldDeduplicatedStream);
+            strings.add(timestampKeyValueStoreName);
+        }
+
         var repartitioned = initialStream.repartition(
                 Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
-        return repartitioned.process(() -> new DedupKeyValueProcessor<>(storeName, windowDuration),
-                storeName);
+        return repartitioned.process(()
+                        -> new DedupKeyValueProcessor<>(storeName, windowDuration, timestampKeyValueStoreName),
+                strings.toArray(new String[0]));
     }
 
     /**
@@ -222,16 +262,59 @@ public final class DeduplicationUtils {
             String repartitionName, Duration windowDuration,
             Function<V, String> deduplicationKeyExtractor) {
 
-        StoreBuilder<WindowStore<String, V>> dedupWindowStore = Stores.windowStoreBuilder(
+        return deduplicateWithPredicate(
+                streamsBuilder, initialStream, storeName,
+                repartitionName, windowDuration, deduplicationKeyExtractor, null);
+    }
+
+    /**
+     * Deduplicate the input stream by applying the deduplicationKeyExtractor function
+     * on each record to generate a unique signature for the record.
+     * Uses a window store for the given period of time.
+     * The input stream should have a String key.
+     *
+     * @param streamsBuilder             Stream builder instance for topology editing
+     * @param initialStream              Stream containing the events that should be deduplicated
+     * @param storeName                  State store name
+     * @param repartitionName            Repartition topic name
+     * @param windowDuration             Window of time to keep in the window store
+     * @param deduplicationKeyExtractor  Function that should extract a deduplication key in String format.
+     *                                   This key acts like a comparison vector.
+     *                                   A recommended approach is to concatenate all necessary fields
+     *                                   in String format to provide a unique identifier for comparison between records.
+     * @param timestampKeyValueStoreName timestamp key value store used for state store migration
+     * @param <V>                        Generic Type of the Stream value.
+     *                                   Key type is not implemented because using anything other than
+     *                                   a String as the key is retarded.
+     *                                   You can quote me on this.
+     * @return Resulting de-duplicated Stream
+     */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(
+            StreamsBuilder streamsBuilder, KStream<String, V> initialStream, String storeName,
+            String repartitionName, Duration windowDuration,
+            Function<V, String> deduplicationKeyExtractor, String timestampKeyValueStoreName) {
+
+        StoreBuilder<WindowStore<String, V>> dedupWindowStore;
+        dedupWindowStore = Stores.windowStoreBuilder(
                 Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
                 Serdes.String(), SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
+
+        List<String> storeNames = new ArrayList<>(List.of(storeName));
+        if (!StringUtils.isEmpty(timestampKeyValueStoreName)) {
+            StoreBuilder<TimestampedKeyValueStore<String, String>> oldDeduplicatedStream = Stores
+                    .timestampedKeyValueStoreBuilder(
+                    Stores.persistentTimestampedKeyValueStore(timestampKeyValueStoreName),
+                    Serdes.String(), Serdes.String());
+            streamsBuilder.addStateStore(oldDeduplicatedStream);
+            storeNames.add(timestampKeyValueStoreName);
+        }
 
         var repartitioned = initialStream.repartition(
                 Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
         return repartitioned.process(
                 () -> new DedupWithPredicateProcessor<>(storeName, windowDuration,
-                        deduplicationKeyExtractor), storeName);
+                        deduplicationKeyExtractor, timestampKeyValueStoreName), storeNames.toArray(new String[0]));
     }
 }

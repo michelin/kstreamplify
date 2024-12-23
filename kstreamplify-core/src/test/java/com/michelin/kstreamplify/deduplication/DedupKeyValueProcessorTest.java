@@ -39,8 +39,8 @@ class DedupKeyValueProcessorTest {
 
     @BeforeEach
     void setUp() {
-        // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupKeyValueProcessor<>("testStore", Duration.ofHours(1));
+        // Create an instance of DedupKeyValueProcessor for testing
+        processor = new DedupKeyValueProcessor<>("testStore", Duration.ofHours(1), null);
 
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
