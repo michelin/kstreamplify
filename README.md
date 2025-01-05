@@ -1,3 +1,5 @@
+<div align="center">
+
 # Kstreamplify
 
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml)
@@ -10,13 +12,15 @@
 [![SonarCloud Tests](https://img.shields.io/sonar/tests/michelin_kstreamplify/main?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud)](https://sonarcloud.io/component_measures?metric=tests&view=list&id=michelin_kstreamplify)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-**Kstreamplify** is a Java library that empowers you to swiftly create Kafka Streams-based applications, offering a host
-of additional advanced features.
+[Overview](#overview) • [Getting Started](#bootstrapping)
 
-With Kstreamplify, you can declare your KafkaStreams class and define your topology with minimal effort. Here's all you
-need to do:
+Swiftly build and enhance your Kafka Streams applications.
 
-<img src=".readme/gif/topology.gif" alt="topology"/>
+Kstreamplify adds extra features to Kafka Streams, simplifying development so you can write applications with minimal effort and stay focused on business implementation.
+
+<img src=".readme/topology.gif" alt="KStreamplify application" />
+
+</div>
 
 ## Table of Contents
 
