@@ -12,7 +12,7 @@
     <artifactId>kstreamplify-spring-boot</artifactId>
 
     <properties>
-        <springdoc.version>2.6.0</springdoc.version>
+        <springdoc.version>2.8.1</springdoc.version>
     </properties>
 
     <dependencyManagement>
