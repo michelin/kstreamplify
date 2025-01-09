@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify.integration;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
@@ -91,7 +110,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
                 KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName(),
                 VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
-                SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
+                SCHEMA_REGISTRY_URL_CONFIG,
+                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
 
             KafkaPersonStub kafkaPersonStub = KafkaPersonStub.newBuilder()
                 .setId(1L)
@@ -142,7 +162,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .build();
 
         HttpResponse<String> storesResponse = httpClient.send(storesRequest, HttpResponse.BodyHandlers.ofString());
-        List<String> stores = objectMapper.readValue(storesResponse.body(), new TypeReference<>() {});
+        List<String> stores = objectMapper.readValue(storesResponse.body(), new TypeReference<>() {
+        });
 
         assertEquals(200, storesResponse.statusCode());
         assertTrue(stores.containsAll(List.of(
@@ -163,7 +184,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .send(streamsMetadataRequest, HttpResponse.BodyHandlers.ofString());
 
         List<StreamsMetadata> streamsMetadata = objectMapper
-            .readValue(streamsMetadataResponse.body(), new TypeReference<>() {});
+            .readValue(streamsMetadataResponse.body(), new TypeReference<>() {
+            });
 
         assertEquals(200, streamsMetadataResponse.statusCode());
         assertEquals(Set.of(
@@ -290,7 +312,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
 
         assertEquals(200, response.statusCode());
         assertEquals("person", body.get(0).getKey());
@@ -326,7 +349,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
 
         assertEquals(200, response.statusCode());
         assertEquals("person", body.get(0).getKey());
@@ -348,7 +372,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
 
         assertEquals(200, response.statusCode());
         assertEquals("person", body.get(0).getKey());
@@ -374,7 +399,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {
+        });
 
         assertEquals(200, response.statusCode());
         assertEquals("person", body.get(0).getKey());

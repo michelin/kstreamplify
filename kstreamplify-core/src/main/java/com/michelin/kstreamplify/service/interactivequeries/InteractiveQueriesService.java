@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify.service.interactivequeries;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -104,14 +123,15 @@ abstract class InteractiveQueriesService {
     /**
      * Request remote instance.
      *
-     * @param host        The host instance
+     * @param host         The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
     protected List<StateStoreRecord> getAllOnRemoteHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
-            return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
+            return objectMapper.readValue(jsonResponse, new TypeReference<>() {
+            });
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return Collections.emptyList();
@@ -123,7 +143,7 @@ abstract class InteractiveQueriesService {
     /**
      * Request remote instance.
      *
-     * @param host        The host instance
+     * @param host         The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
@@ -142,11 +162,11 @@ abstract class InteractiveQueriesService {
     /**
      * Send request to the remote host.
      *
-     * @param host          The host
+     * @param host         The host
      * @param endpointPath The endpoint path
      * @return The response
-     * @throws URISyntaxException URI syntax exception
-     * @throws ExecutionException Execution exception
+     * @throws URISyntaxException   URI syntax exception
+     * @throws ExecutionException   Execution exception
      * @throws InterruptedException Interrupted exception
      */
     private String sendRequest(HostInfo host, String endpointPath)

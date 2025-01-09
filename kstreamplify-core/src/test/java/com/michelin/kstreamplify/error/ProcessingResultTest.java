@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,15 +45,15 @@ class ProcessingResultTest {
         String value = "Value";
         long timestamp = System.currentTimeMillis();
 
-        Record<String, String> record = new Record<>("key", value, timestamp);
-        Record<String, ProcessingResult<String, Integer>> wrappedRecord = ProcessingResult.wrapRecordSuccess(record);
+        Record<String, String> message = new Record<>("key", value, timestamp);
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord = ProcessingResult.wrapRecordSuccess(message);
 
-        assertEquals(record.key(), wrappedRecord.key());
+        assertEquals(message.key(), wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
         assertTrue(wrappedRecord.value().isValid());
         assertEquals(value, wrappedRecord.value().getValue());
         assertNull(wrappedRecord.value().getError());
-        assertEquals(record.timestamp(), wrappedRecord.timestamp());
+        assertEquals(message.timestamp(), wrappedRecord.timestamp());
     }
 
     @Test
@@ -59,12 +78,12 @@ class ProcessingResultTest {
         long timestamp = System.currentTimeMillis();
         Exception exception = new Exception("Test Exception");
 
-        Record<String, String> record = new Record<>(key, failedValue, timestamp);
+        Record<String, String> message = new Record<>(key, failedValue, timestamp);
 
         Record<String, ProcessingResult<String, String>> wrappedRecord =
-            ProcessingResult.<String, String, String>wrapRecordFailure(exception, record);
+            ProcessingResult.<String, String, String>wrapRecordFailure(exception, message);
 
-        assertEquals(record.key(), wrappedRecord.key());
+        assertEquals(message.key(), wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
         assertFalse(wrappedRecord.value().isValid());
         assertNull(wrappedRecord.value().getValue());
@@ -72,7 +91,7 @@ class ProcessingResultTest {
         assertEquals(exception, wrappedRecord.value().getError().getException());
         assertEquals(failedValue, wrappedRecord.value().getError().getKafkaRecord());
         assertEquals("No context message", wrappedRecord.value().getError().getContextMessage());
-        assertEquals(record.timestamp(), wrappedRecord.timestamp());
+        assertEquals(message.timestamp(), wrappedRecord.timestamp());
     }
 
     @Test

@@ -8,7 +8,8 @@ on:
         required: true
 
 jobs:
-  create-branch:
+  create-hotfix-branch:
+    name: Create hotfix branch
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -18,7 +19,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.CI_CD_TOKEN }}
 
-      - name: Create hotfix branch
+      - name: Create branch
         run: |
           START_TAG=v${{ github.event.inputs.tag_version }}
           echo "Start from tag $START_TAG"

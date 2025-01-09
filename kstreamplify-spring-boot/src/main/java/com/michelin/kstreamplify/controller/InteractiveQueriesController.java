@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
@@ -135,7 +154,7 @@ public class InteractiveQueriesController {
     })
     @GetMapping(value = "/key-value/local/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAllInKeyValueStoreOnLocalHost(@PathVariable("store")
-                                                                                       String store) {
+                                                                                   String store) {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +165,7 @@ public class InteractiveQueriesController {
      * Get the record by key from the key-value store.
      *
      * @param store The store
-     * @param key The key
+     * @param key   The key
      * @return The value
      */
     @Operation(summary = "Get a record by key from a key-value store")
@@ -177,9 +196,9 @@ public class InteractiveQueriesController {
     /**
      * Get all records from the window store.
      *
-     * @param store The store
+     * @param store    The store
      * @param timeFrom The time from
-     * @param timeTo The time to
+     * @param timeTo   The time to
      * @return The values
      */
     @Operation(summary = "Get all records from a window store")
@@ -197,7 +216,7 @@ public class InteractiveQueriesController {
     @GetMapping(value = "/window/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAllInWindowStore(@PathVariable("store") String store,
                                                                       @RequestParam("timeFrom")
-                                                                        Optional<String> timeFrom,
+                                                                      Optional<String> timeFrom,
                                                                       @RequestParam("timeTo") Optional<String> timeTo) {
         Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
         Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
@@ -211,9 +230,9 @@ public class InteractiveQueriesController {
     /**
      * Get all records from the window store on the local host.
      *
-     * @param store The store
+     * @param store    The store
      * @param timeFrom The time from
-     * @param timeTo The time to
+     * @param timeTo   The time to
      * @return The values
      */
     @Operation(summary = "Get all records from a window store on the local host")
@@ -231,9 +250,9 @@ public class InteractiveQueriesController {
     @GetMapping(value = "/window/local/{store}")
     public ResponseEntity<List<StateStoreRecord>> getAllInWindowStoreOnLocalHost(@PathVariable("store") String store,
                                                                                  @RequestParam("timeFrom")
-                                                                                    Optional<String> timeFrom,
+                                                                                 Optional<String> timeFrom,
                                                                                  @RequestParam("timeTo")
-                                                                                    Optional<String> timeTo) {
+                                                                                 Optional<String> timeTo) {
         Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
         Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
 
@@ -246,10 +265,10 @@ public class InteractiveQueriesController {
     /**
      * Get the record by key from the window store.
      *
-     * @param store The store
-     * @param key The key
+     * @param store    The store
+     * @param key      The key
      * @param timeFrom The time from
-     * @param timeTo The time to
+     * @param timeTo   The time to
      * @return The value
      */
     @Operation(summary = "Get a record by key from a window store")
@@ -272,9 +291,9 @@ public class InteractiveQueriesController {
     public ResponseEntity<List<StateStoreRecord>> getByKeyInWindowStore(@PathVariable("store") String store,
                                                                         @PathVariable("key") String key,
                                                                         @RequestParam("timeFrom")
-                                                                            Optional<String> timeFrom,
+                                                                        Optional<String> timeFrom,
                                                                         @RequestParam("timeTo")
-                                                                            Optional<String> timeTo) {
+                                                                        Optional<String> timeTo) {
         Instant instantFrom = timeFrom.map(Instant::parse).orElse(Instant.EPOCH);
         Instant instantTo = timeTo.map(Instant::parse).orElse(Instant.now());
 
