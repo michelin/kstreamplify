@@ -160,14 +160,14 @@ You can define all your Kafka Streams properties directly from the `application.
 ```yml
 kafka:
   properties:
-    bootstrap.servers: localhost:9092
-    schema.registry.url: http://localhost:8081
-    application.id: myKafkaStreams
-    client.id: myKafkaStreams
-    state.dir: /tmp/my-kafka-streams
-    acks: all
-    auto.offset.reset: earliest
+    acks: 'all'
+    application.id: 'myKafkaStreams'
+    auto.offset.reset: 'earliest'
     avro.remove.java.properties: true
+    bootstrap.servers: 'localhost:9092'
+    client.id: 'myKafkaStreams'
+    schema.registry.url: 'http://localhost:8081'
+    state.dir: '/tmp/my-kafka-streams'
 ```
 
 Note that all the Kafka Streams properties are prefixed with `kafka.properties`.
@@ -283,8 +283,8 @@ Add the following properties to your `application.yml` file:
 ```yml
 kafka:
   properties:
-    default.production.exception.handler: com.michelin.kstreamplify.error.DlqProductionExceptionHandler
-    default.deserialization.exception.handler: com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler
+    default.deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
+    default.production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
 ```
 
 ### Avro Schema
@@ -321,7 +321,7 @@ The path can be customized by setting the following property:
 
 ```yml
 topology:
-  path: custom-topology
+  path: 'custom-topology'
 ```
 
 ### State Stores
@@ -345,10 +345,10 @@ The path can be customized by setting the following properties:
 
 ```yml
 kubernetes:
-  readiness:
-    path: custom-readiness
   liveness:
-    path: custom-liveness
+    path: 'custom-liveness'
+  readiness:
+    path: 'custom-readiness'
 ```
 
 ## TopicWithSerde API
@@ -404,9 +404,9 @@ In the `application.yml` file, declare the prefixes in a `key: value` format:
 kafka:
   properties:
     prefix:
-      self: staging.team1.
-      team2: staging.team2.
-      team3: staging.team3.
+      self: 'staging.team1.'
+      team2: 'staging.team2.'
+      team3: 'staging.team3.'
 ```
 
 Include the prefix `TopicWithSerde` declaration:
@@ -439,7 +439,7 @@ The "[application.server](https://docs.confluent.io/platform/current/streams/dev
 ```yml
 kafka:
   properties:
-    application.server.var.name: MY_APPLICATION_SERVER
+    application.server.var.name: 'MY_APPLICATION_SERVER'
 ```
 
 2. The value of a default environment variable named `APPLICATION_SERVER`.
