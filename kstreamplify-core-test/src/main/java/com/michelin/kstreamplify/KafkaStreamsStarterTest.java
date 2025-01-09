@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify;
 
 import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
@@ -68,7 +87,7 @@ public abstract class KafkaStreamsStarterTest {
             new StringDeserializer(), SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
-    /** 
+    /**
      * Get the properties for the test.
      *
      * @return The properties for the test
@@ -80,16 +99,16 @@ public abstract class KafkaStreamsStarterTest {
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
         properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
-        
+
         // Add specific properties or overwrite default properties
         Map<String, String> propertiesMap = getSpecificProperties();
         if (propertiesMap != null && !propertiesMap.isEmpty()) {
             properties.putAll(propertiesMap);
         }
-        
+
         return properties;
     }
-    
+
     /**
      * Method to override to provide the KafkaStreamsStarter to test.
      *
@@ -114,7 +133,7 @@ public abstract class KafkaStreamsStarterTest {
     protected Map<String, String> getSpecificProperties() {
         return Collections.emptyMap();
     }
-    
+
     /**
      * Method to close everything properly at the end of the test.
      */
@@ -135,9 +154,9 @@ public abstract class KafkaStreamsStarterTest {
      */
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
         return this.testDriver.createInputTopic(
-                topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde().serializer(),
-                topicWithSerde.getValueSerde().serializer()
+            topicWithSerde.getUnPrefixedName(),
+            topicWithSerde.getKeySerde().serializer(),
+            topicWithSerde.getValueSerde().serializer()
         );
     }
 
@@ -148,12 +167,11 @@ public abstract class KafkaStreamsStarterTest {
      * @param <K>            The serializable type of the key
      * @param <V>            The serializable type of the value
      * @return The corresponding TestInputTopic
-     *
      * @deprecated Use {@link #createInputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(
-            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
+        com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
     ) {
         return createInputTestTopic(
             new TopicWithSerde<>(
@@ -174,9 +192,9 @@ public abstract class KafkaStreamsStarterTest {
      */
     protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
         return this.testDriver.createOutputTopic(
-                topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde().deserializer(),
-                topicWithSerde.getValueSerde().deserializer()
+            topicWithSerde.getUnPrefixedName(),
+            topicWithSerde.getKeySerde().deserializer(),
+            topicWithSerde.getValueSerde().deserializer()
         );
     }
 
@@ -187,7 +205,6 @@ public abstract class KafkaStreamsStarterTest {
      * @param <K>            The serializable type of the key
      * @param <V>            The serializable type of the value
      * @return The corresponding TestOutputTopic
-     *
      * @deprecated Use {@link #createOutputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")

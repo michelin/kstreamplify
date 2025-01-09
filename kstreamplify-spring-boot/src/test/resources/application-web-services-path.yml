@@ -1,16 +1,16 @@
-server:
-  port: 8087
 kafka:
   properties:
-    application.id: appWebServicesPathId
-    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    state.dir: /tmp/kstreamplify/kstreamplify-spring-boot-test/web-services-path
-    auto.offset.reset: earliest
+    application.id: 'appWebServicesPathId'
+    auto.offset.reset: 'earliest'
+    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/web-services-path'
 kubernetes:
-  readiness:
-    path: custom-readiness
   liveness:
-    path: custom-liveness
+    path: 'custom-liveness'
+  readiness:
+    path: 'custom-readiness'
+server:
+  port: 8087
 topology:
-  path: custom-topology
+  path: 'custom-topology'

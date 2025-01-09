@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.michelin.kstreamplify.integration;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -97,7 +116,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
             Map.of(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
                 KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName(),
                 VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName(),
-                SCHEMA_REGISTRY_URL_CONFIG, "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
+                SCHEMA_REGISTRY_URL_CONFIG,
+                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
 
             KafkaPersonStub kafkaPersonStub = KafkaPersonStub.newBuilder()
                 .setId(1L)
@@ -146,8 +166,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         // Get hosts
         ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/metadata/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
+            .exchange("http://localhost:8085/store/metadata/STRING_STRING_STORE", GET, null,
+                new ParameterizedTypeReference<>() {
+                });
 
         assertEquals(200, streamsMetadata.getStatusCode().value());
         assertNotNull(streamsMetadata.getBody());
@@ -160,11 +181,11 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
         assertEquals(8085, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(Set.of(
-            "AVRO_TOPIC-0",
-            "AVRO_TOPIC-1",
-            "STRING_TOPIC-0",
-            "STRING_TOPIC-1",
-            "STRING_TOPIC-2"),
+                "AVRO_TOPIC-0",
+                "AVRO_TOPIC-1",
+                "STRING_TOPIC-0",
+                "STRING_TOPIC-1",
+                "STRING_TOPIC-2"),
             streamsMetadata.getBody().get(0).getTopicPartitions());
     }
 
@@ -255,7 +276,8 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringAvroTimestampedWindowStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange("http://localhost:8085/store/window/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person", GET, null,
-                new ParameterizedTypeReference<>() {});
+                new ParameterizedTypeReference<>() {
+                });
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -283,8 +305,9 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringStringKeyValueStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
-            .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null, new ParameterizedTypeReference<>() {
-            });
+            .exchange("http://localhost:8085/store/key-value/STRING_STRING_STORE", GET, null,
+                new ParameterizedTypeReference<>() {
+                });
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());

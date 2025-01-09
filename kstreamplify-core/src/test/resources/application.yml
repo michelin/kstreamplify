@@ -1,9 +1,9 @@
-server:
-  port: 8080
 kafka:
   properties:
-    application.id: appId
-    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    state.dir: /tmp/kstreamplify/kstreamplify-core-test/initializer
-    auto.offset.reset: earliest
+    application.id: 'appId'
+    auto.offset.reset: 'earliest'
+    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    state.dir: '/tmp/kstreamplify/kstreamplify-core-test/initializer'
+server:
+  port: 8080

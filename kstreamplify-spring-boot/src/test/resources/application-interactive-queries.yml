@@ -1,9 +1,9 @@
-server:
-  port: 8085
 kafka:
   properties:
-    application.id: appInteractiveQueriesId
-    default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
-    state.dir: /tmp/kstreamplify/kstreamplify-spring-boot-test/interactive-queries
-    auto.offset.reset: earliest
+    application.id: 'appInteractiveQueriesId'
+    auto.offset.reset: 'earliest'
+    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/interactive-queries'
+server:
+  port: 8085
