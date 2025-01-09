@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".readme/test.svg" alt="Kstreamplify"/>
+<img src=".readme/logo-white.svg" alt="Kstreamplify"/>
 
 # Kstreamplify
 
