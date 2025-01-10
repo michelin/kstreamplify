@@ -8,8 +8,8 @@ on:
         required: true
 
 jobs:
-  create-hotfix-branch:
-    name: Create hotfix branch
+  create-branch:
+    name: Create Branch
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
