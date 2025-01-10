@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src=".readme/logo.svg" alt="Kstreamplify"/>
+
 # Kstreamplify
 
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/push_main.yml)
