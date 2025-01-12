@@ -49,8 +49,6 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 
 ## Style Guide
 
-### Code Style
-
 We maintain a consistent code style using [Checkstyle](https://checkstyle.sourceforge.io/).
 
 The configuration file is defined in the `.checkstyle` folder.
@@ -64,5 +62,3 @@ Before you start contributing new code, it is recommended to:
 
 - Install the IntelliJ [CheckStyle-IDEA](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin.
 - Configure the plugin to use Kstreamplify's Checkstyle configuration file.
-
-Adhering to this code style ensures consistency and helps maintain code quality throughout the project.
