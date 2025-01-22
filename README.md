@@ -46,7 +46,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [TopicWithSerde API](#topicwithserde-api)
   * [Declaration](#declaration)
   * [Prefix](#prefix)
-  * [Remaping](#remap)
+  * [Remapping](#remapping)
 * [Interactive Queries](#interactive-queries)
   * [Configuration](#configuration)
   * [Services](#services)
@@ -431,23 +431,23 @@ When not specifying a prefix, `self` is used by default.
 
 ### Remapping
 
-KStreamplify encourages to use of fixed topic names in the topology and use the prefix feature to manage namespacing for virtual clusters and permissions, 
-However, there are many situations where you might want to reuse the same topology but with a different set of input or output topics 
+KStreamplify encourages the use of fixed topic names in the topology and uses the prefix feature to manage namespacing for virtual clusters and permissions.
+However, there are many situations where you might want to reuse the same topology but with a different set of input or output topics.
 
 In the `application.yml` file, declare dynamic remappings in a `key: value` format:
 
 ```yml
 kafka:
   properties:
-    self:
-      oldTopicName: newTopicName
-      foo: bar
+    topic:
+      remap:
+        oldTopicName: newTopicName
+        foo: bar
 ```
-> During topology initialization, oldTopicName in the topology will be mapped to newTopicName.
 
-> This feature is compatible with both input and output topics
+> The topic `oldTopicName` in the topology will be mapped to `newTopicName`.
 
-
+This feature is compatible with both input and output topics
 
 ## Interactive Queries
 
