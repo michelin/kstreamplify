@@ -431,7 +431,7 @@ When not specifying a prefix, `self` is used by default.
 
 ### Remapping
 
-KStreamplify encourages the use of fixed topic names in the topology and uses the prefix feature to manage namespacing for virtual clusters and permissions.
+Kstreamplify encourages the use of fixed topic names in the topology and uses the prefix feature to manage namespacing for virtual clusters and permissions.
 However, there are many situations where you might want to reuse the same topology but with a different set of input or output topics.
 
 In the `application.yml` file, declare dynamic remappings in a `key: value` format:
