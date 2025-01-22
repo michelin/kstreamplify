@@ -428,6 +428,25 @@ public static TopicWithSerde<String, KafkaPerson> inputTopic() {
 
 When not specifying a prefix, `self` is used by default.
 
+### Remapping
+
+KStreamplify encourages to use of fixed topic names in the topology and use the prefix feature to manage namespacing for virtual clusters and permissions, 
+However, there are many situations where you might want to reuse the same topology but with a different set of input or output topics 
+
+In the `application.yml` file, declare dynamic remappings in a `key: value` format:
+
+```yml
+kafka:
+  properties:
+    self:
+      oldTopicName: newTopicName
+      foo: bar
+```
+> oldTopicName in the topology will be attached to newTopicName during topology initialization.
+
+> it's compatible with input & output topics
+
+
 ## Interactive Queries
 
 Kstreamplify wants to ease the use of [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) in Kafka Streams application.
