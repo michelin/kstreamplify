@@ -447,7 +447,7 @@ kafka:
 
 > The topic `oldTopicName` in the topology will be mapped to `newTopicName`.
 
-This feature is compatible with both input and output topics
+This feature is compatible with both input and output topics.
 
 ## Interactive Queries
 
