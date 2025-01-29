@@ -265,6 +265,7 @@ public class KafkaStreamsHttpServer {
         }
 
         // Get by key for timestamped window store
+        store = parsePathParam(exchange, 4);
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
             + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/.*/.*")) {
             String key = parsePathParam(exchange, 5);
@@ -292,6 +293,7 @@ public class KafkaStreamsHttpServer {
         }
 
         // Get by key for window store
+        store = parsePathParam(exchange, 3);
         if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH
             + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*/.*")) {
             String key = parsePathParam(exchange, 4);
