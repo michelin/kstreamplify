@@ -1,3 +1,5 @@
+package com.michelin.kstreamplify.service.interactivequeries.window;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,55 +19,40 @@
  * under the License.
  */
 
-package com.michelin.kstreamplify.service.interactivequeries;
-
-import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.service.interactivequeries.CommonStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.net.http.HttpClient;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
-import org.apache.kafka.streams.kstream.Windowed;
-import org.apache.kafka.streams.query.StateQueryRequest;
-import org.apache.kafka.streams.query.StateQueryResult;
-import org.apache.kafka.streams.query.WindowKeyQuery;
-import org.apache.kafka.streams.query.WindowRangeQuery;
 import org.apache.kafka.streams.state.HostInfo;
-import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.ValueAndTimestamp;
-import org.apache.kafka.streams.state.WindowStoreIterator;
 
-/**
- * Window store service.
- */
 @Slf4j
-public class WindowStoreService extends InteractiveQueriesService {
-
+abstract class CommonWindowStoreService extends CommonStoreService {
     /**
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    public WindowStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonWindowStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(kafkaStreamsInitializer);
     }
 
     /**
      * Constructor.
      *
-     * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @param httpClient              The HTTP client
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    @SuppressWarnings("unused")
-    public WindowStoreService(KafkaStreamsInitializer kafkaStreamsInitializer, HttpClient httpClient) {
+    protected CommonWindowStoreService(HttpClient httpClient,
+                                       KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
@@ -92,7 +79,7 @@ public class WindowStoreService extends InteractiveQueriesService {
                 results.addAll(
                     getAllOnRemoteHost(
                         metadata.hostInfo(),
-                        "store/window/local/" + store + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+                        "store/window/timestamped/local/" + store + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
                     )
                 );
             } else {
@@ -128,7 +115,7 @@ public class WindowStoreService extends InteractiveQueriesService {
 
             return getAllOnRemoteHost(
                 host,
-                "store/window/" + store + "/" + key + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+                "store/window/timestamped/" + store + "/" + key + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
             );
         }
 
@@ -156,71 +143,11 @@ public class WindowStoreService extends InteractiveQueriesService {
         return executeWindowRangeQuery(store, timeFrom, timeTo);
     }
 
-    @SuppressWarnings("unchecked")
-    private List<StateStoreRecord> executeWindowRangeQuery(String store, Instant timeFrom, Instant timeTo) {
-        WindowRangeQuery<String, Object> windowRangeQuery = WindowRangeQuery
-            .withWindowStartRange(timeFrom, timeTo);
+    protected abstract List<StateStoreRecord> executeWindowRangeQuery(String store, Instant timeFrom, Instant timeTo);
 
-        StateQueryResult<KeyValueIterator<Windowed<String>, Object>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(windowRangeQuery));
-
-        List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> {
-                if (kv.value instanceof ValueAndTimestamp<?>) {
-                    ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
-
-                    partitionsResult.add(
-                        new StateStoreRecord(
-                            kv.key.key(),
-                            valueAndTimestamp.value(),
-                            valueAndTimestamp.timestamp()
-                        )
-                    );
-                } else {
-                    partitionsResult.add(new StateStoreRecord(kv.key.key(), kv.value));
-                }
-            }));
-
-        return partitionsResult;
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata,
-                                                   String store,
-                                                   String key,
-                                                   Instant timeFrom,
-                                                   Instant timeTo) {
-        WindowKeyQuery<String, Object> windowKeyQuery = WindowKeyQuery
-            .withKeyAndWindowStartRange(key, timeFrom, timeTo);
-
-        StateQueryResult<WindowStoreIterator<Object>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(windowKeyQuery)
-                .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
-
-        if (!result.getOnlyPartitionResult().getResult().hasNext()) {
-            throw new UnknownKeyException(key);
-        }
-
-        List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getOnlyPartitionResult().getResult().forEachRemaining(kv -> {
-            if (kv.value instanceof ValueAndTimestamp<?>) {
-                ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
-
-                partitionsResult.add(
-                    new StateStoreRecord(key, valueAndTimestamp.value(), valueAndTimestamp.timestamp())
-                );
-            } else {
-                partitionsResult.add(new StateStoreRecord(key, kv.value));
-            }
-        });
-
-        return partitionsResult;
-    }
+    protected abstract List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata,
+                                                              String store,
+                                                              String key,
+                                                              Instant timeFrom,
+                                                              Instant timeTo);
 }

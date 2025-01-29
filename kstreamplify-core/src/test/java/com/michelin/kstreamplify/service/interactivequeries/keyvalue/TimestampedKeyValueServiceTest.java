@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.michelin.kstreamplify.service.interactivequeries;
+package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -62,7 +62,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class KeyValueStoreServiceTest {
+class TimestampedKeyValueServiceTest {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in REBALANCING state";
 
     @Mock
@@ -90,7 +90,7 @@ class KeyValueStoreServiceTest {
     private HttpResponse<String> httpResponse;
 
     @InjectMocks
-    private KeyValueStoreService keyValueStoreService;
+    private TimestampedKeyValueStoreService timestampedKeyValueStoreService;
 
     @Test
     void shouldConstructKeyValueService() {
@@ -110,7 +110,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getStateStores());
+            () -> timestampedKeyValueStoreService.getStateStores());
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -126,7 +126,7 @@ class KeyValueStoreServiceTest {
         when(streamsMetadata.stateStoreNames())
             .thenReturn(Set.of("store1", "store2"));
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = timestampedKeyValueStoreService.getStateStores();
 
         assertTrue(stores.contains("store1"));
         assertTrue(stores.contains("store2"));
@@ -140,7 +140,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(null);
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = timestampedKeyValueStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -153,7 +153,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(Collections.emptyList());
 
-        Set<String> stores = keyValueStoreService.getStateStores();
+        Set<String> stores = timestampedKeyValueStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -170,7 +170,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getStreamsMetadataForStore("store"));
+            () -> timestampedKeyValueStoreService.getStreamsMetadataForStore("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -183,7 +183,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(List.of(streamsMetadata));
 
-        Collection<StreamsMetadata> streamsMetadataResponse = keyValueStoreService
+        Collection<StreamsMetadata> streamsMetadataResponse = timestampedKeyValueStoreService
             .getStreamsMetadataForStore("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
@@ -201,7 +201,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getAll("store"));
+            () -> timestampedKeyValueStoreService.getAll("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -214,7 +214,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAll("store"));
+        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAll("store"));
     }
 
     @Test
@@ -225,7 +225,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAll("store"));
+        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAll("store"));
     }
 
     @Test
@@ -258,7 +258,7 @@ class KeyValueStoreServiceTest {
         when(iterator.next())
             .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAll("store");
+        List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAll("store");
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -295,7 +295,7 @@ class KeyValueStoreServiceTest {
               }
             ]""");
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAll("store");
+        List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAll("store");
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -311,7 +311,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAllOnLocalHost("store"));
+        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAllOnLocalHost("store"));
     }
 
     @Test
@@ -322,7 +322,7 @@ class KeyValueStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueStoreService.getAllOnLocalHost("store"));
+        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAllOnLocalHost("store"));
     }
 
     @Test
@@ -351,7 +351,7 @@ class KeyValueStoreServiceTest {
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = keyValueStoreService.getAllOnLocalHost("store");
+        List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAllOnLocalHost("store");
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -377,7 +377,7 @@ class KeyValueStoreServiceTest {
             .thenThrow(new RuntimeException("Error"));
 
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueStoreService.getAll("store"));
+            () -> timestampedKeyValueStoreService.getAll("store"));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
@@ -394,7 +394,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueStoreService.getByKey("store", "key"));
+            () -> timestampedKeyValueStoreService.getByKey("store", "key"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -408,7 +408,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(null);
 
         assertThrows(UnknownStateStoreException.class, () ->
-            keyValueStoreService.getByKey("store", "key"));
+            timestampedKeyValueStoreService.getByKey("store", "key"));
     }
 
     @Test
@@ -432,7 +432,7 @@ class KeyValueStoreServiceTest {
         when(stateKeyQueryResult.getOnlyPartitionResult())
             .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
 
-        StateStoreRecord response = keyValueStoreService.getByKey("store", "key");
+        StateStoreRecord response = timestampedKeyValueStoreService.getByKey("store", "key");
 
         assertEquals("key", response.getKey());
         assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
@@ -469,7 +469,7 @@ class KeyValueStoreServiceTest {
               }
             """);
 
-        StateStoreRecord response = keyValueStoreService.getByKey("store", "key");
+        StateStoreRecord response = timestampedKeyValueStoreService.getByKey("store", "key");
 
         assertEquals("key", response.getKey());
         assertEquals("John", ((Map<?, ?>) response.getValue()).get("firstName"));
@@ -495,7 +495,7 @@ class KeyValueStoreServiceTest {
             .thenReturn(null);
 
         UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-            keyValueStoreService.getByKey("store", "unknownKey"));
+            timestampedKeyValueStoreService.getByKey("store", "unknownKey"));
 
         assertEquals("Key unknownKey not found", exception.getMessage());
     }
@@ -519,7 +519,7 @@ class KeyValueStoreServiceTest {
             .thenThrow(new RuntimeException("Error"));
 
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueStoreService.getByKey("store", "key"));
+            () -> timestampedKeyValueStoreService.getByKey("store", "key"));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }

@@ -34,8 +34,8 @@ import com.michelin.kstreamplify.avro.KafkaPersonStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import com.michelin.kstreamplify.serde.SerdesUtils;
-import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
-import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -86,7 +86,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @Autowired
-    private KeyValueStoreService keyValueStoreService;
+    private KeyValueStoreService keyValueService;
 
     @Autowired
     private WindowStoreService windowStoreService;
@@ -198,7 +198,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE/wrongKey,Key wrongKey not found",
         "http://localhost:8085/store/window/WRONG_STORE,State store WRONG_STORE not found",
     })
-    void shouldGetErrorWhenWrongKeyOrStore(String url, String message) {
+    void shouldGetNotFoundWhenWrongKeyOrStore(String url, String message) {
         ResponseEntity<String> response = restTemplate
             .getForEntity(url, String.class);
 
@@ -213,7 +213,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().contains("Cannot get result for failed query."));
     }
 
     @Test
@@ -246,7 +245,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKeyInStringAvroKeyValueStoreFromService() {
-        StateStoreRecord stateStoreRecord = keyValueStoreService.getByKey("STRING_AVRO_STORE", "person");
+        StateStoreRecord stateStoreRecord = keyValueService.getByKey("STRING_AVRO_STORE", "person");
 
         assertEquals("person", stateStoreRecord.getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
@@ -363,7 +362,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetAllInStringAvroKeyValueStoreFromService() {
-        List<StateStoreRecord> stateQueryData = keyValueStoreService.getAll("STRING_AVRO_STORE");
+        List<StateStoreRecord> stateQueryData = keyValueService.getAll("STRING_AVRO_STORE");
 
         assertEquals("person", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));

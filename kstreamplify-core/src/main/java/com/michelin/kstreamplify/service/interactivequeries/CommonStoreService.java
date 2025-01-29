@@ -50,7 +50,7 @@ import org.apache.kafka.streams.state.HostInfo;
  */
 @Slf4j
 @AllArgsConstructor
-abstract class InteractiveQueriesService {
+public abstract class CommonStoreService {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
     protected static final String UNKNOWN_STATE_STORE = "State store %s not found";
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -64,7 +64,7 @@ abstract class InteractiveQueriesService {
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    protected InteractiveQueriesService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
         this.kafkaStreamsInitializer = kafkaStreamsInitializer;
         this.httpClient = HttpClient.newHttpClient();
     }
@@ -77,7 +77,7 @@ abstract class InteractiveQueriesService {
     public Set<String> getStateStores() {
         checkStreamsRunning();
 
-        final Collection<org.apache.kafka.streams.StreamsMetadata> metadata = kafkaStreamsInitializer
+        final Collection<StreamsMetadata> metadata = kafkaStreamsInitializer
             .getKafkaStreams()
             .metadataForAllStreamsClients();
 

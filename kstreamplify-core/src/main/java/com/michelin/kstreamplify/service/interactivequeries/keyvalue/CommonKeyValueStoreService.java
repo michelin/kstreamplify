@@ -1,3 +1,5 @@
+package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,41 +19,28 @@
  * under the License.
  */
 
-package com.michelin.kstreamplify.service.interactivequeries;
-
-import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.service.interactivequeries.CommonStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
-import org.apache.kafka.streams.query.KeyQuery;
-import org.apache.kafka.streams.query.RangeQuery;
-import org.apache.kafka.streams.query.StateQueryRequest;
-import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.HostInfo;
-import org.apache.kafka.streams.state.KeyValueIterator;
-import org.apache.kafka.streams.state.ValueAndTimestamp;
 
-/**
- * Key-value store service.
- */
 @Slf4j
-public class KeyValueStoreService extends InteractiveQueriesService {
-
+abstract class CommonKeyValueStoreService extends CommonStoreService {
     /**
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    public KeyValueStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonKeyValueStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(kafkaStreamsInitializer);
     }
 
@@ -61,8 +50,8 @@ public class KeyValueStoreService extends InteractiveQueriesService {
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      * @param httpClient              The HTTP client
      */
-    @SuppressWarnings("unused")
-    public KeyValueStoreService(KafkaStreamsInitializer kafkaStreamsInitializer, HttpClient httpClient) {
+    protected CommonKeyValueStoreService(HttpClient httpClient,
+                                         KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
@@ -141,57 +130,7 @@ public class KeyValueStoreService extends InteractiveQueriesService {
         return executeRangeQuery(store);
     }
 
-    @SuppressWarnings("unchecked")
-    private List<StateStoreRecord> executeRangeQuery(String store) {
-        RangeQuery<String, Object> rangeQuery = RangeQuery.withNoBounds();
-        StateQueryResult<KeyValueIterator<String, Object>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(rangeQuery));
+    protected abstract List<StateStoreRecord> executeRangeQuery(String store);
 
-        List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> {
-                if (kv.value instanceof ValueAndTimestamp<?>) {
-                    ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) kv.value;
-
-                    partitionsResult.add(
-                        new StateStoreRecord(
-                            kv.key,
-                            valueAndTimestamp.value(),
-                            valueAndTimestamp.timestamp()
-                        )
-                    );
-                } else {
-                    partitionsResult.add(new StateStoreRecord(kv.key, kv.value));
-                }
-            }));
-
-        return new ArrayList<>(partitionsResult);
-    }
-
-    @SuppressWarnings("unchecked")
-    private StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key) {
-        KeyQuery<String, Object> keyQuery = KeyQuery.withKey(key);
-        StateQueryResult<Object> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(keyQuery)
-                .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
-
-        if (result.getOnlyPartitionResult() == null) {
-            throw new UnknownKeyException(key);
-        }
-
-        if (result.getOnlyPartitionResult().getResult() instanceof ValueAndTimestamp<?>) {
-            ValueAndTimestamp<Object> valueAndTimestamp = (ValueAndTimestamp<Object>) result.getOnlyPartitionResult()
-                .getResult();
-
-            return new StateStoreRecord(key, valueAndTimestamp.value(), valueAndTimestamp.timestamp());
-        }
-
-        return new StateStoreRecord(key, result.getOnlyPartitionResult().getResult());
-    }
+    protected abstract StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key);
 }
