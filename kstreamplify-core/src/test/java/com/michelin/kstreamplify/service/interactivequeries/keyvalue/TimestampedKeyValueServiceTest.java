@@ -311,7 +311,10 @@ class TimestampedKeyValueServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAllOnLocalHost("store"));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedKeyValueStoreService.getAllOnLocalHost("store")
+        );
     }
 
     @Test
@@ -322,7 +325,10 @@ class TimestampedKeyValueServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> timestampedKeyValueStoreService.getAllOnLocalHost("store"));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedKeyValueStoreService.getAllOnLocalHost("store")
+        );
     }
 
     @Test

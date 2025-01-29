@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.utils.CollectionUtils;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.query.RangeQuery;

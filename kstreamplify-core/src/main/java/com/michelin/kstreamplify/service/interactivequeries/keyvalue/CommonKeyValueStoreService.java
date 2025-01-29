@@ -1,5 +1,3 @@
-package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,8 @@ package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.interactivequeries.CommonStoreService;

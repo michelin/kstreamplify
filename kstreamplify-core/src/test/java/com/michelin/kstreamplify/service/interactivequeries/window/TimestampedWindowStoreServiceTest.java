@@ -223,7 +223,10 @@ class TimestampedWindowStoreServiceTest {
             .thenReturn(null);
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class, () -> timestampedWindowStoreService.getAll("store", instant, instant));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedWindowStoreService.getAll("store", instant, instant)
+        );
     }
 
     @Test
@@ -235,7 +238,10 @@ class TimestampedWindowStoreServiceTest {
             .thenReturn(Collections.emptyList());
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class, () -> timestampedWindowStoreService.getAll("store", instant, instant));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedWindowStoreService.getAll("store", instant, instant)
+        );
     }
 
     @Test
@@ -466,7 +472,8 @@ class TimestampedWindowStoreServiceTest {
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = timestampedWindowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getByKey("store", "key", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -505,7 +512,8 @@ class TimestampedWindowStoreServiceTest {
               ]
             """);
 
-        List<StateStoreRecord> responses = timestampedWindowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getByKey("store", "key", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
