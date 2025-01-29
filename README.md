@@ -334,7 +334,9 @@ handle state stores being on different Kafka Streams instances by providing an [
 
 Here is the list of supported state store types:
 - Key-Value store
+- Timestamped Key-Value store
 - Window store
+- Timestamped Window store
 
 Only state stores with String keys are supported.
 
@@ -478,7 +480,13 @@ public class MyService {
     KeyValueStoreService keyValueStoreService;
 
     @Autowired
+    TimestampedKeyValueStoreService timestampedKeyValueStoreService;
+  
+    @Autowired
     WindowStoreService windowStoreService;
+
+    @Autowired
+    TimestampedWindowStoreService timestampedWindowStoreService;
 }
 ```
 
@@ -508,7 +516,7 @@ and within a specified time frame.
 All deduplication methods return a `KStream<String, ProcessingResult<V,V2>` so you can redirect the result to the
 `TopologyErrorHandler#catchErrors()`.
 
-**Note**: Only streams with String keys and Avro values are supported.
+Only streams with String keys and Avro values are supported.
 
 ### By Key
 
