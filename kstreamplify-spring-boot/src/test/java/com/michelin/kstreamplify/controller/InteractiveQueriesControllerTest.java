@@ -140,7 +140,8 @@ class InteractiveQueriesControllerTest {
         when(timestampedKeyValueService.getAll("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAllInTimestampedKeyValueStore("store").getBody();
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedKeyValueStore("store").getBody();
 
         assertNotNull(responses);
         assertEquals("key1", responses.get(0).getKey());
@@ -153,7 +154,8 @@ class InteractiveQueriesControllerTest {
         when(timestampedKeyValueService.getAllOnLocalHost("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
-        List<StateStoreRecord> responses = interactiveQueriesController.getAllInTimestampedKeyValueStoreOnLocalHost("store")
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedKeyValueStoreOnLocalHost("store")
             .getBody();
 
         assertNotNull(responses);
