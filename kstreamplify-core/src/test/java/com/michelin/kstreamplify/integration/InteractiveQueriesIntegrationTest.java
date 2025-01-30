@@ -213,7 +213,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/wrongKey,Key wrongKey not found",
         "http://localhost:8081/store/window/WRONG_STORE,State store WRONG_STORE not found",
     })
-    void shouldGetNotFoundWhenWrongKeyOrStore(String url, String message) throws IOException, InterruptedException {
+    void shouldNotFoundWhenWrongKeyOrStore(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .GET()
@@ -226,7 +226,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetErrorWhenQueryingNotKeyValueStore() throws IOException, InterruptedException {
+    void shouldGetErrorWhenQueryingWrongStoreType() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
@@ -274,18 +274,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetByKeyInStringAvroKeyValueStoreFromService() {
-        StateStoreRecord stateStoreRecord = keyValueService.getByKey("STRING_AVRO_STORE", "person");
-
-        assertEquals("person", stateStoreRecord.getKey());
-        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateStoreRecord.getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
-        assertNull(stateStoreRecord.getTimestamp());
-    }
-
-    @Test
     void shouldGetByKeyInStringAvroTimestampedKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8081/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"))
@@ -303,44 +291,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
         assertNotNull(body.getTimestamp());
     }
-
-    @Test
-    void shouldGetByKeyInStringAvroWindowStore() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/person"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {
-        });
-
-        assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
-        assertNull(body.get(0).getTimestamp());
-    }
-
-    @Test
-    void shouldGetByKeyInStringAvroWindowStoreFromService() {
-        List<StateStoreRecord> stateStoreRecord = windowStoreService.getByKey(
-            "STRING_AVRO_WINDOW_STORE",
-            "person",
-            Instant.EPOCH,
-            Instant.now()
-        );
-
-        assertEquals("person", stateStoreRecord.get(0).getKey());
-        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("birthDate"));
-        assertNull(stateStoreRecord.get(0).getTimestamp());
-    }
-
+    
     @Test
     void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -363,9 +314,10 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8081/store/key-value/STRING_AVRO_STORE",
         "http://localhost:8081/store/key-value/local/STRING_AVRO_STORE",
         "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE",
-        "http://localhost:8081/store/window/local/STRING_AVRO_WINDOW_STORE"
+        "http://localhost:8081/store/window/local/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8081/store/window/STRING_AVRO_WINDOW_STORE/person"
     })
-    void shouldGetAllInStringAvroStores(String url) throws IOException, InterruptedException {
+    void shouldGetFromStringAvroStores(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .GET()
@@ -388,7 +340,6 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
     @CsvSource({
         "http://localhost:8081/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE",
         "http://localhost:8081/store/key-value/timestamped/local/STRING_AVRO_TIMESTAMPED_STORE",
-        "http://localhost:8081/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person",
         "http://localhost:8081/store/window/timestamped/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
         "http://localhost:8081/store/window/timestamped/local/STRING_AVRO_TIMESTAMPED_WINDOW_STORE",
         "http://localhost:8081/store/window/timestamped/STRING_AVRO_TIMESTAMPED_WINDOW_STORE/person"
@@ -410,6 +361,35 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
         assertNotNull(body.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetByKeyInStringAvroKeyValueStoreFromService() {
+        StateStoreRecord stateStoreRecord = keyValueService.getByKey("STRING_AVRO_STORE", "person");
+
+        assertEquals("person", stateStoreRecord.getKey());
+        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateStoreRecord.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
+        assertNull(stateStoreRecord.getTimestamp());
+    }
+
+    @Test
+    void shouldGetByKeyInStringAvroWindowStoreFromService() {
+        List<StateStoreRecord> stateStoreRecord = windowStoreService.getByKey(
+            "STRING_AVRO_WINDOW_STORE",
+            "person",
+            Instant.EPOCH,
+            Instant.now()
+        );
+
+        assertEquals("person", stateStoreRecord.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("birthDate"));
+        assertNull(stateStoreRecord.get(0).getTimestamp());
     }
 
     @Test
