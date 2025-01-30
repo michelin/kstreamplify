@@ -62,6 +62,14 @@ public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService 
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String path() {
+        return "key-value/timestamped";
+    }
+
+    /**
      * Execute a timestamped range query on the store.
      *
      * @param store The store

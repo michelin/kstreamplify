@@ -74,7 +74,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
                 results.addAll(
-                    getAllOnRemoteHost(metadata.hostInfo(), "store/key-value/local/" + store)
+                    getAllOnRemoteHost(metadata.hostInfo(), "store/" + path() + "/local/" + store)
                 );
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
@@ -105,7 +105,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
             log.debug("The key {} has been located on another instance ({}:{})", key,
                 host.host(), host.port());
 
-            return getByKeyOnRemoteHost(host, "store/key-value/" + store + "/" + key);
+            return getByKeyOnRemoteHost(host, "store/" + path() + "/" + store + "/" + key);
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,

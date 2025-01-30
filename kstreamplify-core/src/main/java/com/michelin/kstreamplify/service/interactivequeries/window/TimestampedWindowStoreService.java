@@ -65,6 +65,14 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String path() {
+        return "window/timestamped";
+    }
+
+    /**
      * Execute a window range query.
      *
      * @param store   The store

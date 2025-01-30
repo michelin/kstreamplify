@@ -291,7 +291,7 @@ class InteractiveQueriesIntegrationTest extends KafkaIntegrationTest {
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
         assertNotNull(body.getTimestamp());
     }
-    
+
     @Test
     void shouldGetAllInStringStringKeyValueStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

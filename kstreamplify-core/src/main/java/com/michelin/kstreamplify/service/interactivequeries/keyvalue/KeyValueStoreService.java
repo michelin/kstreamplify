@@ -50,6 +50,14 @@ public class KeyValueStoreService extends CommonKeyValueStoreService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String path() {
+        return "key-value";
+    }
+
+    /**
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer

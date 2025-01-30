@@ -203,4 +203,11 @@ public abstract class CommonStoreService {
             throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
         }
     }
+
+    /**
+     * The path for RPC.
+     *
+     * @return The path
+     */
+    protected abstract String path();
 }
