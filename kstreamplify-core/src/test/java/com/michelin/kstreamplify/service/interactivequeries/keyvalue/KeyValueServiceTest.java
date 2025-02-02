@@ -98,12 +98,6 @@ class KeyValueServiceTest {
     }
 
     @Test
-    void shouldConstructKeyValueService() {
-        KeyValueStoreService service = new KeyValueStoreService(kafkaStreamsInitializer);
-        assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
-    }
-
-    @Test
     void shouldNotGetStoresWhenStreamsIsNotStarted() {
         when(kafkaStreamsInitializer.isNotRunning())
             .thenReturn(true);
@@ -315,7 +309,7 @@ class KeyValueServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalHost("store"));
+        assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalInstance("store"));
     }
 
     @Test
@@ -326,7 +320,7 @@ class KeyValueServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(Collections.emptyList());
 
-        assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalHost("store"));
+        assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalInstance("store"));
     }
 
     @Test
@@ -351,7 +345,7 @@ class KeyValueServiceTest {
         when(iterator.next())
             .thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
 
-        List<StateStoreRecord> responses = keyValueService.getAllOnLocalHost("store");
+        List<StateStoreRecord> responses = keyValueService.getAllOnLocalInstance("store");
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));

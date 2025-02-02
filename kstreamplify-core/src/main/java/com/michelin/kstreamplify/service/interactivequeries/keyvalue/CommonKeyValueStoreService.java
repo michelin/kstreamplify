@@ -115,12 +115,12 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
     }
 
     /**
-     * Get all values from the store on the local host.
+     * Get all values from the store on the local instance.
      *
      * @param store The store
      * @return The values
      */
-    public List<StateStoreRecord> getAllOnLocalHost(String store) {
+    public List<StateStoreRecord> getAllOnLocalInstance(String store) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
@@ -130,7 +130,21 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
         return executeRangeQuery(store);
     }
 
+    /**
+     * Execute a range query on the store.
+     *
+     * @param store The store
+     * @return The results
+     */
     protected abstract List<StateStoreRecord> executeRangeQuery(String store);
 
+    /**
+     * Execute a key query on the store.
+     *
+     * @param keyQueryMetadata The key query metadata
+     * @param store The store
+     * @param key The key
+     * @return The result
+     */
     protected abstract StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key);
 }

@@ -126,14 +126,14 @@ abstract class CommonWindowStoreService extends CommonStoreService {
     }
 
     /**
-     * Get all values from the store on the local host.
+     * Get all values from the store on the local instance.
      *
      * @param store    The store
      * @param startTime The start time
      * @param endTime   The end time
      * @return The values
      */
-    public List<StateStoreRecord> getAllOnLocalHost(String store, Instant startTime, Instant endTime) {
+    public List<StateStoreRecord> getAllOnLocalInstance(String store, Instant startTime, Instant endTime) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
@@ -143,8 +143,26 @@ abstract class CommonWindowStoreService extends CommonStoreService {
         return executeWindowRangeQuery(store, startTime, endTime);
     }
 
+    /**
+     * Execute a window range query on the store.
+     *
+     * @param store    The store
+     * @param startTime The start time
+     * @param endTime  The end time
+     * @return The values
+     */
     protected abstract List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime);
 
+    /**
+     * Execute a window key query on the store.
+     *
+     * @param keyQueryMetadata The key query metadata
+     * @param store   The store
+     * @param key    The key
+     * @param startTime The start time
+     * @param endTime The end time
+     * @return The values
+     */
     protected abstract List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,
                                                                     String store,
                                                                     String key,

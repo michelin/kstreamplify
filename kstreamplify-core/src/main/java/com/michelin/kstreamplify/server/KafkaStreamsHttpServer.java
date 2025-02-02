@@ -198,14 +198,14 @@ public class KafkaStreamsHttpServer {
         if (exchange.getRequestURI().toString()
             .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/local/.*")) {
             store = parsePathParam(exchange, 4);
-            return keyValueService.getAllOnLocalHost(store);
+            return keyValueService.getAllOnLocalInstance(store);
         }
 
         // Get all on local host for timestamped key-value store
         if (exchange.getRequestURI().toString()
             .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/local/.*")) {
             store = parsePathParam(exchange, 5);
-            return timestampedKeyValueService.getAllOnLocalHost(store);
+            return timestampedKeyValueService.getAllOnLocalInstance(store);
         }
 
         // Get all on local host for window store
@@ -219,7 +219,7 @@ public class KafkaStreamsHttpServer {
             Instant instantTo = parseRequestParam(exchange, END_TIME_REQUEST_PARAM)
                 .map(Instant::parse)
                 .orElse(Instant.now());
-            return windowStoreService.getAllOnLocalHost(store, instantFrom, instantTo);
+            return windowStoreService.getAllOnLocalInstance(store, instantFrom, instantTo);
         }
 
         // Get all on local host for timestamped window store
@@ -233,7 +233,7 @@ public class KafkaStreamsHttpServer {
             Instant instantTo = parseRequestParam(exchange, END_TIME_REQUEST_PARAM)
                 .map(Instant::parse)
                 .orElse(Instant.now());
-            return timestampedWindowStoreService.getAllOnLocalHost(store, instantFrom, instantTo);
+            return timestampedWindowStoreService.getAllOnLocalInstance(store, instantFrom, instantTo);
         }
 
         // Get by key for timestamped key-value store

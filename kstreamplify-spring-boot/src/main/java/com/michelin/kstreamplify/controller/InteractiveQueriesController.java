@@ -167,7 +167,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(keyValueService.getAllOnLocalHost(store));
+            .body(keyValueService.getAllOnLocalInstance(store));
     }
 
     /**
@@ -254,7 +254,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(timestampedKeyValueService.getAllOnLocalHost(store));
+            .body(timestampedKeyValueService.getAllOnLocalInstance(store));
     }
 
     /**
@@ -355,7 +355,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(windowStoreService.getAllOnLocalHost(store, instantFrom, instantTo));
+            .body(windowStoreService.getAllOnLocalInstance(store, instantFrom, instantTo));
     }
 
     /**
@@ -463,7 +463,7 @@ public class InteractiveQueriesController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.APPLICATION_JSON)
-            .body(timestampedWindowStoreService.getAllOnLocalHost(store, instantFrom, instantTo));
+            .body(timestampedWindowStoreService.getAllOnLocalInstance(store, instantFrom, instantTo));
     }
 
     /**

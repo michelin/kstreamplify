@@ -73,12 +73,7 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
     }
 
     /**
-     * Execute a window range query.
-     *
-     * @param store   The store
-     * @param startTime The start time
-     * @param endTime  The end time
-     * @return The results
+     * {@inheritDoc}
      */
     @Override
     protected List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime) {
@@ -105,14 +100,7 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
     }
 
     /**
-     * Execute a window key query.
-     *
-     * @param keyQueryMetadata The key query metadata
-     * @param store The store
-     * @param key The key
-     * @param startTime  The start time
-     * @param endTime The end time
-     * @return The results
+     * {@inheritDoc}
      */
     @Override
     protected List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,

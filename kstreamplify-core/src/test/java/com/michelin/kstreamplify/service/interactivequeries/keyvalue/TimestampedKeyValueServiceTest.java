@@ -98,12 +98,6 @@ class TimestampedKeyValueServiceTest {
     }
 
     @Test
-    void shouldConstructKeyValueService() {
-        KeyValueStoreService service = new KeyValueStoreService(kafkaStreamsInitializer);
-        assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
-    }
-
-    @Test
     void shouldNotGetStoresWhenStreamsIsNotStarted() {
         when(kafkaStreamsInitializer.isNotRunning())
             .thenReturn(true);
@@ -318,7 +312,7 @@ class TimestampedKeyValueServiceTest {
 
         assertThrows(
             UnknownStateStoreException.class,
-            () -> timestampedKeyValueStoreService.getAllOnLocalHost("store")
+            () -> timestampedKeyValueStoreService.getAllOnLocalInstance("store")
         );
     }
 
@@ -332,7 +326,7 @@ class TimestampedKeyValueServiceTest {
 
         assertThrows(
             UnknownStateStoreException.class,
-            () -> timestampedKeyValueStoreService.getAllOnLocalHost("store")
+            () -> timestampedKeyValueStoreService.getAllOnLocalInstance("store")
         );
     }
 
@@ -362,7 +356,7 @@ class TimestampedKeyValueServiceTest {
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAllOnLocalHost("store");
+        List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAllOnLocalInstance("store");
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));

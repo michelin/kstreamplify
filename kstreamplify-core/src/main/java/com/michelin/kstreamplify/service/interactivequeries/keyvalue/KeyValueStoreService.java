@@ -69,10 +69,7 @@ public class KeyValueStoreService extends CommonKeyValueStoreService {
     }
 
     /**
-     * Execute a timestamped range query on the store.
-     *
-     * @param store The store
-     * @return The results
+     * {@inheritDoc}
      */
     @Override
     protected List<StateStoreRecord> executeRangeQuery(String store) {
@@ -92,12 +89,7 @@ public class KeyValueStoreService extends CommonKeyValueStoreService {
     }
 
     /**
-     * Execute a key query on the store.
-     *
-     * @param keyQueryMetadata The key query metadata
-     * @param store The store
-     * @param key The key
-     * @return The result
+     * {@inheritDoc}
      */
     @Override
     protected StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key) {

@@ -105,12 +105,6 @@ class TimestampedWindowStoreServiceTest {
     }
 
     @Test
-    void shouldConstructWindowService() {
-        WindowStoreService service = new WindowStoreService(kafkaStreamsInitializer);
-        assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
-    }
-
-    @Test
     void shouldNotGetStoresWhenStreamsIsNotStarted() {
         when(kafkaStreamsInitializer.isNotRunning())
             .thenReturn(true);
@@ -337,7 +331,7 @@ class TimestampedWindowStoreServiceTest {
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class,
-            () -> timestampedWindowStoreService.getAllOnLocalHost("store", instant, instant));
+            () -> timestampedWindowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
@@ -350,7 +344,7 @@ class TimestampedWindowStoreServiceTest {
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class,
-            () -> timestampedWindowStoreService.getAllOnLocalHost("store", instant, instant));
+            () -> timestampedWindowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
@@ -380,7 +374,8 @@ class TimestampedWindowStoreServiceTest {
             );
 
         Instant instant = Instant.now();
-        List<StateStoreRecord> responses = timestampedWindowStoreService.getAllOnLocalHost("store", instant, instant);
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getAllOnLocalInstance("store", instant, instant);
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));

@@ -109,7 +109,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInKeyValueStoreOnLocalHost() {
-        when(keyValueService.getAllOnLocalHost("store"))
+        when(keyValueService.getAllOnLocalInstance("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStoreOnLocalHost("store")
@@ -151,7 +151,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInTimestampedKeyValueStoreOnLocalHost() {
-        when(timestampedKeyValueService.getAllOnLocalHost("store"))
+        when(timestampedKeyValueService.getAllOnLocalInstance("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -210,7 +210,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInWindowStoreOnLocalHost() {
-        when(windowStoreService.getAllOnLocalHost(any(), any(), any()))
+        when(windowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -228,7 +228,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInWindowStoreOnLocalHostNoStartTimeNorEndTime() {
-        when(windowStoreService.getAllOnLocalHost(any(), any(), any()))
+        when(windowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -311,7 +311,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInTimestampedWindowStoreOnLocalHost() {
-        when(timestampedWindowStoreService.getAllOnLocalHost(any(), any(), any()))
+        when(timestampedWindowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -330,7 +330,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInTimestampedWindowStoreOnLocalHostNoStartTimeNorEndTime() {
-        when(timestampedWindowStoreService.getAllOnLocalHost(any(), any(), any()))
+        when(timestampedWindowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController

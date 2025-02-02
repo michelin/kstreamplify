@@ -55,8 +55,6 @@ public abstract class CommonStoreService {
     protected static final String UNKNOWN_STATE_STORE = "State store %s not found";
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
-
-    @Getter
     protected final KafkaStreamsInitializer kafkaStreamsInitializer;
 
     /**
