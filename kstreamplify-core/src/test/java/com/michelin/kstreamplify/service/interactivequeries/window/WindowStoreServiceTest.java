@@ -100,6 +100,11 @@ class WindowStoreServiceTest {
     private WindowStoreService windowStoreService;
 
     @Test
+    void shouldValidatePath() {
+        assertEquals("window", windowStoreService.path());
+    }
+
+    @Test
     void shouldConstructWindowService() {
         WindowStoreService service = new WindowStoreService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());

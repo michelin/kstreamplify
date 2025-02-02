@@ -76,14 +76,14 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
      * Execute a window range query.
      *
      * @param store   The store
-     * @param timeFrom The time from
-     * @param timeTo  The time to
+     * @param startTime The start time
+     * @param endTime  The end time
      * @return The results
      */
     @Override
-    protected List<StateStoreRecord> executeWindowRangeQuery(String store, Instant timeFrom, Instant timeTo) {
+    protected List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime) {
         WindowRangeQuery<String, ValueAndTimestamp<Object>> windowRangeQuery = WindowRangeQuery
-            .withWindowStartRange(timeFrom, timeTo);
+            .withWindowStartRange(startTime, endTime);
 
         StateQueryResult<KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
             .getKafkaStreams()
@@ -110,18 +110,18 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
      * @param keyQueryMetadata The key query metadata
      * @param store The store
      * @param key The key
-     * @param timeFrom  The time from
-     * @param timeTo The time to
+     * @param startTime  The start time
+     * @param endTime The end time
      * @return The results
      */
     @Override
-    protected List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata,
-                                                   String store,
-                                                   String key,
-                                                   Instant timeFrom,
-                                                   Instant timeTo) {
+    protected List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,
+                                                           String store,
+                                                           String key,
+                                                           Instant startTime,
+                                                           Instant endTime) {
         WindowKeyQuery<String, ValueAndTimestamp<Object>> windowKeyQuery = WindowKeyQuery
-            .withKeyAndWindowStartRange(key, timeFrom, timeTo);
+            .withKeyAndWindowStartRange(key, startTime, endTime);
 
         StateQueryResult<WindowStoreIterator<ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
             .getKafkaStreams()

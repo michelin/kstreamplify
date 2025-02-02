@@ -93,6 +93,11 @@ class TimestampedKeyValueServiceTest {
     private TimestampedKeyValueStoreService timestampedKeyValueStoreService;
 
     @Test
+    void shouldValidatePath() {
+        assertEquals("key-value/timestamped", timestampedKeyValueStoreService.path());
+    }
+
+    @Test
     void shouldConstructKeyValueService() {
         KeyValueStoreService service = new KeyValueStoreService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());

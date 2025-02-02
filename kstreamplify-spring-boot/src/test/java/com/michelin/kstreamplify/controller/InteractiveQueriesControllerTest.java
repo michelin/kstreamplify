@@ -194,7 +194,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetAllInWindowStoreNoStartTimeNorEndTime() {
         when(windowStoreService.getAll(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -227,7 +227,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInWindowStoreOnLocalHostNoTimeFromNorTimeTo() {
+    void shouldGetAllInWindowStoreOnLocalHostNoStartTimeNorEndTime() {
         when(windowStoreService.getAllOnLocalHost(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -261,7 +261,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetByKeyInWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetByKeyInWindowStoreNoStartTimeNorEndTime() {
         when(windowStoreService.getByKey(any(), any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -295,7 +295,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInTimestampedWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetAllInTimestampedWindowStoreNoStartTimeNorEndTime() {
         when(timestampedWindowStoreService.getAll(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -329,7 +329,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInTimestampedWindowStoreOnLocalHostNoTimeFromNorTimeTo() {
+    void shouldGetAllInTimestampedWindowStoreOnLocalHostNoStartTimeNorEndTime() {
         when(timestampedWindowStoreService.getAllOnLocalHost(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -364,7 +364,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetByKeyInTimestampedWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetByKeyInTimestampedWindowStoreNoStartTimeNorEndTime() {
         when(timestampedWindowStoreService.getByKey(any(), any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 

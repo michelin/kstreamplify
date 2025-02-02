@@ -100,6 +100,11 @@ class TimestampedWindowStoreServiceTest {
     private TimestampedWindowStoreService timestampedWindowStoreService;
 
     @Test
+    void shouldValidatePath() {
+        assertEquals("window/timestamped", timestampedWindowStoreService.path());
+    }
+
+    @Test
     void shouldConstructWindowService() {
         WindowStoreService service = new WindowStoreService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());

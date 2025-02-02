@@ -60,11 +60,11 @@ abstract class CommonWindowStoreService extends CommonStoreService {
      * Get all values from the store.
      *
      * @param store    The store
-     * @param timeFrom The time from
-     * @param timeTo   The time to
+     * @param startTime The start time
+     * @param endTime   The end time
      * @return The values
      */
-    public List<StateStoreRecord> getAll(String store, Instant timeFrom, Instant timeTo) {
+    public List<StateStoreRecord> getAll(String store, Instant startTime, Instant endTime) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
@@ -79,13 +79,13 @@ abstract class CommonWindowStoreService extends CommonStoreService {
                 results.addAll(
                     getAllOnRemoteHost(
                         metadata.hostInfo(),
-                        "store/window/timestamped/local/" + store + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+                        "store/" + path() + "/local/" + store + "?startTime=" + startTime + "&endTime=" + endTime
                     )
                 );
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
-                results.addAll(executeWindowRangeQuery(store, timeFrom, timeTo));
+                results.addAll(executeWindowRangeQuery(store, startTime, endTime));
             }
         });
 
@@ -97,11 +97,11 @@ abstract class CommonWindowStoreService extends CommonStoreService {
      *
      * @param store    The store name
      * @param key      The key
-     * @param timeFrom The time from
-     * @param timeTo   The time to
+     * @param startTime The start time
+     * @param endTime   The end time
      * @return The value
      */
-    public List<StateStoreRecord> getByKey(String store, String key, Instant timeFrom, Instant timeTo) {
+    public List<StateStoreRecord> getByKey(String store, String key, Instant startTime, Instant endTime) {
         KeyQueryMetadata keyQueryMetadata = getKeyQueryMetadata(store, key, new StringSerializer());
 
         if (keyQueryMetadata == null) {
@@ -115,39 +115,39 @@ abstract class CommonWindowStoreService extends CommonStoreService {
 
             return getAllOnRemoteHost(
                 host,
-                "store/window/timestamped/" + store + "/" + key + "?timeFrom=" + timeFrom + "&timeTo=" + timeTo
+                "store/" + path() + "/" + store + "/" + key + "?startTime=" + startTime + "&endTime=" + endTime
             );
         }
 
         log.debug("The key {} has been located on the current instance ({}:{})", key,
             host.host(), host.port());
 
-        return executeKeyQuery(keyQueryMetadata, store, key, timeFrom, timeTo);
+        return executeWindowKeyQuery(keyQueryMetadata, store, key, startTime, endTime);
     }
 
     /**
      * Get all values from the store on the local host.
      *
      * @param store    The store
-     * @param timeFrom The time from
-     * @param timeTo   The time to
+     * @param startTime The start time
+     * @param endTime   The end time
      * @return The values
      */
-    public List<StateStoreRecord> getAllOnLocalHost(String store, Instant timeFrom, Instant timeTo) {
+    public List<StateStoreRecord> getAllOnLocalHost(String store, Instant startTime, Instant endTime) {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
             throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
         }
 
-        return executeWindowRangeQuery(store, timeFrom, timeTo);
+        return executeWindowRangeQuery(store, startTime, endTime);
     }
 
-    protected abstract List<StateStoreRecord> executeWindowRangeQuery(String store, Instant timeFrom, Instant timeTo);
+    protected abstract List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime);
 
-    protected abstract List<StateStoreRecord> executeKeyQuery(KeyQueryMetadata keyQueryMetadata,
-                                                              String store,
-                                                              String key,
-                                                              Instant timeFrom,
-                                                              Instant timeTo);
+    protected abstract List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,
+                                                                    String store,
+                                                                    String key,
+                                                                    Instant startTime,
+                                                                    Instant endTime);
 }

@@ -93,6 +93,11 @@ class KeyValueServiceTest {
     private KeyValueStoreService keyValueService;
 
     @Test
+    void shouldValidatePath() {
+        assertEquals("key-value", keyValueService.path());
+    }
+
+    @Test
     void shouldConstructKeyValueService() {
         KeyValueStoreService service = new KeyValueStoreService(kafkaStreamsInitializer);
         assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
