@@ -180,13 +180,13 @@ Note that all the Kafka Streams properties are prefixed with `kafka.properties`.
 Whenever you need to serialize or deserialize records with Avro schemas, you can use the `SerdesUtils` class as follows:
 
 ```java
-SerdesUtils.<MyAvroValue>getValueSerde()
+SerdesUtils.<MyAvroValue>getValueSerdes()
 ```
 
 or
 
 ```java
-SerdesUtils.<MyAvroValue>getKeySerde()
+SerdesUtils.<MyAvroValue>getKeySerdes()
 ```
 
 Here is an example of using these methods in your topology:
@@ -197,8 +197,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerde()))
-            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()));
     }
 }
 ```
@@ -235,11 +235,11 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = streamsBuilder
-            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerde()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()));
 
         TopologyErrorHandler
             .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
-            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.getValueSerde()));
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
     }
 
     @Override
@@ -632,10 +632,10 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     @BeforeEach
     void setUp() {
         inputTopic = testDriver.createInputTopic("INPUT_TOPIC", new StringSerializer(),
-            SerdesUtils.<KafkaPerson>getValueSerde().serializer());
+            SerdesUtils.<KafkaPerson>getValueSerdes().serializer());
 
         outputTopic = testDriver.createOutputTopic("OUTPUT_TOPIC", new StringDeserializer(),
-            SerdesUtils.<KafkaPerson>getValueSerde().deserializer());
+            SerdesUtils.<KafkaPerson>getValueSerdes().deserializer());
     }
 
     @Test
