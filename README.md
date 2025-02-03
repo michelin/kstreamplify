@@ -49,6 +49,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Interactive Queries](#interactive-queries-1)
   * [Configuration](#configuration)
   * [Services](#services)
+  * [Web Services](#web-services-1)
 * [Hooks](#hooks)
   * [On Start](#on-start)
 * [Deduplication](#deduplication)
