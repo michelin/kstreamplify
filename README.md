@@ -40,15 +40,16 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Uncaught Exception Handler](#uncaught-exception-handler)
 * [Web Services](#web-services)
   * [Topology](#topology)
-  * [State Stores](#state-stores)
+  * [Interactive Queries](#interactive-queries)
   * [Kubernetes](#kubernetes)
 * [TopicWithSerde API](#topicwithserde-api)
   * [Declaration](#declaration)
   * [Prefix](#prefix)
   * [Remapping](#remapping)
-* [Interactive Queries](#interactive-queries)
+* [Interactive Queries](#interactive-queries-1)
   * [Configuration](#configuration)
   * [Services](#services)
+  * [Web Services](#web-services-1)
 * [Hooks](#hooks)
   * [On Start](#on-start)
 * [Deduplication](#deduplication)
@@ -326,7 +327,7 @@ topology:
   path: 'custom-topology'
 ```
 
-### State Stores
+### Interactive Queries
 
 A list of endpoints to query the state stores of your Kafka Streams application is available.
 It uses [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) and 
@@ -334,7 +335,9 @@ handle state stores being on different Kafka Streams instances by providing an [
 
 Here is the list of supported state store types:
 - Key-Value store
+- Timestamped Key-Value store
 - Window store
+- Timestamped Window store
 
 Only state stores with String keys are supported.
 
@@ -465,7 +468,7 @@ kafka:
 ```
 
 2. The value of a default environment variable named `APPLICATION_SERVER`.
-3. `localhost`.
+3. `localhost:<serverPort>`.
 
 ### Services
 
@@ -478,9 +481,20 @@ public class MyService {
     KeyValueStoreService keyValueStoreService;
 
     @Autowired
+    TimestampedKeyValueStoreService timestampedKeyValueStoreService;
+  
+    @Autowired
     WindowStoreService windowStoreService;
+
+    @Autowired
+    TimestampedWindowStoreService timestampedWindowStoreService;
 }
 ```
+
+### Web Services
+
+The web services layer provides a set of endpoints to query the state stores of your Kafka Streams application.
+Check the [Interactive Queries Web Services](#interactive-queries) section for more information.
 
 ## Hooks
 
@@ -508,7 +522,7 @@ and within a specified time frame.
 All deduplication methods return a `KStream<String, ProcessingResult<V,V2>` so you can redirect the result to the
 `TopologyErrorHandler#catchErrors()`.
 
-**Note**: Only streams with String keys and Avro values are supported.
+Only streams with String keys and Avro values are supported.
 
 ### By Key
 

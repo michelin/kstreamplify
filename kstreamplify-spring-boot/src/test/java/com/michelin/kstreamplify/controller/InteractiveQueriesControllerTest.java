@@ -25,8 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
-import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.keyvalue.TimestampedKeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.TimestampedWindowStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import java.util.List;
 import java.util.Optional;
@@ -46,17 +48,23 @@ class InteractiveQueriesControllerTest {
     private StreamsMetadata streamsMetadata;
 
     @Mock
-    private KeyValueStoreService keyValueStoreService;
+    private KeyValueStoreService keyValueService;
+
+    @Mock
+    private TimestampedKeyValueStoreService timestampedKeyValueService;
 
     @Mock
     private WindowStoreService windowStoreService;
+
+    @Mock
+    private TimestampedWindowStoreService timestampedWindowStoreService;
 
     @InjectMocks
     private InteractiveQueriesController interactiveQueriesController;
 
     @Test
     void shouldGetStores() {
-        when(keyValueStoreService.getStateStores())
+        when(keyValueService.getStateStores())
             .thenReturn(Set.of("store1", "store2"));
 
         assertEquals(Set.of("store1", "store2"), interactiveQueriesController.getStores().getBody());
@@ -73,7 +81,7 @@ class InteractiveQueriesControllerTest {
         when(streamsMetadata.topicPartitions())
             .thenReturn(Set.of(new TopicPartition("topic", 0)));
 
-        when(keyValueStoreService.getStreamsMetadataForStore("store"))
+        when(keyValueService.getStreamsMetadataForStore("store"))
             .thenReturn(List.of(streamsMetadata));
 
         List<com.michelin.kstreamplify.store.StreamsMetadata> response =
@@ -88,7 +96,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInKeyValueStore() {
-        when(keyValueStoreService.getAll("store"))
+        when(keyValueService.getAll("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStore("store").getBody();
@@ -101,7 +109,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInKeyValueStoreOnLocalHost() {
-        when(keyValueStoreService.getAllOnLocalHost("store"))
+        when(keyValueService.getAllOnLocalInstance("store"))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController.getAllInKeyValueStoreOnLocalHost("store")
@@ -115,11 +123,54 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetByKeyInKeyValueStore() {
-        when(keyValueStoreService.getByKey("store", "key"))
+        when(keyValueService.getByKey("store", "key"))
             .thenReturn(new StateStoreRecord("key1", "value1", 1L));
 
         StateStoreRecord response = interactiveQueriesController
             .getByKeyInKeyValueStore("store", "key").getBody();
+
+        assertNotNull(response);
+        assertEquals("key1", response.getKey());
+        assertEquals("value1", response.getValue());
+        assertEquals(1L, response.getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedKeyValueStore() {
+        when(timestampedKeyValueService.getAll("store"))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedKeyValueStore("store").getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedKeyValueStoreOnLocalHost() {
+        when(timestampedKeyValueService.getAllOnLocalInstance("store"))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedKeyValueStoreOnLocalHost("store")
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetByKeyInTimestampedKeyValueStore() {
+        when(timestampedKeyValueService.getByKey("store", "key"))
+            .thenReturn(new StateStoreRecord("key1", "value1", 1L));
+
+        StateStoreRecord response = interactiveQueriesController
+            .getByKeyInTimestampedKeyValueStore("store", "key").getBody();
 
         assertNotNull(response);
         assertEquals("key1", response.getKey());
@@ -143,7 +194,7 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetAllInWindowStoreNoStartTimeNorEndTime() {
         when(windowStoreService.getAll(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
@@ -159,7 +210,7 @@ class InteractiveQueriesControllerTest {
 
     @Test
     void shouldGetAllInWindowStoreOnLocalHost() {
-        when(windowStoreService.getAllOnLocalHost(any(), any(), any()))
+        when(windowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -176,8 +227,8 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetAllInWindowStoreOnLocalHostNoTimeFromNorTimeTo() {
-        when(windowStoreService.getAllOnLocalHost(any(), any(), any()))
+    void shouldGetAllInWindowStoreOnLocalHostNoStartTimeNorEndTime() {
+        when(windowStoreService.getAllOnLocalInstance(any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
@@ -210,12 +261,115 @@ class InteractiveQueriesControllerTest {
     }
 
     @Test
-    void shouldGetByKeyInWindowStoreNoTimeFromNorTimeTo() {
+    void shouldGetByKeyInWindowStoreNoStartTimeNorEndTime() {
         when(windowStoreService.getByKey(any(), any(), any(), any()))
             .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
 
         List<StateStoreRecord> responses = interactiveQueriesController
             .getByKeyInWindowStore("store", "key", Optional.empty(), Optional.empty())
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedWindowStore() {
+        when(timestampedWindowStoreService.getAll(any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedWindowStore(
+                "store",
+                Optional.of("1970-01-01T00:00:00Z"),
+                Optional.of("1970-01-01T00:00:00Z")
+            )
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedWindowStoreNoStartTimeNorEndTime() {
+        when(timestampedWindowStoreService.getAll(any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedWindowStore("store", Optional.empty(), Optional.empty())
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedWindowStoreOnLocalHost() {
+        when(timestampedWindowStoreService.getAllOnLocalInstance(any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedWindowStoreOnLocalHost(
+                "store",
+                Optional.of("1970-01-01T00:00:00Z"),
+                Optional.of("1970-01-01T00:00:00Z")
+            )
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetAllInTimestampedWindowStoreOnLocalHostNoStartTimeNorEndTime() {
+        when(timestampedWindowStoreService.getAllOnLocalInstance(any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getAllInTimestampedWindowStoreOnLocalHost("store", Optional.empty(), Optional.empty())
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetByKeyInTimestampedWindowStore() {
+        when(timestampedWindowStoreService.getByKey(any(), any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getByKeyInTimestampedWindowStore(
+                "store",
+                "key",
+                Optional.of("1970-01-01T00:00:00Z"),
+                Optional.of("1970-01-01T00:00:00Z")
+            )
+            .getBody();
+
+        assertNotNull(responses);
+        assertEquals("key1", responses.get(0).getKey());
+        assertEquals("value1", responses.get(0).getValue());
+        assertEquals(1L, responses.get(0).getTimestamp());
+    }
+
+    @Test
+    void shouldGetByKeyInTimestampedWindowStoreNoStartTimeNorEndTime() {
+        when(timestampedWindowStoreService.getByKey(any(), any(), any(), any()))
+            .thenReturn(List.of(new StateStoreRecord("key1", "value1", 1L)));
+
+        List<StateStoreRecord> responses = interactiveQueriesController
+            .getByKeyInTimestampedWindowStore("store", "key", Optional.empty(), Optional.empty())
             .getBody();
 
         assertNotNull(responses);

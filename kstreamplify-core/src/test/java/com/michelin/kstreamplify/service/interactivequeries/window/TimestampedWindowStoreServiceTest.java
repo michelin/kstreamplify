@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.michelin.kstreamplify.service.interactivequeries;
+package com.michelin.kstreamplify.service.interactivequeries.window;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
@@ -66,7 +66,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class WindowStoreServiceTest {
+class TimestampedWindowStoreServiceTest {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in REBALANCING state";
 
     @Mock
@@ -97,12 +97,11 @@ class WindowStoreServiceTest {
     private HttpResponse<String> httpResponse;
 
     @InjectMocks
-    private WindowStoreService windowStoreService;
+    private TimestampedWindowStoreService timestampedWindowStoreService;
 
     @Test
-    void shouldConstructWindowService() {
-        WindowStoreService service = new WindowStoreService(kafkaStreamsInitializer);
-        assertEquals(kafkaStreamsInitializer, service.getKafkaStreamsInitializer());
+    void shouldValidatePath() {
+        assertEquals("window/timestamped", timestampedWindowStoreService.path());
     }
 
     @Test
@@ -117,7 +116,7 @@ class WindowStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getStateStores());
+            () -> timestampedWindowStoreService.getStateStores());
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -133,7 +132,7 @@ class WindowStoreServiceTest {
         when(streamsMetadata.stateStoreNames())
             .thenReturn(Set.of("store1", "store2"));
 
-        Set<String> stores = windowStoreService.getStateStores();
+        Set<String> stores = timestampedWindowStoreService.getStateStores();
 
         assertTrue(stores.contains("store1"));
         assertTrue(stores.contains("store2"));
@@ -147,7 +146,7 @@ class WindowStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(null);
 
-        Set<String> stores = windowStoreService.getStateStores();
+        Set<String> stores = timestampedWindowStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -160,7 +159,7 @@ class WindowStoreServiceTest {
         when(kafkaStreams.metadataForAllStreamsClients())
             .thenReturn(Collections.emptyList());
 
-        Set<String> stores = windowStoreService.getStateStores();
+        Set<String> stores = timestampedWindowStoreService.getStateStores();
 
         assertTrue(stores.isEmpty());
     }
@@ -177,7 +176,7 @@ class WindowStoreServiceTest {
             .thenReturn(KafkaStreams.State.REBALANCING);
 
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getStreamsMetadataForStore("store"));
+            () -> timestampedWindowStoreService.getStreamsMetadataForStore("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -190,7 +189,7 @@ class WindowStoreServiceTest {
         when(kafkaStreams.streamsMetadataForStore(any()))
             .thenReturn(List.of(streamsMetadata));
 
-        Collection<StreamsMetadata> streamsMetadataResponse = windowStoreService
+        Collection<StreamsMetadata> streamsMetadataResponse = timestampedWindowStoreService
             .getStreamsMetadataForStore("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
@@ -209,7 +208,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getAll("store", instant, instant));
+            () -> timestampedWindowStoreService.getAll("store", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -223,7 +222,10 @@ class WindowStoreServiceTest {
             .thenReturn(null);
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedWindowStoreService.getAll("store", instant, instant)
+        );
     }
 
     @Test
@@ -235,7 +237,10 @@ class WindowStoreServiceTest {
             .thenReturn(Collections.emptyList());
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
+        assertThrows(
+            UnknownStateStoreException.class,
+            () -> timestampedWindowStoreService.getAll("store", instant, instant)
+        );
     }
 
     @Test
@@ -271,7 +276,7 @@ class WindowStoreServiceTest {
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -308,7 +313,7 @@ class WindowStoreServiceTest {
               }
             ]""");
 
-        List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -326,7 +331,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class,
-            () -> windowStoreService.getAllOnLocalHost("store", instant, instant));
+            () -> timestampedWindowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
@@ -339,7 +344,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class,
-            () -> windowStoreService.getAllOnLocalHost("store", instant, instant));
+            () -> timestampedWindowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
@@ -369,7 +374,8 @@ class WindowStoreServiceTest {
             );
 
         Instant instant = Instant.now();
-        List<StateStoreRecord> responses = windowStoreService.getAllOnLocalHost("store", instant, instant);
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getAllOnLocalInstance("store", instant, instant);
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -396,7 +402,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> windowStoreService.getAll("store", instant, instant));
+            () -> timestampedWindowStoreService.getAll("store", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
@@ -414,7 +420,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getByKey("store", "key", instant, instant));
+            () -> timestampedWindowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
@@ -429,7 +435,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class, () ->
-            windowStoreService.getByKey("store", "key", instant, instant));
+            timestampedWindowStoreService.getByKey("store", "key", instant, instant));
     }
 
     @Test
@@ -466,7 +472,8 @@ class WindowStoreServiceTest {
                 ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L))
             );
 
-        List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getByKey("store", "key", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -505,7 +512,8 @@ class WindowStoreServiceTest {
               ]
             """);
 
-        List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
+        List<StateStoreRecord> responses = timestampedWindowStoreService
+            .getByKey("store", "key", Instant.EPOCH, Instant.now());
 
         assertEquals("key", responses.get(0).getKey());
         assertEquals("John", ((Map<?, ?>) responses.get(0).getValue()).get("firstName"));
@@ -533,7 +541,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-            windowStoreService.getByKey("store", "unknownKey", instant, instant));
+            timestampedWindowStoreService.getByKey("store", "unknownKey", instant, instant));
 
         assertEquals("Key unknownKey not found", exception.getMessage());
     }
@@ -554,7 +562,7 @@ class WindowStoreServiceTest {
 
         Instant instant = Instant.now();
         OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> windowStoreService.getByKey("store", "key", instant, instant));
+            () -> timestampedWindowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }

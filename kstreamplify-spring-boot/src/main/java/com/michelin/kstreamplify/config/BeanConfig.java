@@ -23,8 +23,10 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.initializer.SpringBootKafkaStreamsInitializer;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
-import com.michelin.kstreamplify.service.interactivequeries.KeyValueStoreService;
-import com.michelin.kstreamplify.service.interactivequeries.WindowStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.keyvalue.TimestampedKeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.TimestampedWindowStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.WindowStoreService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,13 +71,35 @@ public class BeanConfig {
     }
 
     /**
+     * Register the timestamped key-value store service as a bean.
+     *
+     * @param initializer The Kafka Streams initializer
+     * @return The timestamped key-value store service
+     */
+    @Bean
+    TimestampedKeyValueStoreService timestampedKeyValueStoreService(SpringBootKafkaStreamsInitializer initializer) {
+        return new TimestampedKeyValueStoreService(initializer);
+    }
+
+    /**
      * Register the window store service as a bean.
      *
      * @param initializer The Kafka Streams initializer
-     * @return The key-value store service
+     * @return The window store service
      */
     @Bean
     WindowStoreService windowStoreService(SpringBootKafkaStreamsInitializer initializer) {
         return new WindowStoreService(initializer);
+    }
+
+    /**
+     * Register the timestamped window store service as a bean.
+     *
+     * @param initializer The Kafka Streams initializer
+     * @return The timestamped window store service
+     */
+    @Bean
+    TimestampedWindowStoreService timestampedWindowStoreService(SpringBootKafkaStreamsInitializer initializer) {
+        return new TimestampedWindowStoreService(initializer);
     }
 }

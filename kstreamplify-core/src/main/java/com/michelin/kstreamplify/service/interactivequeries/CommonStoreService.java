@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -50,13 +49,11 @@ import org.apache.kafka.streams.state.HostInfo;
  */
 @Slf4j
 @AllArgsConstructor
-abstract class InteractiveQueriesService {
+public abstract class CommonStoreService {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
     protected static final String UNKNOWN_STATE_STORE = "State store %s not found";
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
-
-    @Getter
     protected final KafkaStreamsInitializer kafkaStreamsInitializer;
 
     /**
@@ -64,7 +61,7 @@ abstract class InteractiveQueriesService {
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    protected InteractiveQueriesService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
         this.kafkaStreamsInitializer = kafkaStreamsInitializer;
         this.httpClient = HttpClient.newHttpClient();
     }
@@ -77,7 +74,7 @@ abstract class InteractiveQueriesService {
     public Set<String> getStateStores() {
         checkStreamsRunning();
 
-        final Collection<org.apache.kafka.streams.StreamsMetadata> metadata = kafkaStreamsInitializer
+        final Collection<StreamsMetadata> metadata = kafkaStreamsInitializer
             .getKafkaStreams()
             .metadataForAllStreamsClients();
 
@@ -203,4 +200,11 @@ abstract class InteractiveQueriesService {
             throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
         }
     }
+
+    /**
+     * The path for RPC.
+     *
+     * @return The path
+     */
+    protected abstract String path();
 }
