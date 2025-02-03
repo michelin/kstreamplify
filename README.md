@@ -40,13 +40,13 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Uncaught Exception Handler](#uncaught-exception-handler)
 * [Web Services](#web-services)
   * [Topology](#topology)
-  * [State Stores](#state-stores)
+  * [Interactive Queries](#interactive-queries)
   * [Kubernetes](#kubernetes)
 * [TopicWithSerde API](#topicwithserde-api)
   * [Declaration](#declaration)
   * [Prefix](#prefix)
   * [Remapping](#remapping)
-* [Interactive Queries](#interactive-queries)
+* [Interactive Queries](#interactive-queries-1)
   * [Configuration](#configuration)
   * [Services](#services)
 * [Hooks](#hooks)
@@ -326,7 +326,7 @@ topology:
   path: 'custom-topology'
 ```
 
-### State Stores
+### Interactive Queries
 
 A list of endpoints to query the state stores of your Kafka Streams application is available.
 It uses [interactive queries](https://docs.confluent.io/platform/current/streams/developer-guide/interactive-queries.html) and 
@@ -467,7 +467,7 @@ kafka:
 ```
 
 2. The value of a default environment variable named `APPLICATION_SERVER`.
-3. `localhost`.
+3. `localhost:<serverPort>`.
 
 ### Services
 
@@ -489,6 +489,11 @@ public class MyService {
     TimestampedWindowStoreService timestampedWindowStoreService;
 }
 ```
+
+### Web Services
+
+The web services layer provides a set of endpoints to query the state stores of your Kafka Streams application.
+Check the [Interactive Queries Web Services](#interactive-queries) section for more information.
 
 ## Hooks
 
