@@ -82,7 +82,8 @@ public class AvroToJsonConverter {
      * @return The JSON
      */
     public static String convertObject(List<Object> values) {
-        return values.stream()
+        return values
+            .stream()
             .map(AvroToJsonConverter::convertObject)
             .toList()
             .toString();
@@ -151,32 +152,34 @@ public class AvroToJsonConverter {
     }
 
     private static class LocalDateTypeAdapter implements JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
-
         private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         @Override
-        public JsonElement serialize(final LocalDate date, final Type typeOfSrc,
+        public JsonElement serialize(final LocalDate date,
+                                     final Type typeOfSrc,
                                      final JsonSerializationContext context) {
             return new JsonPrimitive(date.format(formatter));
         }
 
         @Override
-        public LocalDate deserialize(JsonElement json, Type typeOfT,
+        public LocalDate deserialize(JsonElement json,
+                                     Type typeOfT,
                                      JsonDeserializationContext context) throws JsonParseException {
             return LocalDate.parse(json.getAsString(), formatter);
         }
     }
 
-    private static class LocalDateTimeTypeAdapter implements JsonSerializer<LocalDateTime>,
+    private static class LocalDateTimeTypeAdapter implements
+        JsonSerializer<LocalDateTime>,
         JsonDeserializer<LocalDateTime> {
 
-        private static final DateTimeFormatter formatter =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-        private static final DateTimeFormatter formatterNano =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+        private static final DateTimeFormatter formatterNano = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
 
         @Override
-        public JsonElement serialize(LocalDateTime localDateTime, Type srcType,
+        public JsonElement serialize(LocalDateTime localDateTime,
+                                     Type srcType,
                                      JsonSerializationContext context) {
             if (localDateTime.toString().length() == 29) {
                 return new JsonPrimitive(formatterNano.format(localDateTime));
@@ -185,19 +188,20 @@ public class AvroToJsonConverter {
         }
 
         @Override
-        public LocalDateTime deserialize(JsonElement json, Type typeOfT,
+        public LocalDateTime deserialize(JsonElement json,
+                                         Type typeOfT,
                                          JsonDeserializationContext context) throws JsonParseException {
             return LocalDateTime.parse(json.getAsString(), formatter);
         }
     }
 
     private static class LocalTimeTypeAdapter implements JsonSerializer<LocalTime>, JsonDeserializer<LocalTime> {
-
         private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         private static final DateTimeFormatter formatterNano = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
         @Override
-        public JsonElement serialize(LocalTime localTime, Type srcType,
+        public JsonElement serialize(LocalTime localTime,
+                                     Type srcType,
                                      JsonSerializationContext context) {
             if (localTime.toString().length() == 15) {
                 return new JsonPrimitive(formatterNano.format(localTime));
@@ -206,9 +210,9 @@ public class AvroToJsonConverter {
         }
 
         @Override
-        public LocalTime deserialize(JsonElement json, Type typeOfT,
+        public LocalTime deserialize(JsonElement json,
+                                     Type typeOfT,
                                      JsonDeserializationContext context) throws JsonParseException {
-
             return LocalTime.parse(json.getAsString(), formatter);
         }
     }

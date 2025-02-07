@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.query.TimestampedKeyQuery;
@@ -106,6 +107,10 @@ public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService 
                 .inStore(store)
                 .withQuery(keyQuery)
                 .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+
+        if (result.getPartitionResults().values().stream().anyMatch(QueryResult::isFailure)) {
+            throw new IllegalArgumentException(result.getPartitionResults().get(0).getFailureMessage());
+        }
 
         if (result.getOnlyPartitionResult() == null) {
             throw new UnknownKeyException(key);
