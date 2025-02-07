@@ -1,0 +1,9 @@
+kafka:
+  properties:
+    application.id: 'appTimestampedWindowInteractiveQueriesId'
+    auto.offset.reset: 'earliest'
+    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
+    state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/interactive-queries/timestamped-window'
+server:
+  port: 8090
