@@ -285,9 +285,9 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8085/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) throws IOException, InterruptedException {
-        Instant tooLate = Instant.now().minus(Duration.ofDays(1));
+        Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url + "?endTime=" + tooLate))
+            .uri(URI.create(url + "?endTime=" + tooEarly))
             .GET()
             .build();
 

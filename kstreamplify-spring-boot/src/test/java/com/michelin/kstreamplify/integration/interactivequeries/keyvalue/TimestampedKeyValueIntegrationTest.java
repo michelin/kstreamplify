@@ -327,7 +327,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
 
                             @Override
                             public void init(ProcessorContext<String, String> context) {
-                                this.stringStringKeyValueStore = context.getStateStore("STRING_STRING_TIMESTAMPED_STORE");
+                                this.stringStringKeyValueStore = context
+                                    .getStateStore("STRING_STRING_TIMESTAMPED_STORE");
                             }
 
                             @Override
