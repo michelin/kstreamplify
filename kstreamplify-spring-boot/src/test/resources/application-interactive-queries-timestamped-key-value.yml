@@ -6,4 +6,4 @@ kafka:
     default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
     state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/interactive-queries/timestamped-key-value'
 server:
-  port: 8088
+  port: 8003

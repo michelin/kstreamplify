@@ -124,7 +124,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                 .get();
         }
 
-        initializer = new KafkaStreamInitializerStub(8090, Map.of(
+        initializer = new KafkaStreamInitializerStub(8084, Map.of(
             KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
             broker.getBootstrapServers(),
             KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
@@ -151,7 +151,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetStoresAndStoreMetadata() throws IOException, InterruptedException {
         // Get stores
         HttpRequest storesRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8090/store"))
+            .uri(URI.create("http://localhost:8084/store"))
             .GET()
             .build();
 
@@ -168,7 +168,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
         // Get store metadata
         HttpRequest streamsMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8090/store/metadata/STRING_STRING_TIMESTAMPED_STORE"))
+            .uri(URI.create("http://localhost:8084/store/metadata/STRING_STRING_TIMESTAMPED_STORE"))
             .GET()
             .build();
 
@@ -185,7 +185,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
             "STRING_AVRO_TIMESTAMPED_STORE",
             "STRING_AVRO_KV_STORE"), streamsMetadata.get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.get(0).getHostInfo().host());
-        assertEquals(8090, streamsMetadata.get(0).getHostInfo().port());
+        assertEquals(8084, streamsMetadata.get(0).getHostInfo().port());
         assertEquals(Set.of(
             "AVRO_TOPIC-0",
             "AVRO_TOPIC-1",
@@ -196,9 +196,9 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8090/store/window/timestamped/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8090/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8090/store/window/timestamped/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8084/store/window/timestamped/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8084/store/window/timestamped/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -215,7 +215,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8090/store/window/timestamped/STRING_AVRO_KV_STORE/person"))
+            .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_KV_STORE/person"))
             .GET()
             .build();
 
@@ -228,7 +228,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8090/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person"))
+            .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person"))
             .GET()
             .build();
 
@@ -245,7 +245,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8090/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"))
+            .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"))
             .GET()
             .build();
 
@@ -264,8 +264,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8090/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
-        "http://localhost:8090/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
+        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) throws IOException, InterruptedException {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -281,8 +281,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8090/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
-        "http://localhost:8090/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
+        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) throws IOException, InterruptedException {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -298,8 +298,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8090/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE",
-        "http://localhost:8090/store/window/timestamped/local/STRING_STRING_TIMESTAMPED_STORE"
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE",
+        "http://localhost:8084/store/window/timestamped/local/STRING_STRING_TIMESTAMPED_STORE"
     })
     void shouldGetAllInStringStringStore(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -319,8 +319,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8090/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE",
-        "http://localhost:8090/store/window/timestamped/local/STRING_AVRO_TIMESTAMPED_STORE"
+        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8084/store/window/timestamped/local/STRING_AVRO_TIMESTAMPED_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

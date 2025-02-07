@@ -142,7 +142,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
         ResponseEntity<List<String>> stores = restTemplate
-            .exchange("http://localhost:8089/store", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8005/store", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, stores.getStatusCode().value());
@@ -155,7 +155,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
         // Get hosts
         ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate
-            .exchange("http://localhost:8089/store/metadata/STRING_STRING_TIMESTAMPED_STORE", GET, null,
+            .exchange("http://localhost:8005/store/metadata/STRING_STRING_TIMESTAMPED_STORE", GET, null,
                 new ParameterizedTypeReference<>() {
                 });
 
@@ -166,7 +166,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
             "STRING_AVRO_TIMESTAMPED_STORE",
             "STRING_AVRO_KV_STORE"), streamsMetadata.getBody().get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8089, streamsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(8005, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(Set.of(
             "AVRO_TOPIC-0",
             "AVRO_TOPIC-1",
@@ -177,9 +177,9 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8089/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8089/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8089/store/window/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8005/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8005/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         ResponseEntity<String> response = restTemplate
@@ -192,7 +192,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
         ResponseEntity<String> response = restTemplate
-            .getForEntity("http://localhost:8089/store/window/STRING_AVRO_KV_STORE/person", String.class);
+            .getForEntity("http://localhost:8005/store/window/STRING_AVRO_KV_STORE/person", String.class);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -202,7 +202,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringStringStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange(
-                "http://localhost:8089/store/window/STRING_STRING_WINDOW_STORE/person",
+                "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {}
@@ -219,7 +219,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringAvroStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange(
-                "http://localhost:8089/store/window/STRING_AVRO_WINDOW_STORE/person",
+                "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {}
@@ -237,8 +237,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8089/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8089/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
+        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -251,8 +251,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8089/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8089/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
+        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -265,8 +265,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8089/store/window/STRING_STRING_WINDOW_STORE",
-        "http://localhost:8089/store/window/local/STRING_STRING_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE",
+        "http://localhost:8005/store/window/local/STRING_STRING_WINDOW_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
@@ -281,8 +281,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8089/store/window/STRING_AVRO_WINDOW_STORE",
-        "http://localhost:8089/store/window/local/STRING_AVRO_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8005/store/window/local/STRING_AVRO_WINDOW_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate

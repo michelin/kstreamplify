@@ -123,7 +123,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
                 .get();
         }
 
-        initializer = new KafkaStreamInitializerStub(8084, Map.of(
+        initializer = new KafkaStreamInitializerStub(8085, Map.of(
             KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
             broker.getBootstrapServers(),
             KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
@@ -150,7 +150,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetStoresAndStoreMetadata() throws IOException, InterruptedException {
         // Get stores
         HttpRequest storesRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8084/store"))
+            .uri(URI.create("http://localhost:8085/store"))
             .GET()
             .build();
 
@@ -167,7 +167,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
         // Get store metadata
         HttpRequest streamsMetadataRequest = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8084/store/metadata/STRING_STRING_WINDOW_STORE"))
+            .uri(URI.create("http://localhost:8085/store/metadata/STRING_STRING_WINDOW_STORE"))
             .GET()
             .build();
 
@@ -184,7 +184,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
             "STRING_AVRO_WINDOW_STORE",
             "STRING_AVRO_KV_STORE"), streamsMetadata.get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.get(0).getHostInfo().host());
-        assertEquals(8084, streamsMetadata.get(0).getHostInfo().port());
+        assertEquals(8085, streamsMetadata.get(0).getHostInfo().port());
         assertEquals(Set.of(
             "AVRO_TOPIC-0",
             "AVRO_TOPIC-1",
@@ -195,9 +195,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8084/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8084/store/window/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8085/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8085/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8085/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -214,7 +214,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8084/store/window/STRING_AVRO_KV_STORE/person"))
+            .uri(URI.create("http://localhost:8085/store/window/STRING_AVRO_KV_STORE/person"))
             .GET()
             .build();
 
@@ -227,7 +227,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8084/store/window/STRING_STRING_WINDOW_STORE/person"))
+            .uri(URI.create("http://localhost:8085/store/window/STRING_STRING_WINDOW_STORE/person"))
             .GET()
             .build();
 
@@ -244,7 +244,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8084/store/window/STRING_AVRO_WINDOW_STORE/person"))
+            .uri(URI.create("http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE/person"))
             .GET()
             .build();
 
@@ -263,8 +263,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8084/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8085/store/window/STRING_STRING_WINDOW_STORE/person",
+        "http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE/person"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) throws IOException, InterruptedException {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -280,8 +280,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8084/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8085/store/window/STRING_STRING_WINDOW_STORE/person",
+        "http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE/person"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) throws IOException, InterruptedException {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -297,8 +297,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/STRING_STRING_WINDOW_STORE",
-        "http://localhost:8084/store/window/local/STRING_STRING_WINDOW_STORE"
+        "http://localhost:8085/store/window/STRING_STRING_WINDOW_STORE",
+        "http://localhost:8085/store/window/local/STRING_STRING_WINDOW_STORE"
     })
     void shouldGetAllInStringStringStore(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
@@ -318,8 +318,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/STRING_AVRO_WINDOW_STORE",
-        "http://localhost:8084/store/window/local/STRING_AVRO_WINDOW_STORE"
+        "http://localhost:8085/store/window/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8085/store/window/local/STRING_AVRO_WINDOW_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()

@@ -73,7 +73,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
-        assertEquals(8087, streamsMetadata.get(0).hostInfo().port());
+        assertEquals(8001, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
@@ -89,22 +89,22 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
             KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
-        assertEquals("localhost:8087",
+        assertEquals("localhost:8001",
             KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         ResponseEntity<Void> responseReady = restTemplate
-            .getForEntity("http://localhost:8087/custom-readiness", Void.class);
+            .getForEntity("http://localhost:8001/custom-readiness", Void.class);
 
         assertEquals(200, responseReady.getStatusCode().value());
 
         ResponseEntity<Void> responseLiveness = restTemplate
-            .getForEntity("http://localhost:8087/custom-liveness", Void.class);
+            .getForEntity("http://localhost:8001/custom-liveness", Void.class);
 
         assertEquals(200, responseLiveness.getStatusCode().value());
 
         ResponseEntity<String> responseTopology = restTemplate
-            .getForEntity("http://localhost:8087/custom-topology", String.class);
+            .getForEntity("http://localhost:8001/custom-topology", String.class);
 
         assertEquals(200, responseTopology.getStatusCode().value());
         assertEquals("""

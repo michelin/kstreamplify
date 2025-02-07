@@ -142,7 +142,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
         ResponseEntity<List<String>> stores = restTemplate
-            .exchange("http://localhost:8085/store", GET, null, new ParameterizedTypeReference<>() {
+            .exchange("http://localhost:8002/store", GET, null, new ParameterizedTypeReference<>() {
             });
 
         assertEquals(200, stores.getStatusCode().value());
@@ -155,7 +155,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
 
         // Get hosts
         ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate
-            .exchange("http://localhost:8085/store/metadata/STRING_STRING_KV_STORE", GET, null,
+            .exchange("http://localhost:8002/store/metadata/STRING_STRING_KV_STORE", GET, null,
                 new ParameterizedTypeReference<>() {
                 });
 
@@ -166,7 +166,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
             "STRING_AVRO_KV_STORE",
             "STRING_AVRO_WINDOW_STORE"), streamsMetadata.getBody().get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8085, streamsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(8002, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(Set.of(
             "AVRO_TOPIC-0",
             "AVRO_TOPIC-1",
@@ -177,9 +177,9 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8085/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8085/store/key-value/STRING_STRING_KV_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8085/store/key-value/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8002/store/key-value/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8002/store/key-value/STRING_STRING_KV_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8002/store/key-value/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         ResponseEntity<String> response = restTemplate
@@ -192,7 +192,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
         ResponseEntity<String> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_WINDOW_STORE/person", String.class);
+            .getForEntity("http://localhost:8002/store/key-value/STRING_AVRO_WINDOW_STORE/person", String.class);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -201,7 +201,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() {
         ResponseEntity<StateStoreRecord> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/STRING_STRING_KV_STORE/person", StateStoreRecord.class);
+            .getForEntity("http://localhost:8002/store/key-value/STRING_STRING_KV_STORE/person", StateStoreRecord.class);
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -213,7 +213,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStore() {
         ResponseEntity<StateStoreRecord> response = restTemplate
-            .getForEntity("http://localhost:8085/store/key-value/STRING_AVRO_KV_STORE/person",
+            .getForEntity("http://localhost:8002/store/key-value/STRING_AVRO_KV_STORE/person",
                 StateStoreRecord.class);
 
         assertEquals(200, response.getStatusCode().value());
@@ -228,8 +228,8 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8085/store/key-value/STRING_STRING_KV_STORE",
-        "http://localhost:8085/store/key-value/local/STRING_STRING_KV_STORE"
+        "http://localhost:8002/store/key-value/STRING_STRING_KV_STORE",
+        "http://localhost:8002/store/key-value/local/STRING_STRING_KV_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
@@ -244,8 +244,8 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8085/store/key-value/STRING_AVRO_KV_STORE",
-        "http://localhost:8085/store/key-value/local/STRING_AVRO_KV_STORE"
+        "http://localhost:8002/store/key-value/STRING_AVRO_KV_STORE",
+        "http://localhost:8002/store/key-value/local/STRING_AVRO_KV_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
