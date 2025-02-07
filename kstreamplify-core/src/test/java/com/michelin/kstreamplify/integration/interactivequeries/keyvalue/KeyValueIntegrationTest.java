@@ -261,8 +261,8 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8085/store/key-value/STRING_STRING_KV_STORE",
-        "http://localhost:8085/store/key-value/local/STRING_STRING_KV_STORE"
+        "http://localhost:8081/store/key-value/STRING_STRING_KV_STORE",
+        "http://localhost:8081/store/key-value/local/STRING_STRING_KV_STORE"
     })
     void shouldGetAllInStringStringStore(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
