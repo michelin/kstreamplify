@@ -82,8 +82,11 @@ public class ProcessingResult<V, V2> {
      * @return The initial Record, with value wrapped in a ProcessingResult
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(Record<K, V> message) {
-        return new Record<>(message.key(), ProcessingResult.success(message.value()),
-            message.timestamp());
+        return new Record<>(
+            message.key(),
+            ProcessingResult.success(message.value()),
+            message.timestamp()
+        );
     }
 
     /**
@@ -150,8 +153,11 @@ public class ProcessingResult<V, V2> {
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
                                                                                   Record<K, V2> failedRecord) {
-        return new Record<>(failedRecord.key(), ProcessingResult.fail(e, failedRecord.value()),
-            failedRecord.timestamp());
+        return new Record<>(
+            failedRecord.key(),
+            ProcessingResult.fail(e, failedRecord.value()),
+            failedRecord.timestamp()
+        );
     }
 
     /**
@@ -171,9 +177,11 @@ public class ProcessingResult<V, V2> {
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
                                                                                   Record<K, V2> failedRecord,
                                                                                   String contextMessage) {
-        return new Record<>(failedRecord.key(),
+        return new Record<>(
+            failedRecord.key(),
             ProcessingResult.fail(e, failedRecord.value(), contextMessage),
-            failedRecord.timestamp());
+            failedRecord.timestamp()
+        );
     }
 
     /**

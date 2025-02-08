@@ -56,7 +56,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
             new TopicPartition("OUTPUT_TOPIC", 2)
         );
 
-        initializer = new KafkaStreamInitializerStub(8082, Map.of(
+        initializer = new KafkaStreamInitializerStub(8081, Map.of(
             KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
             "kubernetes.readiness.path", "custom-readiness",
             "kubernetes.liveness.path", "custom-liveness",
@@ -79,7 +79,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
-        assertEquals(8082, streamsMetadata.get(0).hostInfo().port());
+        assertEquals(8081, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
@@ -95,12 +95,12 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
             KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
-        assertEquals("localhost:8082",
+        assertEquals("localhost:8081",
             KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         HttpRequest requestReady = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8082/custom-readiness"))
+            .uri(URI.create("http://localhost:8081/custom-readiness"))
             .GET()
             .build();
 
@@ -109,7 +109,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseReady.statusCode());
 
         HttpRequest requestLiveness = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8082/custom-liveness"))
+            .uri(URI.create("http://localhost:8081/custom-liveness"))
             .GET()
             .build();
 
@@ -118,7 +118,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseLiveness.statusCode());
 
         HttpRequest requestTopology = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8082/custom-topology"))
+            .uri(URI.create("http://localhost:8081/custom-topology"))
             .GET()
             .build();
 

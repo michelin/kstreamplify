@@ -30,6 +30,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.query.QueryResult;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.query.WindowKeyQuery;
@@ -117,6 +118,10 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
                 .inStore(store)
                 .withQuery(windowKeyQuery)
                 .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+
+        if (result.getPartitionResults().values().stream().anyMatch(QueryResult::isFailure)) {
+            throw new IllegalArgumentException(result.getPartitionResults().get(0).getFailureMessage());
+        }
 
         if (!result.getOnlyPartitionResult().getResult().hasNext()) {
             throw new UnknownKeyException(key);
