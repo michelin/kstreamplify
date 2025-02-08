@@ -266,7 +266,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @ParameterizedTest
     @CsvSource({
         "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE",
-        "http://localhost:8005/store/window/local/STRING_AVRO_TIMESTAMPED_STORE"
+        "http://localhost:8005/store/window/local/STRING_STRING_TIMESTAMPED_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
