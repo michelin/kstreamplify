@@ -178,7 +178,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @ParameterizedTest
     @CsvSource({
         "http://localhost:8005/store/window/WRONG_STORE/person,State store WRONG_STORE not found",
-        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
         "http://localhost:8005/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
@@ -345,7 +345,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                     public Set<StoreBuilder<?>> stores() {
                         StoreBuilder<WindowStore<String, String>> stringStringWindowStoreBuilder = Stores
                             .windowStoreBuilder(
-                                Stores.persistentWindowStore("STRING_STRING_WINDOW_STORE",
+                                Stores.persistentWindowStore("STRING_STRING_TIMESTAMPED_STORE",
                                     Duration.ofMinutes(5), Duration.ofMinutes(1), false),
                                 Serdes.String(), Serdes.String());
 
@@ -361,7 +361,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
                             @Override
                             public void init(ProcessorContext<String, String> context) {
-                                this.stringStringWindowStore = context.getStateStore("STRING_STRING_WINDOW_STORE");
+                                this.stringStringWindowStore = context.getStateStore("STRING_STRING_TIMESTAMPED_STORE");
                             }
 
                             @Override
@@ -379,7 +379,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                     public Set<StoreBuilder<?>> stores() {
                         StoreBuilder<WindowStore<String, KafkaPersonStub>> stringAvroWindowStoreBuilder =
                             Stores.windowStoreBuilder(
-                                Stores.persistentWindowStore("STRING_AVRO_WINDOW_STORE",
+                                Stores.persistentWindowStore("STRING_AVRO_TIMESTAMPED_STORE",
                                     Duration.ofMinutes(5), Duration.ofMinutes(1), false),
                                 Serdes.String(), SerdesUtils.getValueSerdes());
 
@@ -402,7 +402,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
                             @Override
                             public void init(ProcessorContext<String, KafkaPersonStub> context) {
-                                this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_WINDOW_STORE");
+                                this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_TIMESTAMPED_STORE");
                                 this.stringAvroKeyValueStore = context.getStateStore("STRING_AVRO_KV_STORE");
                             }
 
