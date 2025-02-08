@@ -202,7 +202,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringStringStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange(
-                "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
+                "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/person",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {}
@@ -219,7 +219,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringAvroStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
             .exchange(
-                "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person",
+                "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/person",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {}
@@ -237,8 +237,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/person",
+        "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/person"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -251,8 +251,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE/person",
-        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE/person"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/person",
+        "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/person"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -265,8 +265,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8005/store/window/STRING_STRING_WINDOW_STORE",
-        "http://localhost:8005/store/window/local/STRING_STRING_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE",
+        "http://localhost:8005/store/window/local/STRING_AVRO_TIMESTAMPED_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
@@ -281,8 +281,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8005/store/window/STRING_AVRO_WINDOW_STORE",
-        "http://localhost:8005/store/window/local/STRING_AVRO_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE",
+        "http://localhost:8005/store/window/local/STRING_AVRO_TIMESTAMPED_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate
@@ -301,7 +301,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStoreFromService() {
         List<StateStoreRecord> stateStoreRecord = windowService
-            .getByKey("STRING_AVRO_WINDOW_STORE", "person", Instant.EPOCH, Instant.now());
+            .getByKey("STRING_AVRO_TIMESTAMPED_STORE", "person", Instant.EPOCH, Instant.now());
 
         assertEquals("person", stateStoreRecord.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
@@ -314,7 +314,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroStoreFromService() {
         List<StateStoreRecord> stateQueryData = windowService
-            .getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
+            .getAll("STRING_AVRO_TIMESTAMPED_STORE", Instant.EPOCH, Instant.now());
 
         assertEquals("person", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
