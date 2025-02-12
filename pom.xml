@@ -335,7 +335,6 @@
                         <testSourceDirectory>${project.build.testSourceDirectory}</testSourceDirectory>
                     </testSourceDirectories>
                 </configuration>
-
                 <executions>
                     <execution>
                         <id>check-style</id>
