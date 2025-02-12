@@ -62,7 +62,7 @@ class ProcessingResultTest {
     }
 
     @Test
-    void shouldCreateWrappedProcessingResultWithHeader() {
+    void shouldWrapRecordSuccessWithHeadersFromRecordType() {
         String value = "Value";
         String headerKey = "MSG_HEADER";
         String headerValue = "Header value";
@@ -73,7 +73,7 @@ class ProcessingResultTest {
         
         Record<String, String> message = new Record<>("key", value, timestamp, headers);
         Record<String, ProcessingResult<String, Integer>> wrappedRecord = 
-                                                            ProcessingResult.wrapRecordSuccessWithHeader(message);
+                                                            ProcessingResult.wrapRecordSuccessWithHeaders(message);
         // check key
         assertEquals(message.key(), wrappedRecord.key());
         // check header
@@ -92,7 +92,7 @@ class ProcessingResultTest {
     }
     
     @Test
-    void shouldCreateWrappedProcessingResultWithHeaderV2() {
+    void shouldWrapRecordSuccessWithHeadersFromParameters() {
         String value = "Value";
         String headerKey = "MSG_HEADER";
         String headerValue = "Header value";

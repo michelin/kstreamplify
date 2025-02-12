@@ -108,14 +108,14 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * Wraps a key, value, timestamp and header in a Record with ProcessingResult#success(V value) as value.
+     * Wraps a key, value, timestamp and headers in a Record with ProcessingResult#success(V value) as value.
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
      * for automatic DLQ redirection on failed records.
      *
      * @param key       The key to put in the resulting record
      * @param value     The successful value to put in the resulting record
      * @param timestamp The timestamp to apply on the resulting record
-     * @param header    The header value to put in the resulting record
+     * @param headers    The headers values to put in the resulting record
      * @param <K>       The type of the record key
      * @param <V>       The type of the ProcessingResult successful value
      * @param <V2>      The type of the ProcessingResult error value
@@ -124,12 +124,12 @@ public class ProcessingResult<V, V2> {
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(K key, 
                                                                                   V value, 
                                                                                   long timestamp, 
-                                                                                  Headers header) {
-        return new Record<>(key, ProcessingResult.success(value), timestamp, header);
+                                                                                  Headers headers) {
+        return new Record<>(key, ProcessingResult.success(value), timestamp, headers);
     }
 
     /**
-     * Wraps a record's value and the header with ProcessingResult.success(V value).
+     * Wraps a record's value and the headers with ProcessingResult.success(V value).
      * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
      * for automatic DLQ redirection on failed records.
      *
@@ -139,15 +139,15 @@ public class ProcessingResult<V, V2> {
      * @param <V2>    The type of the ProcessingResult error value
      * @return The initial Record, with value wrapped in a ProcessingResult
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccessWithHeader(Record<K, V> message) {
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccessWithHeaders(Record<K, V> message) {
         return new Record<>(
-                message.key(),
-                ProcessingResult.success(message.value()),
-                message.timestamp(),
-                message.headers()
+            message.key(),
+            ProcessingResult.success(message.value()),
+            message.timestamp(),
+            message.headers()
         );
     }
-    
+
     /**
      * Create a failed processing result.
      * If you are using this in a Processor, refer to
