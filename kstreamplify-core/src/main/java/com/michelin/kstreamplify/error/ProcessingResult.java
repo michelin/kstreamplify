@@ -60,27 +60,25 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * Create a successful processing result.
+     * Create a successful {@link ProcessingResult}.
      *
      * @param value The successful record value
      * @param <V>   The type of the successful record
      * @param <V2>  The type of the failed record
-     * @return A processing result containing a successful record
+     * @return A {@link ProcessingResult} containing a successful value
      */
     public static <V, V2> ProcessingResult<V, V2> success(V value) {
         return new ProcessingResult<>(value);
     }
 
     /**
-     * Wraps a record's value with ProcessingResult.success(V value).
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.
+     * Create a {@link Record} with a successful {@link ProcessingResult}.
      *
-     * @param message The resulting successful Record from the processor that needs to be wrapped in a ProcessingResult
+     * @param message The successful record
      * @param <K>     The type of the record key
      * @param <V>     The type of the ProcessingResult successful value
      * @param <V2>    The type of the ProcessingResult error value
-     * @return The initial Record, with value wrapped in a ProcessingResult
+     * @return A {@link Record} with a {@link ProcessingResult} containing a successful value
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(Record<K, V> message) {
         return new Record<>(
@@ -91,9 +89,7 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * Wraps a key, value and timestamp in a Record with ProcessingResult#success(V value) as value.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.
+     * Create a {@link Record} with a successful {@link ProcessingResult}.
      *
      * @param key       The key to put in the resulting record
      * @param value     The successful value to put in the resulting record
@@ -101,25 +97,23 @@ public class ProcessingResult<V, V2> {
      * @param <K>       The type of the record key
      * @param <V>       The type of the ProcessingResult successful value
      * @param <V2>      The type of the ProcessingResult error value
-     * @return A Record with value wrapped in a {@link ProcessingResult}
+     * @return A {@link Record} with a {@link ProcessingResult} containing a successful value
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(K key, V value, long timestamp) {
         return new Record<>(key, ProcessingResult.success(value), timestamp);
     }
 
     /**
-     * Wraps a key, value, timestamp and headers in a Record with ProcessingResult#success(V value) as value.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.
+     * Create a {@link Record} with headers and a successful {@link ProcessingResult}.
      *
      * @param key       The key to put in the resulting record
      * @param value     The successful value to put in the resulting record
      * @param timestamp The timestamp to apply on the resulting record
-     * @param headers    The headers values to put in the resulting record
+     * @param headers   The headers values to put in the resulting record
      * @param <K>       The type of the record key
      * @param <V>       The type of the ProcessingResult successful value
      * @param <V2>      The type of the ProcessingResult error value
-     * @return A Record with value wrapped in a {@link ProcessingResult}
+     * @return A {@link Record} with a {@link ProcessingResult} containing a successful value
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccess(K key, 
                                                                                   V value, 
@@ -129,15 +123,13 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * Wraps a record's value and the headers with ProcessingResult.success(V value).
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.
+     * Create a {@link Record} with headers and a successful {@link ProcessingResult}.
      *
-     * @param message The resulting successful Record from the processor that needs to be wrapped in a ProcessingResult
+     * @param message The successful record
      * @param <K>     The type of the record key
      * @param <V>     The type of the ProcessingResult successful value
      * @param <V2>    The type of the ProcessingResult error value
-     * @return The initial Record, with value wrapped in a ProcessingResult
+     * @return A {@link Record} with a {@link ProcessingResult} containing a successful value
      */
     public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordSuccessWithHeaders(Record<K, V> message) {
         return new Record<>(
@@ -149,129 +141,110 @@ public class ProcessingResult<V, V2> {
     }
 
     /**
-     * Create a failed processing result.
-     * If you are using this in a Processor, refer to
-     * {@link ProcessingResult#wrapRecordFailure(Exception, Record)} for easier syntax.
+     * Create a failed {@link ProcessingResult}.
      *
-     * @param e                 The exception
-     * @param failedRecordValue The failed Kafka record
-     * @param <V>               The type of the successful record
-     * @param <V2>              The type of the failed record
-     * @return A processing result containing the failed record
+     * @param exception The exception
+     * @param value     The failed record value
+     * @param <V>       The type of the successful record
+     * @param <V2>      The type of the failed record
+     * @return A {@link ProcessingResult} containing a failed value
      */
-    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 failedRecordValue) {
-        return new ProcessingResult<>(new ProcessingError<>(e, failedRecordValue));
+    public static <V, V2> ProcessingResult<V, V2> fail(Exception exception, V2 value) {
+        return new ProcessingResult<>(new ProcessingError<>(exception, value));
     }
 
     /**
-     * Create a failed processing result.
-     * If you are using this in a Processor, refer to
-     * {@link ProcessingResult#wrapRecordFailure(Exception, Record, String)}
-     * for easier syntax.
+     * Create a failed {@link ProcessingResult} with a custom context message.
      *
-     * @param e                 The exception
-     * @param failedRecordValue The failed Kafka record
-     * @param contextMessage    The custom context message that will be added in the stack trace
-     * @param <V>               The type of the successful record
-     * @param <V2>              The type of the failed record
-     * @return A processing result containing the failed record
+     * @param exception       The exception
+     * @param value           The failed record value
+     * @param contextMessage  The custom context message
+     * @param <V>             The type of the successful record
+     * @param <V2>            The type of the failed record
+     * @return A {@link ProcessingResult} containing a failed value
      */
-    public static <V, V2> ProcessingResult<V, V2> fail(Exception e, V2 failedRecordValue, String contextMessage) {
-        return new ProcessingResult<>(new ProcessingError<>(e, contextMessage, failedRecordValue));
+    public static <V, V2> ProcessingResult<V, V2> fail(Exception exception, V2 value, String contextMessage) {
+        return new ProcessingResult<>(new ProcessingError<>(exception, contextMessage, value));
     }
 
     /**
-     * Wraps a record's value with {@link ProcessingResult#fail(Exception, Object)} )}.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
-     * DLQ redirection on failed records.
+     * Create a {@link Record} with a failed {@link ProcessingResult}.
      *
-     * @param e            The initial exception
-     * @param failedRecord The resulting failed Record from
-     *                     the processor that needs to be wrapped in a {@link ProcessingResult}
-     * @param <K>          The type of the record key
-     * @param <V>          The type of the ProcessingResult successful value
-     * @param <V2>         The type of the ProcessingResult error value
-     * @return The initial Record, with value wrapped in a {@link ProcessingError} and {@link ProcessingResult}
+     * @param exception The initial exception
+     * @param message   The failed record
+     * @param <K>       The type of the record key
+     * @param <V>       The type of the ProcessingResult successful value
+     * @param <V2>      The type of the ProcessingResult error value
+     * @return A {@link Record} with a {@link ProcessingResult} containing a failed value
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
-                                                                                  Record<K, V2> failedRecord) {
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception exception,
+                                                                                  Record<K, V2> message) {
         return new Record<>(
-            failedRecord.key(),
-            ProcessingResult.fail(e, failedRecord.value()),
-            failedRecord.timestamp()
+            message.key(),
+            ProcessingResult.fail(exception, message.value()),
+            message.timestamp()
         );
     }
 
     /**
-     * Wraps a record's value with {@link ProcessingResult#fail(Exception, Object, String)}.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream)
-     * for automatic DLQ redirection on failed records.
+     * Create a {@link Record} with a failed {@link ProcessingResult} with a custom context message.
      *
-     * @param e              The initial exception
-     * @param failedRecord   The resulting failed Record from
-     *                       the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param exception      The initial exception
+     * @param message        The failed record
      * @param contextMessage The custom context message that will be added in the stack trace
      * @param <K>            The type of the record key
      * @param <V>            The type of the ProcessingResult successful value
      * @param <V2>           The type of the ProcessingResult error value
-     * @return The initial Record, with value wrapped in a {@link ProcessingError} and {@link ProcessingResult}
+     * @return A {@link Record} with a {@link ProcessingResult} containing a failed value
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
-                                                                                  Record<K, V2> failedRecord,
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception exception,
+                                                                                  Record<K, V2> message,
                                                                                   String contextMessage) {
         return new Record<>(
-            failedRecord.key(),
-            ProcessingResult.fail(e, failedRecord.value(), contextMessage),
-            failedRecord.timestamp()
+            message.key(),
+            ProcessingResult.fail(exception, message.value(), contextMessage),
+            message.timestamp()
         );
     }
 
     /**
-     * Wraps a key, value and timestamp in a Record with {@link ProcessingResult#fail(Exception, Object, String)}
-     * as value.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
-     * DLQ redirection on failed records.
+     * Create a {@link Record} with a failed {@link ProcessingResult}.
      *
-     * @param e           The initial exception
+     * @param exception   The initial exception
      * @param key         The key to put in the resulting record
-     * @param failedValue The resulting failed value from
-     *                    the processor that needs to be wrapped in a {@link ProcessingResult}
+     * @param value       The failed record value
      * @param timestamp   The timestamp to apply on the resulting record
      * @param <K>         The type of the record key
      * @param <V>         The type of the ProcessingResult successful value
      * @param <V2>        The type of the ProcessingResult error value
-     * @return A Record with value wrapped in a {@link ProcessingError} and {@link ProcessingResult}
+     * @return A {@link Record} with a {@link ProcessingResult} containing a failed value
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception exception,
                                                                                   K key,
-                                                                                  V2 failedValue,
+                                                                                  V2 value,
                                                                                   long timestamp) {
-        return new Record<>(key, ProcessingResult.fail(e, failedValue), timestamp);
+        return new Record<>(key, ProcessingResult.fail(exception, value), timestamp);
     }
 
     /**
-     * Wraps a key, value and timestamp in a Record
-     * with {@link ProcessingResult#fail(Exception, Object, String)} as value.
-     * The resulting stream needs to be handled with TopologyErrorHandler#catchErrors(KStream) for automatic
-     * DLQ redirection on failed records.
+     * Create a {@link Record} with a failed {@link ProcessingResult} with a custom context message.
      *
-     * @param e              The initial exception
+     * @param exception      The initial exception
      * @param key            The key to put in the resulting record
-     * @param failedValue    The resulting failed value from the processor
-     *                       that needs to be wrapped in a {@link ProcessingResult}
+     * @param value          The failed record value
      * @param timestamp      The timestamp to apply on the resulting record
      * @param contextMessage The custom context message that will be added in the stack trace
      * @param <K>            The type of the record key
      * @param <V>            The type of the ProcessingResult successful value
      * @param <V2>           The type of the ProcessingResult error value
-     * @return A Record with value wrapped in a {@link ProcessingError} and {@link ProcessingResult}
+     * @return A {@link Record} with a {@link ProcessingResult} containing a failed value
      */
-    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception e,
+    public static <K, V, V2> Record<K, ProcessingResult<V, V2>> wrapRecordFailure(Exception exception,
                                                                                   K key,
-                                                                                  V2 failedValue,
+                                                                                  V2 value,
                                                                                   long timestamp,
                                                                                   String contextMessage) {
-        return new Record<>(key, ProcessingResult.fail(e, failedValue, contextMessage), timestamp);
+        return new Record<>(key, ProcessingResult.fail(exception, value, contextMessage), timestamp);
     }
 
     /**

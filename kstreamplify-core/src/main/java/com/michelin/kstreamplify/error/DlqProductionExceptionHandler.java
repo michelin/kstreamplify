@@ -51,8 +51,8 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     /**
      * Manage production exceptions.
      *
-     * @param producerRecord      the record to produce
-     * @param productionException the exception on producing
+     * @param producerRecord      The record to produce
+     * @param productionException The exception on producing
      * @return FAIL or CONTINUE
      */
     @Override
