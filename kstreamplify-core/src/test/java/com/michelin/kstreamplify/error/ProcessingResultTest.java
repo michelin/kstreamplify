@@ -25,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.streams.processor.api.Record;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +61,65 @@ class ProcessingResultTest {
         assertEquals(message.timestamp(), wrappedRecord.timestamp());
     }
 
+    @Test
+    void shouldWrapRecordSuccessWithHeadersFromRecordType() {
+        String value = "Value";
+        String headerKey = "MSG_HEADER";
+        String headerValue = "Header value";
+        long timestamp = System.currentTimeMillis();
+
+        Headers headers = new RecordHeaders(Collections.singletonList(
+                new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))));
+        
+        Record<String, String> message = new Record<>("key", value, timestamp, headers);
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord = 
+                                                            ProcessingResult.wrapRecordSuccessWithHeaders(message);
+        // check key
+        assertEquals(message.key(), wrappedRecord.key());
+        // check header
+        assertEquals(1, wrappedRecord.headers().toArray().length);
+        assertEquals(
+                new String(headerValue.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8),
+                new String(wrappedRecord.headers().lastHeader(headerKey).value(), StandardCharsets.UTF_8)
+        );
+        // Check value
+        assertNotNull(wrappedRecord.value());
+        assertTrue(wrappedRecord.value().isValid());
+        assertEquals(value, wrappedRecord.value().getValue());
+        assertNull(wrappedRecord.value().getError());
+        // Check timestamp
+        assertEquals(message.timestamp(), wrappedRecord.timestamp());
+    }
+    
+    @Test
+    void shouldWrapRecordSuccessWithHeadersFromParameters() {
+        String value = "Value";
+        String headerKey = "MSG_HEADER";
+        String headerValue = "Header value";
+        long timestamp = System.currentTimeMillis();
+
+        Headers headers = new RecordHeaders(Collections.singletonList(
+                new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))));
+        
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord =
+                                ProcessingResult.wrapRecordSuccess("key", value, timestamp, headers);
+        // check key
+        assertEquals("key", wrappedRecord.key());
+        // check header
+        assertEquals(1, wrappedRecord.headers().toArray().length);
+        assertEquals(
+                new String(headerValue.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8),
+                new String(wrappedRecord.headers().lastHeader(headerKey).value(), StandardCharsets.UTF_8)
+        );
+        // Check value
+        assertNotNull(wrappedRecord.value());
+        assertTrue(wrappedRecord.value().isValid());
+        assertEquals(value, wrappedRecord.value().getValue());
+        assertNull(wrappedRecord.value().getError());
+        // Check timestamp
+        assertEquals(timestamp, wrappedRecord.timestamp());
+    }
+    
     @Test
     void shouldCreateFailedProcessingResult() {
         String failedRecordValue = "Failed Value";
