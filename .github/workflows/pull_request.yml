@@ -44,10 +44,7 @@ jobs:
         run: mvn checkstyle:check
 
       - name: Build
-        run: mvn clean compile
-
-      - name: Test
-        run: mvn test
+        run: mvn clean package
 
       - name: Publish test report
         if: always()
@@ -56,7 +53,7 @@ jobs:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
       - name: Sonar
-        if: matrix.java == '17'
+        if: matrix.java == '17' && env.SONAR_TOKEN != ''
         run: mvn verify sonar:sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
