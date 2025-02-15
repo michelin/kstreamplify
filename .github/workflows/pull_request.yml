@@ -44,10 +44,7 @@ jobs:
         run: mvn checkstyle:check
 
       - name: Build
-        run: mvn clean compile
-
-      - name: Test
-        run: mvn test
+        run: mvn clean package
 
       - name: Publish test report
         if: always()

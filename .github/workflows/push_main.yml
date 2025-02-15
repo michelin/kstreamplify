@@ -50,11 +50,8 @@ jobs:
       - name: Build
         id: build
         run: |
-          mvn clean compile
+          mvn clean package
           echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
-
-      - name: Test
-        run: mvn test
 
       - name: Publish test report
         if: always()
