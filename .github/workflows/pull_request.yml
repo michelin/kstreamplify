@@ -53,7 +53,7 @@ jobs:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
       - name: Sonar
-        if: matrix.java == '17' && env.SONAR_TOKEN != ''
+        if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
         run: mvn verify sonar:sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
