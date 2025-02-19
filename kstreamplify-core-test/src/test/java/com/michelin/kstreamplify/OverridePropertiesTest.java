@@ -19,6 +19,7 @@
 
 package com.michelin.kstreamplify;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -33,6 +34,7 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
 
     private static final String DLQ_TOPIC = "dlqTopic";
     private static final String SPECIFIC_STORAGE_PATH = "/tmp/PersonalPath";
+    private static final String SPECIFIC_SCHEMA_REGISTRY_URL = "mock://specific-schema-registry-url";
 
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
@@ -57,16 +59,18 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
     @Override
     protected Map<String, String> getSpecificProperties() {
         return Map.of(
-            STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH
+            STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH,
+                SCHEMA_REGISTRY_URL_CONFIG, SPECIFIC_SCHEMA_REGISTRY_URL
         );
     }
 
     /**
-     * Test when the default storage path is override.
+     * Test when default properties are overridden.
      */
     @Test
-    void shouldValidateStorageDirHasBeenOverride() {
+    void shouldValidateOverriddenProperties() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
         Assertions.assertEquals(SPECIFIC_STORAGE_PATH, properties.getProperty(STATE_DIR_CONFIG));
+        Assertions.assertEquals(SPECIFIC_SCHEMA_REGISTRY_URL, properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
     }
 }

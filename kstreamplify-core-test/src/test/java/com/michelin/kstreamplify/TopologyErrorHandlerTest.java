@@ -19,6 +19,7 @@
 
 package com.michelin.kstreamplify;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -214,5 +215,15 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
         Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(),
             properties.getProperty(STATE_DIR_CONFIG));
+    }
+
+    /**
+     * Test the default schema registry url.
+     */
+    @Test
+    void shouldValidateDefaultSchemaRegistryUrl() {
+        Properties properties = KafkaStreamsExecutionContext.getProperties();
+        Assertions.assertEquals("mock://" + getClass().getSimpleName(),
+                properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
     }
 }

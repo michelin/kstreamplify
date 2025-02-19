@@ -19,6 +19,7 @@
 
 package com.michelin.kstreamplify;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 import com.michelin.kstreamplify.avro.KafkaError;
@@ -27,7 +28,6 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
-import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -69,9 +69,10 @@ public abstract class KafkaStreamsStarterTest {
         Properties properties = getProperties();
 
         KafkaStreamsExecutionContext.registerProperties(properties);
+
+        String schemaRegistryUrl = properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG);
         KafkaStreamsExecutionContext.setSerdesConfig(Collections
-            .singletonMap(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
-                "mock://" + getClass().getSimpleName()));
+            .singletonMap(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl));
 
         KafkaStreamsStarter starter = getKafkaStreamsStarter();
 
@@ -99,6 +100,7 @@ public abstract class KafkaStreamsStarterTest {
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
         properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
+        properties.setProperty(SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getSimpleName());
 
         // Add specific properties or overwrite default properties
         Map<String, String> propertiesMap = getSpecificProperties();
