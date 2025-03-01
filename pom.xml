@@ -134,7 +134,6 @@
         <testcontainers.version>1.20.4</testcontainers.version>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
-        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
