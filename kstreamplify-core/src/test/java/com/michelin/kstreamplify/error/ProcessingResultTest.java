@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,8 +63,8 @@ class ProcessingResultTest {
         String value = "value";
         long timestamp = System.currentTimeMillis();
 
-        Record<String, ProcessingResult<String, Integer>> wrappedRecord = ProcessingResult
-            .wrapRecordSuccess(key, value, timestamp);
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord =
+                ProcessingResult.wrapRecordSuccess(key, value, timestamp);
 
         assertTrue(wrappedRecord.value().isValid());
         assertEquals(key, wrappedRecord.key());
@@ -80,13 +79,12 @@ class ProcessingResultTest {
         String headerKey = "header_key";
         String headerValue = "header_value";
 
-        Headers headers = new RecordHeaders(Collections.singletonList(
-            new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))
-        ));
-        
+        Headers headers = new RecordHeaders(
+                Collections.singletonList(new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))));
+
         Record<String, String> message = new Record<>("key", "value", System.currentTimeMillis(), headers);
-        Record<String, ProcessingResult<String, Integer>> wrappedRecord = ProcessingResult
-            .wrapRecordSuccessWithHeaders(message);
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord =
+                ProcessingResult.wrapRecordSuccessWithHeaders(message);
 
         assertTrue(wrappedRecord.value().isValid());
         assertEquals(message.key(), wrappedRecord.key());
@@ -95,12 +93,11 @@ class ProcessingResultTest {
         assertEquals(message.timestamp(), wrappedRecord.timestamp());
         assertEquals(1, wrappedRecord.headers().toArray().length);
         assertEquals(
-            message.headers().lastHeader(headerKey).value(),
-            wrappedRecord.headers().lastHeader(headerKey).value()
-        );
+                message.headers().lastHeader(headerKey).value(),
+                wrappedRecord.headers().lastHeader(headerKey).value());
         assertNull(wrappedRecord.value().getError());
     }
-    
+
     @Test
     void shouldWrapRecordSuccessWithHeadersFromParameters() {
         String key = "key";
@@ -109,12 +106,11 @@ class ProcessingResultTest {
         String headerValue = "header_value";
         long timestamp = System.currentTimeMillis();
 
-        Headers headers = new RecordHeaders(Collections.singletonList(
-            new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))
-        ));
-        
-        Record<String, ProcessingResult<String, Integer>> wrappedRecord = ProcessingResult
-            .wrapRecordSuccess(key, value, timestamp, headers);
+        Headers headers = new RecordHeaders(
+                Collections.singletonList(new RecordHeader(headerKey, headerValue.getBytes(StandardCharsets.UTF_8))));
+
+        Record<String, ProcessingResult<String, Integer>> wrappedRecord =
+                ProcessingResult.wrapRecordSuccess(key, value, timestamp, headers);
 
         assertTrue(wrappedRecord.value().isValid());
         assertEquals(key, wrappedRecord.key());
@@ -123,12 +119,11 @@ class ProcessingResultTest {
         assertEquals(timestamp, wrappedRecord.timestamp());
         assertEquals(1, wrappedRecord.headers().toArray().length);
         assertEquals(
-            headers.lastHeader(headerKey).value(),
-            wrappedRecord.headers().lastHeader(headerKey).value()
-        );
+                headers.lastHeader(headerKey).value(),
+                wrappedRecord.headers().lastHeader(headerKey).value());
         assertNull(wrappedRecord.value().getError());
     }
-    
+
     @Test
     void shouldCreateFailedProcessingResult() {
         String failedRecordValue = "value";
@@ -165,8 +160,8 @@ class ProcessingResultTest {
         Exception exception = new Exception("Exception");
 
         Record<String, String> message = new Record<>("key", "value", System.currentTimeMillis());
-        Record<String, ProcessingResult<String, String>> wrappedRecord = ProcessingResult
-            .wrapRecordFailure(exception, message);
+        Record<String, ProcessingResult<String, String>> wrappedRecord =
+                ProcessingResult.wrapRecordFailure(exception, message);
 
         assertEquals(message.key(), wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
@@ -185,8 +180,8 @@ class ProcessingResultTest {
         String contextMessage = "Context message";
 
         Record<String, String> message = new Record<>("key", "value", System.currentTimeMillis());
-        Record<String, ProcessingResult<String, String>> wrappedRecord = ProcessingResult
-            .wrapRecordFailure(exception, message, contextMessage);
+        Record<String, ProcessingResult<String, String>> wrappedRecord =
+                ProcessingResult.wrapRecordFailure(exception, message, contextMessage);
 
         assertEquals(message.key(), wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
@@ -206,8 +201,8 @@ class ProcessingResultTest {
         long timestamp = System.currentTimeMillis();
         Exception exception = new Exception("Exception");
 
-        Record<String, ProcessingResult<String, String>> wrappedRecord = ProcessingResult
-            .wrapRecordFailure(exception, key, value, timestamp);
+        Record<String, ProcessingResult<String, String>> wrappedRecord =
+                ProcessingResult.wrapRecordFailure(exception, key, value, timestamp);
 
         assertEquals(key, wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
@@ -228,8 +223,8 @@ class ProcessingResultTest {
         Exception exception = new Exception("Exception");
         String contextMessage = "Context message";
 
-        Record<String, ProcessingResult<String, String>> wrappedRecord = ProcessingResult
-            .wrapRecordFailure(exception, key, value, timestamp, contextMessage);
+        Record<String, ProcessingResult<String, String>> wrappedRecord =
+                ProcessingResult.wrapRecordFailure(exception, key, value, timestamp, contextMessage);
 
         assertEquals(key, wrappedRecord.key());
         assertNotNull(wrappedRecord.value());
@@ -251,4 +246,3 @@ class ProcessingResultTest {
         assertFalse(invalidResult1.isValid());
     }
 }
-

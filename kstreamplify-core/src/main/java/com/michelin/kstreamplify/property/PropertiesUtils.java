@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.property;
 
 import com.michelin.kstreamplify.exception.PropertiesFileException;
@@ -29,24 +28,16 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 
-/**
- * Properties utils.
- */
+/** Properties utils. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PropertiesUtils {
-    /**
-     * The Kafka properties prefix.
-     */
+    /** The Kafka properties prefix. */
     public static final String KAFKA_PROPERTIES_PREFIX = "kafka.properties";
 
-    /**
-     * The default property file.
-     */
+    /** The default property file. */
     public static final String DEFAULT_PROPERTY_FILE = "application.yml";
 
-    /**
-     * The property separator.
-     */
+    /** The property separator. */
     public static final String PROPERTY_SEPARATOR = ".";
 
     /**
@@ -57,8 +48,8 @@ public final class PropertiesUtils {
     public static Properties loadProperties() {
         Yaml yaml = new Yaml();
 
-        try (InputStream inputStream = PropertiesUtils.class.getClassLoader()
-            .getResourceAsStream(DEFAULT_PROPERTY_FILE)) {
+        try (InputStream inputStream =
+                PropertiesUtils.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTY_FILE)) {
             LinkedHashMap<String, Object> propsMap = yaml.load(inputStream);
             return parsePropertiesMap(propsMap);
         } catch (IOException e) {
@@ -76,8 +67,9 @@ public final class PropertiesUtils {
         Properties resultProperties = new Properties();
         for (var prop : props.entrySet()) {
             if (StringUtils.contains(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX)) {
-                resultProperties.put(StringUtils.remove(prop.getKey().toString(),
-                    KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR), prop.getValue());
+                resultProperties.put(
+                        StringUtils.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR),
+                        prop.getValue());
             }
         }
         return resultProperties;
@@ -96,8 +88,8 @@ public final class PropertiesUtils {
     /**
      * Parse a given key.
      *
-     * @param key        The key
-     * @param map        The underlying map
+     * @param key The key
+     * @param map The underlying map
      * @param properties The properties
      * @return The properties
      */

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.integration;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
@@ -53,14 +52,12 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @BeforeAll
     static void globalSetUp() {
         createTopics(
-            broker.getBootstrapServers(),
-            new TopicPartition("INPUT_TOPIC", 2),
-            new TopicPartition("OUTPUT_TOPIC", 2)
-        );
+                broker.getBootstrapServers(),
+                new TopicPartition("INPUT_TOPIC", 2),
+                new TopicPartition("OUTPUT_TOPIC", 2));
 
         initializer = new KafkaStreamInitializerStub(Map.of(
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()
-        ));
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()));
 
         initializer.init(new KafkaStreamsStarterStub());
     }
@@ -75,7 +72,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
-            new ArrayList<>(initializer.getKafkaStreams().metadataForAllStreamsClients());
+                new ArrayList<>(initializer.getKafkaStreams().metadataForAllStreamsClients());
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
@@ -84,65 +81,65 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
 
-        assertTrue(Set.of(
-            new TopicPartition("INPUT_TOPIC", 0),
-            new TopicPartition("INPUT_TOPIC", 1)
-        ).containsAll(topicPartitions));
+        assertTrue(Set.of(new TopicPartition("INPUT_TOPIC", 0), new TopicPartition("INPUT_TOPIC", 1))
+                .containsAll(topicPartitions));
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
-        assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdesConfig().get("default.key.serde"));
-        assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                KafkaStreamsExecutionContext.getSerdesConfig().get("default.key.serde"));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
-        assertEquals("localhost:8080",
-            KafkaStreamsExecutionContext.getProperties().get("application.server"));
+        assertEquals(
+                "localhost:8080", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         HttpRequest requestReady = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/ready"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8080/ready"))
+                .GET()
+                .build();
 
         HttpResponse<Void> responseReady = httpClient.send(requestReady, HttpResponse.BodyHandlers.discarding());
 
         assertEquals(200, responseReady.statusCode());
 
         HttpRequest requestLiveness = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/liveness"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8080/liveness"))
+                .GET()
+                .build();
 
         HttpResponse<Void> responseLiveness = httpClient.send(requestLiveness, HttpResponse.BodyHandlers.discarding());
 
         assertEquals(200, responseLiveness.statusCode());
 
         HttpRequest requestTopology = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8080/topology"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8080/topology"))
+                .GET()
+                .build();
 
         HttpResponse<String> responseTopology = httpClient.send(requestTopology, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, responseTopology.statusCode());
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> KSTREAM-SINK-0000000001
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
-            
-            """, responseTopology.body());
+
+            """,
+                responseTopology.body());
     }
 
     @Slf4j
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
-            streamsBuilder
-                .stream("INPUT_TOPIC")
-                .to("OUTPUT_TOPIC");
+            streamsBuilder.stream("INPUT_TOPIC").to("OUTPUT_TOPIC");
         }
 
         @Override

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,19 +57,20 @@ class ProcessingErrorTest {
         String contextMessage = "Some context message";
         Exception exception = new Exception("Test Exception");
         KafkaError kafkaRecord = KafkaError.newBuilder()
-            .setCause("Cause")
-            .setOffset(1L)
-            .setPartition(1)
-            .setTopic("Topic")
-            .setValue("Value")
-            .setApplicationId("ApplicationId")
-            .build();
+                .setCause("Cause")
+                .setOffset(1L)
+                .setPartition(1)
+                .setTopic("Topic")
+                .setValue("Value")
+                .setApplicationId("ApplicationId")
+                .build();
 
         ProcessingError<KafkaError> processingError = new ProcessingError<>(exception, contextMessage, kafkaRecord);
 
         assertEquals(exception, processingError.getException());
         assertEquals(contextMessage, processingError.getContextMessage());
-        assertEquals("""
+        assertEquals(
+                """
             {
               "partition": 1,
               "offset": 1,
@@ -78,7 +78,7 @@ class ProcessingErrorTest {
               "topic": "Topic",
               "applicationId": "ApplicationId",
               "value": "Value"
-            }""", processingError.getKafkaRecord());
+            }""",
+                processingError.getKafkaRecord());
     }
 }
-

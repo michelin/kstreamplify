@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.property;
 
 import java.util.HashMap;
@@ -27,17 +26,13 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * The Kafka properties class.
- */
+/** The Kafka properties class. */
 @Getter
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProperties {
-    /**
-     * The Kafka properties.
-     */
+    /** The Kafka properties. */
     private Map<String, String> properties = new HashMap<>();
 
     /**

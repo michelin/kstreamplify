@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.window;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -106,31 +105,25 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldNotGetStoresWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getStateStores());
+        StreamsNotStartedException exception =
+                assertThrows(StreamsNotStartedException.class, () -> windowStoreService.getStateStores());
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetStores() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.stateStoreNames())
-            .thenReturn(Set.of("store1", "store2"));
+        when(streamsMetadata.stateStoreNames()).thenReturn(Set.of("store1", "store2"));
 
         Set<String> stores = windowStoreService.getStateStores();
 
@@ -140,11 +133,9 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetStoresWhenNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(null);
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(null);
 
         Set<String> stores = windowStoreService.getStateStores();
 
@@ -153,11 +144,9 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetStoresWhenEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(Collections.emptyList());
 
         Set<String> stores = windowStoreService.getStateStores();
 
@@ -166,60 +155,49 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldNotGetStreamsMetadataForStoreWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getStreamsMetadataForStore("store"));
+        StreamsNotStartedException exception = assertThrows(
+                StreamsNotStartedException.class, () -> windowStoreService.getStreamsMetadataForStore("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetStreamsMetadataForStore() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        Collection<StreamsMetadata> streamsMetadataResponse = windowStoreService
-            .getStreamsMetadataForStore("store");
+        Collection<StreamsMetadata> streamsMetadataResponse = windowStoreService.getStreamsMetadataForStore("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
     }
 
     @Test
     void shouldNotGetAllWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
         Instant instant = Instant.now();
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getAll("store", instant, instant));
+        StreamsNotStartedException exception = assertThrows(
+                StreamsNotStartedException.class, () -> windowStoreService.getAll("store", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetAllThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(null);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
@@ -227,11 +205,9 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetAllThrowsUnknownStoreExceptionWhenMetadataEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
         Instant instant = Instant.now();
         assertThrows(UnknownStateStoreException.class, () -> windowStoreService.getAll("store", instant, instant));
@@ -239,36 +215,26 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetAll() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
         HostInfo hostInfo = new HostInfo("localhost", 8080);
-        when(streamsMetadata.hostInfo())
-            .thenReturn(hostInfo);
+        when(streamsMetadata.hostInfo()).thenReturn(hostInfo);
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(hostInfo);
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(hostInfo);
 
-        when(kafkaStreams.query(ArgumentMatchers
-            .<StateQueryRequest<KeyValueIterator<Windowed<String>, Object>>>any()))
-            .thenReturn(stateWindowRangeQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Windowed<String>, Object>>>any()))
+                .thenReturn(stateWindowRangeQueryResult);
 
-        when(stateWindowRangeQueryResult.getPartitionResults())
-            .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
+        when(stateWindowRangeQueryResult.getPartitionResults()).thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
-        when(iterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(false);
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
         when(iterator.next())
-            .thenReturn(KeyValue.pair(
-                new Windowed<>("key", new TimeWindow(0L, 150L)),
-                new PersonStub("John", "Doe"))
-            );
+                .thenReturn(
+                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new PersonStub("John", "Doe")));
 
         List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
@@ -280,22 +246,20 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetAllWithRemoteCall() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.hostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(streamsMetadata.hostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("anotherHost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("anotherHost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenReturn(CompletableFuture.completedFuture(httpResponse));
+                .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body()).thenReturn("""
+        when(httpResponse.body())
+                .thenReturn(
+                        """
             [
               {
                 "key": "key",
@@ -317,55 +281,45 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetAllOnLocalHostThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(null);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class,
-            () -> windowStoreService.getAllOnLocalInstance("store", instant, instant));
+        assertThrows(
+                UnknownStateStoreException.class,
+                () -> windowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
     void shouldGetAllOnLocalHostThrowsUnknownStoreExceptionWhenMetadataEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class,
-            () -> windowStoreService.getAllOnLocalInstance("store", instant, instant));
+        assertThrows(
+                UnknownStateStoreException.class,
+                () -> windowStoreService.getAllOnLocalInstance("store", instant, instant));
     }
 
     @Test
     void shouldGetAllOnLocalHost() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        when(kafkaStreams.query(ArgumentMatchers
-            .<StateQueryRequest<KeyValueIterator<Windowed<String>, Object>>>any()))
-            .thenReturn(stateWindowRangeQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Windowed<String>, Object>>>any()))
+                .thenReturn(stateWindowRangeQueryResult);
 
-        when(stateWindowRangeQueryResult.getPartitionResults())
-            .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
+        when(stateWindowRangeQueryResult.getPartitionResults()).thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
-        when(iterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(false);
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
         when(iterator.next())
-            .thenReturn(KeyValue.pair(
-                new Windowed<>("key", new TimeWindow(0L, 150L)),
-                new PersonStub("John", "Doe"))
-            );
+                .thenReturn(
+                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new PersonStub("John", "Doe")));
 
         Instant instant = Instant.now();
         List<StateStoreRecord> responses = windowStoreService.getAllOnLocalInstance("store", instant, instant);
@@ -378,92 +332,69 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldHandleRuntimeExceptionWhenGettingAllOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.hostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(streamsMetadata.hostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("anotherHost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("anotherHost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenThrow(new RuntimeException("Error"));
+                .thenThrow(new RuntimeException("Error"));
 
         Instant instant = Instant.now();
-        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> windowStoreService.getAll("store", instant, instant));
+        OtherInstanceResponseException exception = assertThrows(
+                OtherInstanceResponseException.class, () -> windowStoreService.getAll("store", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
     @Test
     void shouldNotGetByKeyWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
         Instant instant = Instant.now();
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> windowStoreService.getByKey("store", "key", instant, instant));
+        StreamsNotStartedException exception = assertThrows(
+                StreamsNotStartedException.class, () -> windowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetByKeyThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(null);
+                .thenReturn(null);
 
         Instant instant = Instant.now();
-        assertThrows(UnknownStateStoreException.class, () ->
-            windowStoreService.getByKey("store", "key", instant, instant));
+        assertThrows(
+                UnknownStateStoreException.class, () -> windowStoreService.getByKey("store", "key", instant, instant));
     }
 
     @Test
     void shouldGetByKeyCurrentInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8080),
-                Collections.emptySet(),
-                0)
-            );
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(ArgumentMatchers
-            .<StateQueryRequest<WindowStoreIterator<Object>>>any()))
-            .thenReturn(stateWindowKeyQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<WindowStoreIterator<Object>>>any()))
+                .thenReturn(stateWindowKeyQueryResult);
 
-        when(stateWindowKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(QueryResult.forResult(windowStoreIterator));
+        when(stateWindowKeyQueryResult.getOnlyPartitionResult()).thenReturn(QueryResult.forResult(windowStoreIterator));
 
         doCallRealMethod().when(windowStoreIterator).forEachRemaining(any());
-        when(windowStoreIterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+        when(windowStoreIterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
 
-        when(windowStoreIterator.next())
-            .thenReturn(KeyValue.pair(
-                0L,
-                new PersonStub("John", "Doe"))
-            );
+        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, new PersonStub("John", "Doe")));
 
         List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
 
@@ -475,23 +406,19 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetByKeyOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8085),
-                Collections.emptySet(),
-                0)
-            );
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenReturn(CompletableFuture.completedFuture(httpResponse));
+                .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body()).thenReturn("""              
+        when(httpResponse.body())
+                .thenReturn(
+                        """
               [
                 {
                   "key": "key",
@@ -514,50 +441,44 @@ class WindowStoreServiceTest {
 
     @Test
     void shouldGetUnknownKeyCurrentInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(ArgumentMatchers
-            .<StateQueryRequest<WindowStoreIterator<Object>>>any()))
-            .thenReturn(stateWindowKeyQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<WindowStoreIterator<Object>>>any()))
+                .thenReturn(stateWindowKeyQueryResult);
 
-        when(stateWindowKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(QueryResult.forResult(windowStoreIterator));
+        when(stateWindowKeyQueryResult.getOnlyPartitionResult()).thenReturn(QueryResult.forResult(windowStoreIterator));
 
         Instant instant = Instant.now();
-        UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-            windowStoreService.getByKey("store", "unknownKey", instant, instant));
+        UnknownKeyException exception = assertThrows(
+                UnknownKeyException.class, () -> windowStoreService.getByKey("store", "unknownKey", instant, instant));
 
         assertEquals("Key unknownKey not found", exception.getMessage());
     }
 
     @Test
     void shouldHandleRuntimeExceptionWhenGettingByKeyOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenThrow(new RuntimeException("Error"));
+                .thenThrow(new RuntimeException("Error"));
 
         Instant instant = Instant.now();
-        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> windowStoreService.getByKey("store", "key", instant, instant));
+        OtherInstanceResponseException exception = assertThrows(
+                OtherInstanceResponseException.class,
+                () -> windowStoreService.getByKey("store", "key", instant, instant));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {
-    }
+    record PersonStub(String firstName, String lastName) {}
 }

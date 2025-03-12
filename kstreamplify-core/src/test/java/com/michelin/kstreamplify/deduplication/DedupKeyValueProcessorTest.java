@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.deduplication;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +66,6 @@ class DedupKeyValueProcessorTest {
         processor.init(context);
     }
 
-
     @Test
     void shouldProcessNewRecord() {
         final KafkaError kafkaError = new KafkaError();
@@ -77,7 +75,6 @@ class DedupKeyValueProcessorTest {
 
         verify(windowStore).put(record.key(), record.value(), record.timestamp());
         verify(context).forward(argThat(arg -> arg.value().getValue().equals(record.value())));
-
     }
 
     @Test
@@ -105,15 +102,18 @@ class DedupKeyValueProcessorTest {
     void shouldThrowException() {
         final Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
 
-        when(windowStore.backwardFetch(any(), any(), any())).thenReturn(null)
-            .thenThrow(new RuntimeException("Exception..."));
+        when(windowStore.backwardFetch(any(), any(), any()))
+                .thenReturn(null)
+                .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
         processor.process(message);
 
-        verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
-            .equals("Could not figure out what to do with the current payload: "
-                + "An unlikely error occurred during deduplication transform")));
+        verify(context).forward(argThat(arg -> arg.value()
+                .getError()
+                .getContextMessage()
+                .equals("Could not figure out what to do with the current payload: "
+                        + "An unlikely error occurred during deduplication transform")));
     }
 }

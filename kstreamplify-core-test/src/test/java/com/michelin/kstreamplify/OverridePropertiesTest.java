@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -59,14 +58,10 @@ class OverridePropertiesTest extends KafkaStreamsStarterTest {
     @Override
     protected Map<String, String> getSpecificProperties() {
         return Map.of(
-            STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH,
-                SCHEMA_REGISTRY_URL_CONFIG, SPECIFIC_SCHEMA_REGISTRY_URL
-        );
+                STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH, SCHEMA_REGISTRY_URL_CONFIG, SPECIFIC_SCHEMA_REGISTRY_URL);
     }
 
-    /**
-     * Test when default properties are overridden.
-     */
+    /** Test when default properties are overridden. */
     @Test
     void shouldValidateOverriddenProperties() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();

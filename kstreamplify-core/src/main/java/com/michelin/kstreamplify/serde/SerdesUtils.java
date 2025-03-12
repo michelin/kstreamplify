@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.serde;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -24,9 +23,7 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
-/**
- * The Serde utils class.
- */
+/** The Serde utils class. */
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class SerdesUtils {
     /**
@@ -53,7 +50,7 @@ public final class SerdesUtils {
      * Return a serdes for a requested class.
      *
      * @param isSerdeForKey Is the serdes for a key or a value
-     * @param <T>           The class of requested serdes
+     * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
     private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(boolean isSerdeForKey) {
