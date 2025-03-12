@@ -124,9 +124,9 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
-     * Create/Overwrite properties.
+     * Get specific properties.
      *
-     * @return new/overwrite properties
+     * @return The specific properties
      */
     protected Map<String, String> getSpecificProperties() {
         return Collections.emptyMap();
