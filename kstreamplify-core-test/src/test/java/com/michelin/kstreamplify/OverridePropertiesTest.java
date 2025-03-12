@@ -29,7 +29,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
+class OverridePropertiesTest extends KafkaStreamsStarterTest {
     private static final String DLQ_TOPIC = "dlqTopic";
     private static final String SPECIFIC_STORAGE_PATH = "/tmp/PersonalPath";
     private static final String SPECIFIC_SCHEMA_REGISTRY_URL = "mock://specific-schema-registry-url";
