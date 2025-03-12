@@ -40,7 +40,6 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -211,15 +210,13 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     @Test
     void shouldValidateDefaultStorageDir() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals(
-                "/tmp/kafka-streams/" + getClass().getSimpleName(), properties.getProperty(STATE_DIR_CONFIG));
+        assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(), properties.getProperty(STATE_DIR_CONFIG));
     }
 
     /** Test the default schema registry url. */
     @Test
     void shouldValidateDefaultSchemaRegistryUrl() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals(
-                "mock://" + getClass().getSimpleName(), properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
+        assertEquals("mock://" + getClass().getSimpleName(), properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
     }
 }
