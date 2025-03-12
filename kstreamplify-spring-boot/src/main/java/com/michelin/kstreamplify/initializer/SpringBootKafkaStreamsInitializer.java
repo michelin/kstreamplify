@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.initializer;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -34,40 +33,28 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
-/**
- * The Kafka Streams initializer class.
- */
+/** The Kafka Streams initializer class. */
 @Slf4j
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
-    /**
-     * The application context.
-     */
+    /** The application context. */
     @Autowired
     private ConfigurableApplicationContext applicationContext;
 
-    /**
-     * The meter registry.
-     */
+    /** The meter registry. */
     @Autowired
     private MeterRegistry registry;
 
-    /**
-     * The server port.
-     */
+    /** The server port. */
     @Value("${server.port:8080}")
     private int springBootServerPort;
 
-    /**
-     * The Kafka properties.
-     */
+    /** The Kafka properties. */
     @Autowired
     private KafkaProperties springBootKafkaProperties;
 
-    /**
-     * The Kafka Streams starter.
-     */
+    /** The Kafka Streams starter. */
     @Autowired
     private KafkaStreamsStarter kafkaStreamsStarter;
 
@@ -81,17 +68,13 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         init(kafkaStreamsStarter);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void startHttpServer() {
         // Nothing to do here as the server is already started by Spring Boot
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void initProperties() {
         serverPort = springBootServerPort;
@@ -99,19 +82,15 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(
-        Throwable exception) {
+            Throwable exception) {
         closeApplicationContext();
         return super.onStreamsUncaughtException(exception);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void onStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
         if (newState.equals(KafkaStreams.State.ERROR)) {
@@ -119,9 +98,7 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void registerMetrics(KafkaStreams kafkaStreams) {
         // As the Kafka Streams metrics are not picked up by the OpenTelemetry Java agent automatically,
@@ -130,9 +107,7 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         kafkaStreamsMetrics.bindTo(registry);
     }
 
-    /**
-     * Close the application context.
-     */
+    /** Close the application context. */
     private void closeApplicationContext() {
         if (applicationContext != null) {
             applicationContext.close();

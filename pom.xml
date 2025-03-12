@@ -113,7 +113,6 @@
 
     <properties>
         <avro.version>1.12.0</avro.version>
-        <checkstyle.version>10.21.4</checkstyle.version>
         <commons-io.version>2.18.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <gson.version>2.12.1</gson.version>
@@ -122,7 +121,6 @@
         <kafka-streams-avro-serde.version>7.9.0</kafka-streams-avro-serde.version>
         <lombok.version>1.18.36</lombok.version>
         <mockito.version>5.16.0</mockito.version>
-        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
@@ -135,6 +133,8 @@
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <spotless-maven-plugin.version>2.44.3</spotless-maven-plugin.version>
+        <palantir.version>2.39.0</palantir.version>
     </properties>
 
     <dependencies>
@@ -312,32 +312,32 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${maven-checkstyle-plugin.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>${checkstyle.version}</version>
-                    </dependency>
-                </dependencies>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
                 <configuration>
-                    <configLocation>.checkstyle/checkstyle.xml</configLocation>
-                    <violationSeverity>info</violationSeverity>
-                    <consoleOutput>true</consoleOutput>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <sourceDirectories>
-                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                    </sourceDirectories>
-                    <testSourceDirectories>
-                        <testSourceDirectory>${project.build.testSourceDirectory}</testSourceDirectory>
-                    </testSourceDirectories>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <palantirJavaFormat>
+                            <version>${palantir.version}</version>
+                            <style>PALANTIR</style>
+                            <formatJavadoc>true</formatJavadoc>
+                        </palantirJavaFormat>
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                        <importOrder />
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
+                        <licenseHeader>
+                            <file>.spotless/HEADER</file>
+                        </licenseHeader>
+                    </java>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>check-style</id>
-                        <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>

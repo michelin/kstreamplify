@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -45,25 +44,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 /**
- * The main test class to extend to execute unit tests on topology.
- * It provides a {@link TopologyTestDriver} and a {@link TestOutputTopic} for the DLQ.
+ * The main test class to extend to execute unit tests on topology. It provides a {@link TopologyTestDriver} and a
+ * {@link TestOutputTopic} for the DLQ.
  */
 public abstract class KafkaStreamsStarterTest {
     private static final String STATE_DIR = "/tmp/kafka-streams/";
 
-    /**
-     * The topology test driver.
-     */
+    /** The topology test driver. */
     protected TopologyTestDriver testDriver;
 
-    /**
-     * The dlq topic, initialized in {@link #generalSetUp()}.
-     */
+    /** The dlq topic, initialized in {@link #generalSetUp()}. */
     protected TestOutputTopic<String, KafkaError> dlqTopic;
 
-    /**
-     * Set up topology test driver.
-     */
+    /** Set up topology test driver. */
     @BeforeEach
     void generalSetUp() {
         Properties properties = getProperties();
@@ -71,8 +64,8 @@ public abstract class KafkaStreamsStarterTest {
         KafkaStreamsExecutionContext.registerProperties(properties);
 
         String schemaRegistryUrl = properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG);
-        KafkaStreamsExecutionContext.setSerdesConfig(Collections
-            .singletonMap(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl));
+        KafkaStreamsExecutionContext.setSerdesConfig(
+                Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl));
 
         KafkaStreamsStarter starter = getKafkaStreamsStarter();
 
@@ -81,11 +74,12 @@ public abstract class KafkaStreamsStarterTest {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         starter.topology(streamsBuilder);
 
-        testDriver =
-            new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
+        testDriver = new TopologyTestDriver(streamsBuilder.build(), properties, getInitialWallClockTime());
 
-        dlqTopic = testDriver.createOutputTopic(KafkaStreamsExecutionContext.getDlqTopicName(),
-            new StringDeserializer(), SerdesUtils.<KafkaError>getValueSerdes().deserializer());
+        dlqTopic = testDriver.createOutputTopic(
+                KafkaStreamsExecutionContext.getDlqTopicName(),
+                new StringDeserializer(),
+                SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
     /**
@@ -99,8 +93,10 @@ public abstract class KafkaStreamsStarterTest {
         // Default properties
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
-        properties.setProperty(SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getSimpleName());
+        properties.setProperty(
+                StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
+        properties.setProperty(
+                SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getSimpleName());
 
         // Add specific properties or overwrite default properties
         Map<String, String> propertiesMap = getSpecificProperties();
@@ -136,13 +132,12 @@ public abstract class KafkaStreamsStarterTest {
         return Collections.emptyMap();
     }
 
-    /**
-     * Method to close everything properly at the end of the test.
-     */
+    /** Method to close everything properly at the end of the test. */
     @AfterEach
     void generalTearDown() throws IOException {
         testDriver.close();
-        Files.deleteIfExists(Paths.get(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
+        Files.deleteIfExists(
+                Paths.get(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
         MockSchemaRegistry.dropScope("mock://" + getClass().getSimpleName());
     }
 
@@ -150,75 +145,61 @@ public abstract class KafkaStreamsStarterTest {
      * Creates an input test topic on the testDriver using the provided topicWithSerde.
      *
      * @param topicWithSerde The topic with serde used to crete the test topic
-     * @param <K>            The serializable type of the key
-     * @param <V>            The serializable type of the value
+     * @param <K> The serializable type of the key
+     * @param <V> The serializable type of the value
      * @return The corresponding TestInputTopic
      */
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
         return this.testDriver.createInputTopic(
-            topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().serializer(),
-            topicWithSerde.getValueSerde().serializer()
-        );
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().serializer(),
+                topicWithSerde.getValueSerde().serializer());
     }
 
     /**
      * Creates an input test topic on the testDriver using the provided topicWithSerde.
      *
      * @param topicWithSerde The topic with serde used to crete the test topic
-     * @param <K>            The serializable type of the key
-     * @param <V>            The serializable type of the value
+     * @param <K> The serializable type of the key
+     * @param <V> The serializable type of the value
      * @return The corresponding TestInputTopic
      * @deprecated Use {@link #createInputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(
-        com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
-    ) {
-        return createInputTestTopic(
-            new TopicWithSerde<>(
-                topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde(),
-                topicWithSerde.getValueSerde()
-            )
-        );
+            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
+        return createInputTestTopic(new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(), topicWithSerde.getKeySerde(), topicWithSerde.getValueSerde()));
     }
 
     /**
      * Creates an output test topic on the testDriver using the provided topicWithSerde.
      *
      * @param topicWithSerde The topic with serde used to crete the test topic
-     * @param <K>            The serializable type of the key
-     * @param <V>            The serializable type of the value
+     * @param <K> The serializable type of the key
+     * @param <V> The serializable type of the value
      * @return The corresponding TestOutputTopic
      */
     protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
         return this.testDriver.createOutputTopic(
-            topicWithSerde.getUnPrefixedName(),
-            topicWithSerde.getKeySerde().deserializer(),
-            topicWithSerde.getValueSerde().deserializer()
-        );
+                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.getKeySerde().deserializer(),
+                topicWithSerde.getValueSerde().deserializer());
     }
 
     /**
      * Creates an output test topic on the testDriver using the provided topicWithSerde.
      *
      * @param topicWithSerde The topic with serde used to crete the test topic
-     * @param <K>            The serializable type of the key
-     * @param <V>            The serializable type of the value
+     * @param <K> The serializable type of the key
+     * @param <V> The serializable type of the value
      * @return The corresponding TestOutputTopic
      * @deprecated Use {@link #createOutputTestTopic(TopicWithSerde)}
      */
     @Deprecated(since = "1.1.0")
     protected <K, V> TestOutputTopic<K, V> createOutputTestTopic(
-        com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde
-    ) {
-        return createOutputTestTopic(
-            new TopicWithSerde<>(
-                topicWithSerde.getUnPrefixedName(),
-                topicWithSerde.getKeySerde(),
-                topicWithSerde.getValueSerde()
-            )
-        );
+            com.michelin.kstreamplify.utils.TopicWithSerde<K, V> topicWithSerde) {
+        return createOutputTestTopic(new TopicWithSerde<>(
+                topicWithSerde.getUnPrefixedName(), topicWithSerde.getKeySerde(), topicWithSerde.getValueSerde()));
     }
 }

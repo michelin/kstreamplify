@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.deduplication;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -76,7 +75,6 @@ class DedupWithPredicateProcessorTest {
 
         verify(windowStore).put("", record.value(), record.timestamp());
         verify(context).forward(argThat(arg -> arg.value().getValue().equals(record.value())));
-
     }
 
     @Test
@@ -104,16 +102,19 @@ class DedupWithPredicateProcessorTest {
     void shouldThrowException() {
         Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
 
-        when(windowStore.backwardFetch(any(), any(), any())).thenReturn(null)
-            .thenThrow(new RuntimeException("Exception..."));
+        when(windowStore.backwardFetch(any(), any(), any()))
+                .thenReturn(null)
+                .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
         processor.process(record);
 
-        verify(context).forward(argThat(arg -> arg.value().getError().getContextMessage()
-            .equals("Could not figure out what to do with the current payload: "
-                + "An unlikely error occurred during deduplication transform")));
+        verify(context).forward(argThat(arg -> arg.value()
+                .getError()
+                .getContextMessage()
+                .equals("Could not figure out what to do with the current payload: "
+                        + "An unlikely error occurred during deduplication transform")));
     }
 
     static class KeyExtractorStub {
@@ -122,4 +123,3 @@ class DedupWithPredicateProcessorTest {
         }
     }
 }
-

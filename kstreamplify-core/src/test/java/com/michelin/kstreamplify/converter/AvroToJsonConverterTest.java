@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,17 +47,20 @@ class AvroToJsonConverterTest {
     @Test
     void shouldConvertObject() {
         String json = AvroToJsonConverter.convertObject(new PersonStub("John", "Doe"));
-        assertEquals("""
+        assertEquals(
+                """
             {
               "firstName": "John",
               "lastName": "Doe"
-            }""", json);
+            }""",
+                json);
     }
 
     @Test
     void shouldConvertGenericRecord() {
         String json = AvroToJsonConverter.convertRecord(buildKafkaRecordStub());
-        assertEquals("""
+        assertEquals(
+                """
             {
               "localTimestampMillisField": "2024-03-27T20:51:01.815832",
               "membersString": {
@@ -98,53 +100,55 @@ class AvroToJsonConverterTest {
               "timeMicrosField": "20:51:01.815832",
               "stringField": "test",
               "enumField": "b"
-            }""", json);
+            }""",
+                json);
     }
 
     @Test
     void shouldConvertListObject() {
         String json = AvroToJsonConverter.convertObject(List.of(new PersonStub("John", "Doe")));
-        assertEquals("""
+        assertEquals(
+                """
             [{
               "firstName": "John",
               "lastName": "Doe"
-            }]""", json);
+            }]""",
+                json);
     }
 
     private KafkaRecordStub buildKafkaRecordStub() {
         return KafkaRecordStub.newBuilder()
-            .setDecimalField(BigDecimal.TEN)
-            .setIntField(5)
-            .setStringField("test")
-            .setBooleanField(false)
-            .setUuidField(UUID.fromString("dc306935-d720-427f-9ecd-ff87c0b15189"))
-            .setTimeMillisField(LocalTime.parse("20:51:01.815"))
-            .setTimeMicrosField(LocalTime.parse("20:51:01.815832"))
-            .setTimestampMillisField(Instant.parse("2024-03-27T19:51:01.815Z"))
-            .setTimestampMicrosField(Instant.parse("2024-03-27T19:51:01.815832Z"))
-            .setLocalTimestampMillisField(LocalDateTime.parse("2024-03-27T20:51:01.815832"))
-            .setLocalTimestampMicrosField(LocalDateTime.parse("2024-03-27T20:51:01.815832123"))
-            .setDateField(LocalDate.parse("2024-03-27"))
-            .setEnumField(EnumField.b)
-            .setMembers(Map.of("key1", MapElement.newBuilder()
-                .setMapDateField(Instant.ofEpochMilli(3))
-                .setMapQuantityField(BigDecimal.ONE)
-                .build()))
-            .setMembersString(Map.of("key1", "val1"))
-            .setListString(List.of("val1", "val2"))
-            .setSplit(List.of(
-                SubKafkaRecordStub.newBuilder()
-                    .setSubField("subTest")
-                    .setSubSplit(List.of(
-                        SubSubKafkaRecordStub.newBuilder()
-                            .setSubSubField("subSubTest")
-                            .setSubSubDateField(Instant.ofEpochMilli(2))
-                            .setSubSubIntField(8)
-                            .build()))
-                    .build()))
-            .build();
+                .setDecimalField(BigDecimal.TEN)
+                .setIntField(5)
+                .setStringField("test")
+                .setBooleanField(false)
+                .setUuidField(UUID.fromString("dc306935-d720-427f-9ecd-ff87c0b15189"))
+                .setTimeMillisField(LocalTime.parse("20:51:01.815"))
+                .setTimeMicrosField(LocalTime.parse("20:51:01.815832"))
+                .setTimestampMillisField(Instant.parse("2024-03-27T19:51:01.815Z"))
+                .setTimestampMicrosField(Instant.parse("2024-03-27T19:51:01.815832Z"))
+                .setLocalTimestampMillisField(LocalDateTime.parse("2024-03-27T20:51:01.815832"))
+                .setLocalTimestampMicrosField(LocalDateTime.parse("2024-03-27T20:51:01.815832123"))
+                .setDateField(LocalDate.parse("2024-03-27"))
+                .setEnumField(EnumField.b)
+                .setMembers(Map.of(
+                        "key1",
+                        MapElement.newBuilder()
+                                .setMapDateField(Instant.ofEpochMilli(3))
+                                .setMapQuantityField(BigDecimal.ONE)
+                                .build()))
+                .setMembersString(Map.of("key1", "val1"))
+                .setListString(List.of("val1", "val2"))
+                .setSplit(List.of(SubKafkaRecordStub.newBuilder()
+                        .setSubField("subTest")
+                        .setSubSplit(List.of(SubSubKafkaRecordStub.newBuilder()
+                                .setSubSubField("subSubTest")
+                                .setSubSubDateField(Instant.ofEpochMilli(2))
+                                .setSubSubIntField(8)
+                                .build()))
+                        .build()))
+                .build();
     }
 
-    record PersonStub(String firstName, String lastName) {
-    }
+    record PersonStub(String firstName, String lastName) {}
 }

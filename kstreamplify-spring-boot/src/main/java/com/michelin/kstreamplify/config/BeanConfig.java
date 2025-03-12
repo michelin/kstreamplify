@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.config;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
@@ -31,9 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Bean configuration.
- */
+/** Bean configuration. */
 @Configuration
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class BeanConfig {

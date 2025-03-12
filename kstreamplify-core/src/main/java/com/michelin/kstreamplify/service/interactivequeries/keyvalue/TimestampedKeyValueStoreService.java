@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import com.michelin.kstreamplify.exception.UnknownKeyException;
@@ -36,9 +35,7 @@ import org.apache.kafka.streams.query.TimestampedRangeQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 
-/**
- * Timestamped key-value store service.
- */
+/** Timestamped key-value store service. */
 @Slf4j
 public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService {
 
@@ -55,61 +52,49 @@ public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService 
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
-     * @param httpClient              The HTTP client
+     * @param httpClient The HTTP client
      */
     @SuppressWarnings("unused")
     public TimestampedKeyValueStoreService(KafkaStreamsInitializer kafkaStreamsInitializer, HttpClient httpClient) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected String path() {
         return "key-value/timestamped";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected List<StateStoreRecord> executeRangeQuery(String store) {
         TimestampedRangeQuery<String, Object> rangeQuery = TimestampedRangeQuery.withNoBounds();
         StateQueryResult<KeyValueIterator<String, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(rangeQuery));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store).withQuery(rangeQuery));
 
         List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> partitionsResult.add(
-                new StateStoreRecord(
-                    kv.key,
-                    kv.value.value(),
-                    kv.value.timestamp()
-                )
-            )));
+        result.getPartitionResults().forEach((key, queryResult) -> queryResult
+                .getResult()
+                .forEachRemaining(kv ->
+                        partitionsResult.add(new StateStoreRecord(kv.key, kv.value.value(), kv.value.timestamp()))));
 
         return new ArrayList<>(partitionsResult);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key) {
         TimestampedKeyQuery<String, Object> keyQuery = TimestampedKeyQuery.withKey(key);
         StateQueryResult<ValueAndTimestamp<Object>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(keyQuery)
-                .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store)
+                        .withQuery(keyQuery)
+                        .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
 
         if (result.getPartitionResults().values().stream().anyMatch(QueryResult::isFailure)) {
-            throw new IllegalArgumentException(result.getPartitionResults().get(0).getFailureMessage());
+            throw new IllegalArgumentException(
+                    result.getPartitionResults().get(0).getFailureMessage());
         }
 
         if (result.getOnlyPartitionResult() == null) {
@@ -117,9 +102,8 @@ public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService 
         }
 
         return new StateStoreRecord(
-            key,
-            result.getOnlyPartitionResult().getResult().value(),
-            result.getOnlyPartitionResult().getResult().timestamp()
-        );
+                key,
+                result.getOnlyPartitionResult().getResult().value(),
+                result.getOnlyPartitionResult().getResult().timestamp());
     }
 }

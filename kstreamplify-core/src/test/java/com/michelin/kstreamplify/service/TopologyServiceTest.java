@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,23 +48,23 @@ class TopologyServiceTest {
 
         String response = topologyService.getTopology();
 
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> KSTREAM-SINK-0000000001
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
-            
-            """, response);
+
+            """,
+                response);
     }
 
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
-            streamsBuilder
-                .stream("INPUT_TOPIC")
-                .to("OUTPUT_TOPIC");
+            streamsBuilder.stream("INPUT_TOPIC").to("OUTPUT_TOPIC");
         }
 
         @Override

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.controller;
 
 import com.michelin.kstreamplify.exception.UnknownKeyException;
@@ -28,9 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Controller exception handler.
- */
+/** Controller exception handler. */
 @Slf4j
 @RestControllerAdvice
 public class ControllerExceptionHandler {
@@ -44,9 +41,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(UnknownStateStoreException.class)
     public ResponseEntity<String> handleUnknownStateStoreException(UnknownStateStoreException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     /**
@@ -58,9 +53,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(StreamsNotStartedException.class)
     public ResponseEntity<String> handleStreamsNotStartedException(StreamsNotStartedException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity
-            .status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
     }
 
     /**
@@ -72,9 +65,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(UnknownKeyException.class)
     public ResponseEntity<String> handleUnknownKeyException(UnknownKeyException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     /**
@@ -86,8 +77,6 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error(e.getMessage(), e);
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 }

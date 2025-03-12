@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.avro.KafkaError;
@@ -46,24 +45,23 @@ class GenericErrorProcessor<V> extends ContextualFixedKeyProcessor<String, Proce
         RecordMetadata recordMetadata = context().recordMetadata().orElse(null);
 
         KafkaError error = KafkaError.newBuilder()
-            .setCause(fixedKeyRecord.value().getException().getMessage())
-            .setContextMessage(fixedKeyRecord.value().getContextMessage())
-            .setOffset(recordMetadata != null ? recordMetadata.offset() : -1)
-            .setPartition(recordMetadata != null ? recordMetadata.partition() : -1)
-            .setStack(sw.toString())
-            .setTopic(
-                recordMetadata != null && recordMetadata.topic() != null ? recordMetadata.topic() :
-                    "Outside topic context")
-            .setValue(fixedKeyRecord.value().getKafkaRecord())
-            .setApplicationId(context().applicationId())
-            .build();
+                .setCause(fixedKeyRecord.value().getException().getMessage())
+                .setContextMessage(fixedKeyRecord.value().getContextMessage())
+                .setOffset(recordMetadata != null ? recordMetadata.offset() : -1)
+                .setPartition(recordMetadata != null ? recordMetadata.partition() : -1)
+                .setStack(sw.toString())
+                .setTopic(
+                        recordMetadata != null && recordMetadata.topic() != null
+                                ? recordMetadata.topic()
+                                : "Outside topic context")
+                .setValue(fixedKeyRecord.value().getKafkaRecord())
+                .setApplicationId(context().applicationId())
+                .build();
 
         context().forward(fixedKeyRecord.withValue(error));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() {
         // may close resource opened in init

@@ -16,12 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.exception;
 
-/**
- * Exception thrown when a properties file cannot be read.
- */
+/** Exception thrown when a properties file cannot be read. */
 public class PropertiesFileException extends RuntimeException {
     private static final String CANNOT_READ_PROPERTIES_FILE = "Cannot read properties file";
 

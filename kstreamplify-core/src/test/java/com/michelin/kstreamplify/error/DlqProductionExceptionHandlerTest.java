@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,7 +67,7 @@ class DlqProductionExceptionHandlerTest {
         handler = new DlqProductionExceptionHandler(producer);
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
-            handler.handle(record, new RuntimeException("Exception..."));
+                handler.handle(record, new RuntimeException("Exception..."));
 
         assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL, response);
     }
@@ -78,7 +77,7 @@ class DlqProductionExceptionHandlerTest {
         handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
-            handler.handle(record, new KafkaException("Exception..."));
+                handler.handle(record, new KafkaException("Exception..."));
 
         assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE, response);
     }
@@ -93,7 +92,7 @@ class DlqProductionExceptionHandlerTest {
         when(record.topic()).thenReturn("topic");
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
-            handler.handle(record, new KafkaException("Exception..."));
+                handler.handle(record, new KafkaException("Exception..."));
 
         assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.CONTINUE, response);
     }
@@ -104,7 +103,7 @@ class DlqProductionExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
-            handler.handle(record, new RetriableCommitFailedException("Exception..."));
+                handler.handle(record, new RetriableCommitFailedException("Exception..."));
 
         assertEquals(ProductionExceptionHandler.ProductionExceptionHandlerResponse.FAIL, response);
     }
@@ -122,4 +121,3 @@ class DlqProductionExceptionHandlerTest {
         assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
     }
 }
-

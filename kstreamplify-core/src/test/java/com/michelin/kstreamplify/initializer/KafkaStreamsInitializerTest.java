@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.initializer;
 
 import static com.michelin.kstreamplify.initializer.KafkaStreamsInitializer.SERVER_PORT_PROPERTY_NAME;
@@ -51,10 +50,11 @@ class KafkaStreamsInitializerTest {
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.APPLICATION_ID_CONFIG, "appId");
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "prefix.self", "abc.");
 
-            propertiesUtilsMockedStatic.when(PropertiesUtils::loadProperties)
-                .thenReturn(properties);
+            propertiesUtilsMockedStatic.when(PropertiesUtils::loadProperties).thenReturn(properties);
 
-            propertiesUtilsMockedStatic.when(() -> PropertiesUtils.loadKafkaProperties(any())).thenCallRealMethod();
+            propertiesUtilsMockedStatic
+                    .when(() -> PropertiesUtils.loadKafkaProperties(any()))
+                    .thenCallRealMethod();
 
             initializer.initProperties();
 
@@ -62,8 +62,8 @@ class KafkaStreamsInitializerTest {
             assertEquals(8080, initializer.getServerPort());
             assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
             assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
-            assertEquals("abc.appId", KafkaStreamsExecutionContext.getProperties()
-                .get(StreamsConfig.APPLICATION_ID_CONFIG));
+            assertEquals(
+                    "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
         }
     }
 
@@ -74,16 +74,16 @@ class KafkaStreamsInitializerTest {
             properties.put(SERVER_PORT_PROPERTY_NAME, 8080);
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.APPLICATION_ID_CONFIG, "appId");
 
-            propertiesUtilsMockedStatic.when(PropertiesUtils::loadProperties)
-                .thenReturn(properties);
+            propertiesUtilsMockedStatic.when(PropertiesUtils::loadProperties).thenReturn(properties);
 
-            propertiesUtilsMockedStatic.when(() -> PropertiesUtils.loadKafkaProperties(any()))
-                .thenCallRealMethod();
+            propertiesUtilsMockedStatic
+                    .when(() -> PropertiesUtils.loadKafkaProperties(any()))
+                    .thenCallRealMethod();
 
             initializer.initProperties();
 
-            StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response = initializer
-                .onStreamsUncaughtException(new RuntimeException("Test Exception"));
+            StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
+                    initializer.onStreamsUncaughtException(new RuntimeException("Test Exception"));
 
             assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         }

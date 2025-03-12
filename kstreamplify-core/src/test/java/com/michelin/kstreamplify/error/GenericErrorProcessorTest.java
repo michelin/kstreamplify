@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +48,7 @@ class GenericErrorProcessorTest {
     @Test
     void shouldProcessError() {
         when(mockRecord.value())
-            .thenReturn(new ProcessingError<>(new RuntimeException("Exception..."), "Context message", "Record"));
+                .thenReturn(new ProcessingError<>(new RuntimeException("Exception..."), "Context message", "Record"));
 
         // Given a mock RecordMetadata
         when(mockRecordMetadata.offset()).thenReturn(10L);

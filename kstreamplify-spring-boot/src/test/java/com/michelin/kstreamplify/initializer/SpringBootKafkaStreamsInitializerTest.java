@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.initializer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,8 +65,8 @@ class SpringBootKafkaStreamsInitializerTest {
         assertEquals(kafkaStreamsStarter, initializer.getKafkaStreamsStarter());
         assertNotNull(initializer.getKafkaProperties());
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
-        assertEquals("abc.appId", KafkaStreamsExecutionContext.getProperties()
-            .get(StreamsConfig.APPLICATION_ID_CONFIG));
+        assertEquals(
+                "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
     }
 
     @Test
@@ -80,8 +79,8 @@ class SpringBootKafkaStreamsInitializerTest {
         when(kafkaProperties.asProperties()).thenReturn(properties);
 
         initializer.initProperties();
-        StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response = initializer
-            .onStreamsUncaughtException(new RuntimeException("Unexpected test exception"));
+        StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
+                initializer.onStreamsUncaughtException(new RuntimeException("Unexpected test exception"));
 
         assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         verify(applicationContext).close();
