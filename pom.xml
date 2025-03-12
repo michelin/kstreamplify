@@ -367,7 +367,6 @@
                             <nrOfIndentSpace>4</nrOfIndentSpace>
                             <expandEmptyElements>false</expandEmptyElements>
                             <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
-                            <sortDependencies>groupId,artifactId</sortDependencies>
                         </sortPom>
                     </pom>
                 </configuration>
