@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.serde;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,8 +32,8 @@ class TopicWithSerdeTest {
     void shouldCreateTopicWithSerde() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
-        TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
-            Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
 
         assertEquals("INPUT_TOPIC", topicWithSerde.getUnPrefixedName());
         assertEquals("INPUT_TOPIC", topicWithSerde.toString());
@@ -47,8 +46,8 @@ class TopicWithSerdeTest {
 
         KafkaStreamsExecutionContext.registerProperties(properties);
 
-        TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
-            Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
 
         assertEquals("INPUT_TOPIC", topicWithSerde.getUnPrefixedName());
         assertEquals("abc.INPUT_TOPIC", topicWithSerde.toString());
@@ -58,32 +57,35 @@ class TopicWithSerdeTest {
     void shouldCreateStream() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
-        TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
-            Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.stream(streamsBuilder);
 
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> none
-            
-            """, streamsBuilder.build().describe().toString());
+
+            """,
+                streamsBuilder.build().describe().toString());
     }
 
     @Test
     void shouldCreateTable() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
-        TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
-            Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.table(streamsBuilder, "myStore");
 
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -91,21 +93,23 @@ class TopicWithSerdeTest {
                 Processor: KTABLE-SOURCE-0000000001 (stores: [myStore])
                   --> none
                   <-- KSTREAM-SOURCE-0000000000
-            
-            """, streamsBuilder.build().describe().toString());
+
+            """,
+                streamsBuilder.build().describe().toString());
     }
 
     @Test
     void shouldCreateGlobalKtable() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
-        TopicWithSerde<String, String> topicWithSerde = new TopicWithSerde<>("INPUT_TOPIC",
-            Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.globalTable(streamsBuilder, "myStore");
 
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0 for global store (will not generate tasks)
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -113,6 +117,7 @@ class TopicWithSerdeTest {
                 Processor: KTABLE-SOURCE-0000000001 (stores: [myStore])
                   --> none
                   <-- KSTREAM-SOURCE-0000000000
-            """, streamsBuilder.build().describe().toString());
+            """,
+                streamsBuilder.build().describe().toString());
     }
 }

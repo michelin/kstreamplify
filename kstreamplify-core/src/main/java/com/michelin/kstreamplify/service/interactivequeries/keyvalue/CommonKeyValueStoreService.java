@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
@@ -48,10 +47,9 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
-     * @param httpClient              The HTTP client
+     * @param httpClient The HTTP client
      */
-    protected CommonKeyValueStoreService(HttpClient httpClient,
-                                         KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonKeyValueStoreService(HttpClient httpClient, KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
@@ -73,9 +71,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                results.addAll(
-                    getAllOnRemoteHost(metadata.hostInfo(), "store/" + path() + "/local/" + store)
-                );
+                results.addAll(getAllOnRemoteHost(metadata.hostInfo(), "store/" + path() + "/local/" + store));
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
@@ -90,7 +86,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
      * Get the value by key from the store.
      *
      * @param store The store name
-     * @param key   The key
+     * @param key The key
      * @return The value
      */
     public StateStoreRecord getByKey(String store, String key) {
@@ -102,14 +98,12 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
 
         HostInfo host = keyQueryMetadata.activeHost();
         if (isNotCurrentHost(host)) {
-            log.debug("The key {} has been located on another instance ({}:{})", key,
-                host.host(), host.port());
+            log.debug("The key {} has been located on another instance ({}:{})", key, host.host(), host.port());
 
             return getByKeyOnRemoteHost(host, "store/" + path() + "/" + store + "/" + key);
         }
 
-        log.debug("The key {} has been located on the current instance ({}:{})", key,
-            host.host(), host.port());
+        log.debug("The key {} has been located on the current instance ({}:{})", key, host.host(), host.port());
 
         return executeKeyQuery(keyQueryMetadata, store, key);
     }

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import com.michelin.kstreamplify.exception.UnknownKeyException;
@@ -35,9 +34,7 @@ import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 
-/**
- * Key-value store service.
- */
+/** Key-value store service. */
 @Slf4j
 public class KeyValueStoreService extends CommonKeyValueStoreService {
     /**
@@ -49,9 +46,7 @@ public class KeyValueStoreService extends CommonKeyValueStoreService {
         super(kafkaStreamsInitializer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected String path() {
         return "key-value";
@@ -61,48 +56,42 @@ public class KeyValueStoreService extends CommonKeyValueStoreService {
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
-     * @param httpClient              The HTTP client
+     * @param httpClient The HTTP client
      */
     @SuppressWarnings("unused")
     public KeyValueStoreService(KafkaStreamsInitializer kafkaStreamsInitializer, HttpClient httpClient) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected List<StateStoreRecord> executeRangeQuery(String store) {
         RangeQuery<String, Object> rangeQuery = RangeQuery.withNoBounds();
         StateQueryResult<KeyValueIterator<String, Object>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(rangeQuery));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store).withQuery(rangeQuery));
 
         List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> partitionsResult.add(new StateStoreRecord(kv.key, kv.value)))
-        );
+        result.getPartitionResults().forEach((key, queryResult) -> queryResult
+                .getResult()
+                .forEachRemaining(kv -> partitionsResult.add(new StateStoreRecord(kv.key, kv.value))));
 
         return new ArrayList<>(partitionsResult);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected StateStoreRecord executeKeyQuery(KeyQueryMetadata keyQueryMetadata, String store, String key) {
         KeyQuery<String, Object> keyQuery = KeyQuery.withKey(key);
         StateQueryResult<Object> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(keyQuery)
-                .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store)
+                        .withQuery(keyQuery)
+                        .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
 
         if (result.getPartitionResults().values().stream().anyMatch(QueryResult::isFailure)) {
-            throw new IllegalArgumentException(result.getPartitionResults().get(0).getFailureMessage());
+            throw new IllegalArgumentException(
+                    result.getPartitionResults().get(0).getFailureMessage());
         }
 
         if (result.getOnlyPartitionResult() == null) {

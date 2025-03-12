@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.keyvalue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,31 +98,25 @@ class KeyValueServiceTest {
 
     @Test
     void shouldNotGetStoresWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueService.getStateStores());
+        StreamsNotStartedException exception =
+                assertThrows(StreamsNotStartedException.class, () -> keyValueService.getStateStores());
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetStores() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.stateStoreNames())
-            .thenReturn(Set.of("store1", "store2"));
+        when(streamsMetadata.stateStoreNames()).thenReturn(Set.of("store1", "store2"));
 
         Set<String> stores = keyValueService.getStateStores();
 
@@ -133,11 +126,9 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetStoresWhenNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(null);
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(null);
 
         Set<String> stores = keyValueService.getStateStores();
 
@@ -146,11 +137,9 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetStoresWhenEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.metadataForAllStreamsClients())
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.metadataForAllStreamsClients()).thenReturn(Collections.emptyList());
 
         Set<String> stores = keyValueService.getStateStores();
 
@@ -159,102 +148,81 @@ class KeyValueServiceTest {
 
     @Test
     void shouldNotGetStreamsMetadataForStoreWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueService.getStreamsMetadataForStore("store"));
+        StreamsNotStartedException exception = assertThrows(
+                StreamsNotStartedException.class, () -> keyValueService.getStreamsMetadataForStore("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetStreamsMetadataForStore() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        Collection<StreamsMetadata> streamsMetadataResponse = keyValueService
-            .getStreamsMetadataForStore("store");
+        Collection<StreamsMetadata> streamsMetadataResponse = keyValueService.getStreamsMetadataForStore("store");
 
         assertIterableEquals(List.of(streamsMetadata), streamsMetadataResponse);
     }
 
     @Test
     void shouldNotGetAllWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueService.getAll("store"));
+        StreamsNotStartedException exception =
+                assertThrows(StreamsNotStartedException.class, () -> keyValueService.getAll("store"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetAllThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(null);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
         assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAll("store"));
     }
 
     @Test
     void shouldGetAllThrowsUnknownStoreExceptionWhenMetadataEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
         assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAll("store"));
     }
 
     @Test
     void shouldGetAll() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
         HostInfo hostInfo = new HostInfo("localhost", 8080);
-        when(streamsMetadata.hostInfo())
-            .thenReturn(hostInfo);
+        when(streamsMetadata.hostInfo()).thenReturn(hostInfo);
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(hostInfo);
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(hostInfo);
 
         when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Object, Object>>>any()))
-            .thenReturn(stateRangeQueryResult);
+                .thenReturn(stateRangeQueryResult);
 
-        when(stateRangeQueryResult.getPartitionResults())
-            .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
+        when(stateRangeQueryResult.getPartitionResults()).thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
-        when(iterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(false);
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
-        when(iterator.next())
-            .thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
+        when(iterator.next()).thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
 
         List<StateStoreRecord> responses = keyValueService.getAll("store");
 
@@ -266,22 +234,20 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetAllWithRemoteCall() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.hostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(streamsMetadata.hostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("anotherHost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("anotherHost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenReturn(CompletableFuture.completedFuture(httpResponse));
+                .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body()).thenReturn("""
+        when(httpResponse.body())
+                .thenReturn(
+                        """
             [
               {
                 "key": "key",
@@ -303,47 +269,37 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetAllOnLocalHostThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(null);
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(null);
 
         assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalInstance("store"));
     }
 
     @Test
     void shouldGetAllOnLocalHostThrowsUnknownStoreExceptionWhenMetadataEmpty() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(Collections.emptyList());
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(Collections.emptyList());
 
         assertThrows(UnknownStateStoreException.class, () -> keyValueService.getAllOnLocalInstance("store"));
     }
 
     @Test
     void shouldGetAllOnLocalHost() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
         when(kafkaStreams.query(ArgumentMatchers.<StateQueryRequest<KeyValueIterator<Object, Object>>>any()))
-            .thenReturn(stateRangeQueryResult);
+                .thenReturn(stateRangeQueryResult);
 
-        when(stateRangeQueryResult.getPartitionResults())
-            .thenReturn(Map.of(0, QueryResult.forResult(iterator)));
+        when(stateRangeQueryResult.getPartitionResults()).thenReturn(Map.of(0, QueryResult.forResult(iterator)));
 
         doCallRealMethod().when(iterator).forEachRemaining(any());
-        when(iterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(false);
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
-        when(iterator.next())
-            .thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
+        when(iterator.next()).thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
 
         List<StateStoreRecord> responses = keyValueService.getAllOnLocalInstance("store");
 
@@ -355,76 +311,60 @@ class KeyValueServiceTest {
 
     @Test
     void shouldHandleRuntimeExceptionWhenGettingAllOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.streamsMetadataForStore(any()))
-            .thenReturn(List.of(streamsMetadata));
+        when(kafkaStreams.streamsMetadataForStore(any())).thenReturn(List.of(streamsMetadata));
 
-        when(streamsMetadata.hostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(streamsMetadata.hostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("anotherHost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("anotherHost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenThrow(new RuntimeException("Error"));
+                .thenThrow(new RuntimeException("Error"));
 
-        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueService.getAll("store"));
+        OtherInstanceResponseException exception =
+                assertThrows(OtherInstanceResponseException.class, () -> keyValueService.getAll("store"));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
     @Test
     void shouldNotGetByKeyWhenStreamsIsNotStarted() {
-        when(kafkaStreamsInitializer.isNotRunning())
-            .thenReturn(true);
+        when(kafkaStreamsInitializer.isNotRunning()).thenReturn(true);
 
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
-        when(kafkaStreams.state())
-            .thenReturn(KafkaStreams.State.REBALANCING);
+        when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
 
-        StreamsNotStartedException exception = assertThrows(StreamsNotStartedException.class,
-            () -> keyValueService.getByKey("store", "key"));
+        StreamsNotStartedException exception =
+                assertThrows(StreamsNotStartedException.class, () -> keyValueService.getByKey("store", "key"));
 
         assertEquals(STREAMS_NOT_STARTED, exception.getMessage());
     }
 
     @Test
     void shouldGetByKeyThrowsUnknownStoreExceptionWhenMetadataNull() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(null);
+                .thenReturn(null);
 
-        assertThrows(UnknownStateStoreException.class, () ->
-            keyValueService.getByKey("store", "key"));
+        assertThrows(UnknownStateStoreException.class, () -> keyValueService.getByKey("store", "key"));
     }
 
     @Test
     void shouldGetByKeyCurrentInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8080),
-                Collections.emptySet(),
-                0)
-            );
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(any()))
-            .thenReturn(stateKeyQueryResult);
+        when(kafkaStreams.query(any())).thenReturn(stateKeyQueryResult);
 
         when(stateKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(QueryResult.forResult(new PersonStub("John", "Doe")));
+                .thenReturn(QueryResult.forResult(new PersonStub("John", "Doe")));
 
         StateStoreRecord response = keyValueService.getByKey("store", "key");
 
@@ -436,23 +376,19 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetByKeyOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8085),
-                Collections.emptySet(),
-                0)
-            );
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenReturn(CompletableFuture.completedFuture(httpResponse));
+                .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body()).thenReturn("""              
+        when(httpResponse.body())
+                .thenReturn(
+                        """
               {
                 "key": "key",
                 "value": {
@@ -473,51 +409,40 @@ class KeyValueServiceTest {
 
     @Test
     void shouldGetUnknownKeyCurrentInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8080), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
-        when(kafkaStreams.query(ArgumentMatchers.any()))
-            .thenReturn(stateKeyQueryResult);
+        when(kafkaStreams.query(ArgumentMatchers.any())).thenReturn(stateKeyQueryResult);
 
-        when(stateKeyQueryResult.getOnlyPartitionResult())
-            .thenReturn(null);
+        when(stateKeyQueryResult.getOnlyPartitionResult()).thenReturn(null);
 
-        UnknownKeyException exception = assertThrows(UnknownKeyException.class, () ->
-            keyValueService.getByKey("store", "unknownKey"));
+        UnknownKeyException exception =
+                assertThrows(UnknownKeyException.class, () -> keyValueService.getByKey("store", "unknownKey"));
 
         assertEquals("Key unknownKey not found", exception.getMessage());
     }
 
     @Test
     void shouldHandleRuntimeExceptionWhenGettingByKeyOtherInstance() {
-        when(kafkaStreamsInitializer.getKafkaStreams())
-            .thenReturn(kafkaStreams);
+        when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
 
         when(kafkaStreams.queryMetadataForKey(anyString(), any(), ArgumentMatchers.<Serializer<Object>>any()))
-            .thenReturn(new KeyQueryMetadata(
-                new HostInfo("localhost", 8085),
-                Collections.emptySet(),
-                0)
-            );
+                .thenReturn(new KeyQueryMetadata(new HostInfo("localhost", 8085), Collections.emptySet(), 0));
 
-        when(kafkaStreamsInitializer.getHostInfo())
-            .thenReturn(new HostInfo("localhost", 8080));
+        when(kafkaStreamsInitializer.getHostInfo()).thenReturn(new HostInfo("localhost", 8080));
 
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
-            .thenThrow(new RuntimeException("Error"));
+                .thenThrow(new RuntimeException("Error"));
 
-        OtherInstanceResponseException exception = assertThrows(OtherInstanceResponseException.class,
-            () -> keyValueService.getByKey("store", "key"));
+        OtherInstanceResponseException exception =
+                assertThrows(OtherInstanceResponseException.class, () -> keyValueService.getByKey("store", "key"));
 
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {
-    }
+    record PersonStub(String firstName, String lastName) {}
 }

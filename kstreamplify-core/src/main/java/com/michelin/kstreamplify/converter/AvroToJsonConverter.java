@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.converter;
 
 import com.google.gson.Gson;
@@ -44,18 +43,16 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.util.Utf8;
 
-/**
- * The class to convert Avro to Json.
- */
+/** The class to convert Avro to Json. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AvroToJsonConverter {
     private static final Gson gson = new GsonBuilder()
-        .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
-        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
-        .registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
-        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
-        .setPrettyPrinting()
-        .create();
+            .registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter())
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+            .registerTypeAdapter(LocalTime.class, new LocalTimeTypeAdapter())
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setPrettyPrinting()
+            .create();
 
     /**
      * Convert the value to JSON.
@@ -82,11 +79,7 @@ public class AvroToJsonConverter {
      * @return The JSON
      */
     public static String convertObject(List<Object> values) {
-        return values
-            .stream()
-            .map(AvroToJsonConverter::convertObject)
-            .toList()
-            .toString();
+        return values.stream().map(AvroToJsonConverter::convertObject).toList().toString();
     }
 
     /**
@@ -116,16 +109,15 @@ public class AvroToJsonConverter {
             }
 
             if (recordValue instanceof List<?> recordValueAsList) {
-                recordValue = recordValueAsList
-                    .stream()
-                    .map(value -> {
-                        if (value instanceof GenericRecord genericRecord) {
-                            return recordAsMap(genericRecord);
-                        } else {
-                            return value.toString();
-                        }
-                    })
-                    .toList();
+                recordValue = recordValueAsList.stream()
+                        .map(value -> {
+                            if (value instanceof GenericRecord genericRecord) {
+                                return recordAsMap(genericRecord);
+                            } else {
+                                return value.toString();
+                            }
+                        })
+                        .toList();
             }
 
             if (recordValue instanceof Map<?, ?> recordValueAsMap) {
@@ -155,32 +147,27 @@ public class AvroToJsonConverter {
         private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         @Override
-        public JsonElement serialize(final LocalDate date,
-                                     final Type typeOfSrc,
-                                     final JsonSerializationContext context) {
+        public JsonElement serialize(
+                final LocalDate date, final Type typeOfSrc, final JsonSerializationContext context) {
             return new JsonPrimitive(date.format(formatter));
         }
 
         @Override
-        public LocalDate deserialize(JsonElement json,
-                                     Type typeOfT,
-                                     JsonDeserializationContext context) throws JsonParseException {
+        public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
             return LocalDate.parse(json.getAsString(), formatter);
         }
     }
 
-    private static class LocalDateTimeTypeAdapter implements
-        JsonSerializer<LocalDateTime>,
-        JsonDeserializer<LocalDateTime> {
+    private static class LocalDateTimeTypeAdapter
+            implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
 
         private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-        private static final DateTimeFormatter formatterNano = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
+        private static final DateTimeFormatter formatterNano =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
 
         @Override
-        public JsonElement serialize(LocalDateTime localDateTime,
-                                     Type srcType,
-                                     JsonSerializationContext context) {
+        public JsonElement serialize(LocalDateTime localDateTime, Type srcType, JsonSerializationContext context) {
             if (localDateTime.toString().length() == 29) {
                 return new JsonPrimitive(formatterNano.format(localDateTime));
             }
@@ -188,9 +175,8 @@ public class AvroToJsonConverter {
         }
 
         @Override
-        public LocalDateTime deserialize(JsonElement json,
-                                         Type typeOfT,
-                                         JsonDeserializationContext context) throws JsonParseException {
+        public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
             return LocalDateTime.parse(json.getAsString(), formatter);
         }
     }
@@ -200,9 +186,7 @@ public class AvroToJsonConverter {
         private static final DateTimeFormatter formatterNano = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
         @Override
-        public JsonElement serialize(LocalTime localTime,
-                                     Type srcType,
-                                     JsonSerializationContext context) {
+        public JsonElement serialize(LocalTime localTime, Type srcType, JsonSerializationContext context) {
             if (localTime.toString().length() == 15) {
                 return new JsonPrimitive(formatterNano.format(localTime));
             }
@@ -210,11 +194,9 @@ public class AvroToJsonConverter {
         }
 
         @Override
-        public LocalTime deserialize(JsonElement json,
-                                     Type typeOfT,
-                                     JsonDeserializationContext context) throws JsonParseException {
+        public LocalTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
             return LocalTime.parse(json.getAsString(), formatter);
         }
     }
-
 }

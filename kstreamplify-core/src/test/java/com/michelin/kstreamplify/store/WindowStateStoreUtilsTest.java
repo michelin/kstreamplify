@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.store;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,8 +45,7 @@ class WindowStateStoreUtilsTest {
 
     @Test
     void shouldReturnNull() {
-        when(windowStore.backwardFetch(anyString(), any(), any()))
-            .thenReturn(null);
+        when(windowStore.backwardFetch(anyString(), any(), any())).thenReturn(null);
 
         String result = WindowStateStoreUtils.get(windowStore, "testKey", 1);
         assertNull(result);
@@ -57,15 +55,11 @@ class WindowStateStoreUtilsTest {
     void shouldPutAndGetFromWindowStore() {
         String value = "testValue";
 
-        when(iterator.hasNext())
-            .thenReturn(true)
-            .thenReturn(false);
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
-        when(iterator.next())
-            .thenReturn(KeyValue.pair(1L, value));
+        when(iterator.next()).thenReturn(KeyValue.pair(1L, value));
 
-        when(windowStore.backwardFetch(anyString(), any(), any()))
-            .thenReturn(iterator);
+        when(windowStore.backwardFetch(anyString(), any(), any())).thenReturn(iterator);
 
         String key = "testKey";
         WindowStateStoreUtils.put(windowStore, key, value);

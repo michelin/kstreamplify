@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,8 +40,7 @@ class KubernetesControllerTest {
 
     @Test
     void shouldGetReadinessProbe() {
-        when(kubernetesService.getReadiness())
-            .thenReturn(200);
+        when(kubernetesService.getReadiness()).thenReturn(200);
 
         ResponseEntity<Void> response = kubernetesController.readiness();
 
@@ -51,8 +49,7 @@ class KubernetesControllerTest {
 
     @Test
     void shouldGetLivenessProbe() {
-        when(kubernetesService.getLiveness())
-            .thenReturn(200);
+        when(kubernetesService.getLiveness()).thenReturn(200);
 
         ResponseEntity<Void> response = kubernetesController.liveness();
 

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.store;
 
 import static com.michelin.kstreamplify.converter.AvroToJsonConverter.convertObject;
@@ -26,9 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * The state store record class.
- */
+/** The state store record class. */
 @Getter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -40,7 +37,7 @@ public class StateStoreRecord {
     /**
      * Constructor.
      *
-     * @param key   The key
+     * @param key The key
      * @param value The value
      */
     public StateStoreRecord(String key, Object value) {
@@ -52,8 +49,8 @@ public class StateStoreRecord {
     /**
      * Constructor.
      *
-     * @param key       The key
-     * @param value     The value
+     * @param key The key
+     * @param value The value
      * @param timestamp The timestamp
      */
     public StateStoreRecord(String key, Object value, Long timestamp) {

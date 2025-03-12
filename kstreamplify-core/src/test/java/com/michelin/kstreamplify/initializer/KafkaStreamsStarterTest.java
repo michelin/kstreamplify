@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.initializer;
 
 import static org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.REPLACE_THREAD;
@@ -50,7 +49,7 @@ class KafkaStreamsStarterTest {
     void shouldInstantiateKafkaStreamsStarter() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
         KafkaStreamsExecutionContext.setSerdesConfig(
-            Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
         KafkaStreamsStarterStub starter = new KafkaStreamsStarterStub();
@@ -67,7 +66,7 @@ class KafkaStreamsStarterTest {
     void shouldStartWithCustomUncaughtExceptionHandler() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
         KafkaStreamsExecutionContext.setSerdesConfig(
-            Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+                Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
         StreamsBuilder builder = new StreamsBuilder();
         KafkaStreamsStarterStub starter = new KafkaStreamsStarterStub();
@@ -75,17 +74,16 @@ class KafkaStreamsStarterTest {
 
         assertNotNull(builder.build().describe());
         assertEquals("DLQ_TOPIC", starter.dlqTopic());
-        assertEquals(starter.uncaughtExceptionHandler()
-                .handle(new Exception("Register a custom uncaught exception handler test.")),
-            REPLACE_THREAD);
+        assertEquals(
+                starter.uncaughtExceptionHandler()
+                        .handle(new Exception("Register a custom uncaught exception handler test.")),
+                REPLACE_THREAD);
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
     }
 
-    /**
-     * Kafka Streams Starter implementation used for unit tests purpose.
-     */
+    /** Kafka Streams Starter implementation used for unit tests purpose. */
     @Getter
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         private boolean started;
@@ -94,10 +92,18 @@ class KafkaStreamsStarterTest {
         public void topology(StreamsBuilder streamsBuilder) {
             var streams = TopicWithSerdeStub.inputTopicWithSerde().stream(streamsBuilder);
 
-            DeduplicationUtils.deduplicateKeys(streamsBuilder, streams,
-                "deduplicateKeysStoreName", "deduplicateKeysRepartitionName", Duration.ZERO);
-            DeduplicationUtils.deduplicateKeyValues(streamsBuilder, streams,
-                "deduplicateKeyValuesStoreName", "deduplicateKeyValuesRepartitionName", Duration.ZERO);
+            DeduplicationUtils.deduplicateKeys(
+                    streamsBuilder,
+                    streams,
+                    "deduplicateKeysStoreName",
+                    "deduplicateKeysRepartitionName",
+                    Duration.ZERO);
+            DeduplicationUtils.deduplicateKeyValues(
+                    streamsBuilder,
+                    streams,
+                    "deduplicateKeyValuesStoreName",
+                    "deduplicateKeyValuesRepartitionName",
+                    Duration.ZERO);
             DeduplicationUtils.deduplicateWithPredicate(streamsBuilder, streams, Duration.ofMillis(1), null);
 
             var enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
@@ -151,13 +157,11 @@ class KafkaStreamsStarterTest {
         }
 
         public static TopicWithSerdeStub<String, String> outputTopicWithSerde() {
-            return new TopicWithSerdeStub<>("OUTPUT_TOPIC", "APP_NAME",
-                Serdes.String(), Serdes.String());
+            return new TopicWithSerdeStub<>("OUTPUT_TOPIC", "APP_NAME", Serdes.String(), Serdes.String());
         }
 
         public static TopicWithSerdeStub<String, KafkaError> inputTopicWithSerde() {
-            return new TopicWithSerdeStub<>("INPUT_TOPIC", "APP_NAME",
-                Serdes.String(), SerdesUtils.getValueSerdes());
+            return new TopicWithSerdeStub<>("INPUT_TOPIC", "APP_NAME", Serdes.String(), SerdesUtils.getValueSerdes());
         }
     }
 

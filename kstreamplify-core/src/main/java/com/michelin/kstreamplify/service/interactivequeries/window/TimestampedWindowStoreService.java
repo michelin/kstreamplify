@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.window;
 
 import com.michelin.kstreamplify.exception.UnknownKeyException;
@@ -39,9 +38,7 @@ import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
-/**
- * Window store service.
- */
+/** Window store service. */
 @Slf4j
 public class TimestampedWindowStoreService extends CommonWindowStoreService {
 
@@ -58,69 +55,54 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
      * Constructor.
      *
      * @param kafkaStreamsInitializer The Kafka Streams initializer
-     * @param httpClient              The HTTP client
+     * @param httpClient The HTTP client
      */
     @SuppressWarnings("unused")
     public TimestampedWindowStoreService(KafkaStreamsInitializer kafkaStreamsInitializer, HttpClient httpClient) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected String path() {
         return "window/timestamped";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime) {
-        WindowRangeQuery<String, ValueAndTimestamp<Object>> windowRangeQuery = WindowRangeQuery
-            .withWindowStartRange(startTime, endTime);
+        WindowRangeQuery<String, ValueAndTimestamp<Object>> windowRangeQuery =
+                WindowRangeQuery.withWindowStartRange(startTime, endTime);
 
         StateQueryResult<KeyValueIterator<Windowed<String>, ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(windowRangeQuery));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store).withQuery(windowRangeQuery));
 
         List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getPartitionResults().forEach((key, queryResult) ->
-            queryResult.getResult().forEachRemaining(kv -> partitionsResult.add(
-                new StateStoreRecord(
-                    kv.key.key(),
-                    kv.value.value(),
-                    kv.value.timestamp()
-                )
-            )));
+        result.getPartitionResults().forEach((key, queryResult) -> queryResult
+                .getResult()
+                .forEachRemaining(kv -> partitionsResult.add(
+                        new StateStoreRecord(kv.key.key(), kv.value.value(), kv.value.timestamp()))));
 
         return partitionsResult;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    protected List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,
-                                                           String store,
-                                                           String key,
-                                                           Instant startTime,
-                                                           Instant endTime) {
-        WindowKeyQuery<String, ValueAndTimestamp<Object>> windowKeyQuery = WindowKeyQuery
-            .withKeyAndWindowStartRange(key, startTime, endTime);
+    protected List<StateStoreRecord> executeWindowKeyQuery(
+            KeyQueryMetadata keyQueryMetadata, String store, String key, Instant startTime, Instant endTime) {
+        WindowKeyQuery<String, ValueAndTimestamp<Object>> windowKeyQuery =
+                WindowKeyQuery.withKeyAndWindowStartRange(key, startTime, endTime);
 
         StateQueryResult<WindowStoreIterator<ValueAndTimestamp<Object>>> result = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .query(StateQueryRequest
-                .inStore(store)
-                .withQuery(windowKeyQuery)
-                .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
+                .getKafkaStreams()
+                .query(StateQueryRequest.inStore(store)
+                        .withQuery(windowKeyQuery)
+                        .withPartitions(Collections.singleton(keyQueryMetadata.partition())));
 
         if (result.getPartitionResults().values().stream().anyMatch(QueryResult::isFailure)) {
-            throw new IllegalArgumentException(result.getPartitionResults().get(0).getFailureMessage());
+            throw new IllegalArgumentException(
+                    result.getPartitionResults().get(0).getFailureMessage());
         }
 
         if (!result.getOnlyPartitionResult().getResult().hasNext()) {
@@ -128,9 +110,10 @@ public class TimestampedWindowStoreService extends CommonWindowStoreService {
         }
 
         List<StateStoreRecord> partitionsResult = new ArrayList<>();
-        result.getOnlyPartitionResult().getResult().forEachRemaining(kv -> partitionsResult.add(
-            new StateStoreRecord(key, kv.value.value(), kv.value.timestamp())
-        ));
+        result.getOnlyPartitionResult()
+                .getResult()
+                .forEachRemaining(
+                        kv -> partitionsResult.add(new StateStoreRecord(key, kv.value.value(), kv.value.timestamp())));
 
         return partitionsResult;
     }

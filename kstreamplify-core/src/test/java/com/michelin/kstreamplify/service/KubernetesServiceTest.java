@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,17 +85,16 @@ class KubernetesServiceTest {
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
-        when(kafkaStreams.metadataForLocalThreads()).thenReturn(Set.of(
-            new ThreadMetadataImpl(
-                "thread-1",
-                StreamThread.State.CREATED.name(),
-                "mainConsumerClientId",
-                "restoreConsumerClientId",
-                Set.of(),
-                "adminClientId",
-                Set.of(),
-                Set.of())
-        ));
+        when(kafkaStreams.metadataForLocalThreads())
+                .thenReturn(Set.of(new ThreadMetadataImpl(
+                        "thread-1",
+                        StreamThread.State.CREATED.name(),
+                        "mainConsumerClientId",
+                        "restoreConsumerClientId",
+                        Set.of(),
+                        "adminClientId",
+                        Set.of(),
+                        Set.of())));
 
         int response = kubernetesService.getReadiness();
 
@@ -109,35 +107,35 @@ class KubernetesServiceTest {
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
-        when(kafkaStreams.metadataForLocalThreads()).thenReturn(Set.of(
-            new ThreadMetadataImpl(
-                "thread-1",
-                StreamThread.State.CREATED.name(),
-                "mainConsumerClientId",
-                "restoreConsumerClientId",
-                Set.of(),
-                "adminClientId",
-                Set.of(),
-                Set.of()),
-            new ThreadMetadataImpl(
-                "thread-2",
-                StreamThread.State.STARTING.name(),
-                "mainConsumerClientId",
-                "restoreConsumerClientId",
-                Set.of(),
-                "adminClientId",
-                Set.of(),
-                Set.of()),
-            new ThreadMetadataImpl(
-                "thread-3",
-                StreamThread.State.PARTITIONS_ASSIGNED.name(),
-                "mainConsumerClientId",
-                "restoreConsumerClientId",
-                Set.of(),
-                "adminClientId",
-                Set.of(),
-                Set.of())
-        ));
+        when(kafkaStreams.metadataForLocalThreads())
+                .thenReturn(Set.of(
+                        new ThreadMetadataImpl(
+                                "thread-1",
+                                StreamThread.State.CREATED.name(),
+                                "mainConsumerClientId",
+                                "restoreConsumerClientId",
+                                Set.of(),
+                                "adminClientId",
+                                Set.of(),
+                                Set.of()),
+                        new ThreadMetadataImpl(
+                                "thread-2",
+                                StreamThread.State.STARTING.name(),
+                                "mainConsumerClientId",
+                                "restoreConsumerClientId",
+                                Set.of(),
+                                "adminClientId",
+                                Set.of(),
+                                Set.of()),
+                        new ThreadMetadataImpl(
+                                "thread-3",
+                                StreamThread.State.PARTITIONS_ASSIGNED.name(),
+                                "mainConsumerClientId",
+                                "restoreConsumerClientId",
+                                Set.of(),
+                                "adminClientId",
+                                Set.of(),
+                                Set.of())));
 
         int response = kubernetesService.getReadiness();
 
@@ -173,4 +171,3 @@ class KubernetesServiceTest {
         assertEquals(HttpURLConnection.HTTP_NO_CONTENT, response);
     }
 }
-

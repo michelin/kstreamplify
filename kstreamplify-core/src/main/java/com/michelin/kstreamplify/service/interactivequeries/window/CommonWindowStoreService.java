@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries.window;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
@@ -48,20 +47,19 @@ abstract class CommonWindowStoreService extends CommonStoreService {
     /**
      * Constructor.
      *
-     * @param httpClient              The HTTP client
+     * @param httpClient The HTTP client
      * @param kafkaStreamsInitializer The Kafka Streams initializer
      */
-    protected CommonWindowStoreService(HttpClient httpClient,
-                                       KafkaStreamsInitializer kafkaStreamsInitializer) {
+    protected CommonWindowStoreService(HttpClient httpClient, KafkaStreamsInitializer kafkaStreamsInitializer) {
         super(httpClient, kafkaStreamsInitializer);
     }
 
     /**
      * Get all values from the store.
      *
-     * @param store    The store
+     * @param store The store
      * @param startTime The start time
-     * @param endTime   The end time
+     * @param endTime The end time
      * @return The values
      */
     public List<StateStoreRecord> getAll(String store, Instant startTime, Instant endTime) {
@@ -76,12 +74,9 @@ abstract class CommonWindowStoreService extends CommonStoreService {
             if (isNotCurrentHost(metadata.hostInfo())) {
                 log.debug("Fetching data on other instance ({}:{})", metadata.host(), metadata.port());
 
-                results.addAll(
-                    getAllOnRemoteHost(
+                results.addAll(getAllOnRemoteHost(
                         metadata.hostInfo(),
-                        "store/" + path() + "/local/" + store + "?startTime=" + startTime + "&endTime=" + endTime
-                    )
-                );
+                        "store/" + path() + "/local/" + store + "?startTime=" + startTime + "&endTime=" + endTime));
             } else {
                 log.debug("Fetching data on this instance ({}:{})", metadata.host(), metadata.port());
 
@@ -95,10 +90,10 @@ abstract class CommonWindowStoreService extends CommonStoreService {
     /**
      * Get the value by key from the store.
      *
-     * @param store    The store name
-     * @param key      The key
+     * @param store The store name
+     * @param key The key
      * @param startTime The start time
-     * @param endTime   The end time
+     * @param endTime The end time
      * @return The value
      */
     public List<StateStoreRecord> getByKey(String store, String key, Instant startTime, Instant endTime) {
@@ -110,17 +105,14 @@ abstract class CommonWindowStoreService extends CommonStoreService {
 
         HostInfo host = keyQueryMetadata.activeHost();
         if (isNotCurrentHost(host)) {
-            log.debug("The key {} has been located on another instance ({}:{})", key,
-                host.host(), host.port());
+            log.debug("The key {} has been located on another instance ({}:{})", key, host.host(), host.port());
 
             return getAllOnRemoteHost(
-                host,
-                "store/" + path() + "/" + store + "/" + key + "?startTime=" + startTime + "&endTime=" + endTime
-            );
+                    host,
+                    "store/" + path() + "/" + store + "/" + key + "?startTime=" + startTime + "&endTime=" + endTime);
         }
 
-        log.debug("The key {} has been located on the current instance ({}:{})", key,
-            host.host(), host.port());
+        log.debug("The key {} has been located on the current instance ({}:{})", key, host.host(), host.port());
 
         return executeWindowKeyQuery(keyQueryMetadata, store, key, startTime, endTime);
     }
@@ -128,9 +120,9 @@ abstract class CommonWindowStoreService extends CommonStoreService {
     /**
      * Get all values from the store on the local instance.
      *
-     * @param store    The store
+     * @param store The store
      * @param startTime The start time
-     * @param endTime   The end time
+     * @param endTime The end time
      * @return The values
      */
     public List<StateStoreRecord> getAllOnLocalInstance(String store, Instant startTime, Instant endTime) {
@@ -146,9 +138,9 @@ abstract class CommonWindowStoreService extends CommonStoreService {
     /**
      * Execute a window range query on the store.
      *
-     * @param store    The store
+     * @param store The store
      * @param startTime The start time
-     * @param endTime  The end time
+     * @param endTime The end time
      * @return The values
      */
     protected abstract List<StateStoreRecord> executeWindowRangeQuery(String store, Instant startTime, Instant endTime);
@@ -157,15 +149,12 @@ abstract class CommonWindowStoreService extends CommonStoreService {
      * Execute a window key query on the store.
      *
      * @param keyQueryMetadata The key query metadata
-     * @param store   The store
-     * @param key    The key
+     * @param store The store
+     * @param key The key
      * @param startTime The start time
      * @param endTime The end time
      * @return The values
      */
-    protected abstract List<StateStoreRecord> executeWindowKeyQuery(KeyQueryMetadata keyQueryMetadata,
-                                                                    String store,
-                                                                    String key,
-                                                                    Instant startTime,
-                                                                    Instant endTime);
+    protected abstract List<StateStoreRecord> executeWindowKeyQuery(
+            KeyQueryMetadata keyQueryMetadata, String store, String key, Instant startTime, Instant endTime);
 }

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.property;
 
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;

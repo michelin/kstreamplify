@@ -40,8 +40,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Check style
-        run: mvn checkstyle:check
+      - name: Lint
+        run: mvn spotless:check
 
       - name: Build
         run: mvn clean package

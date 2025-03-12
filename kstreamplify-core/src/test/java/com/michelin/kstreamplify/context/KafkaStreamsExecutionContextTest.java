@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,8 +48,8 @@ class KafkaStreamsExecutionContextTest {
         KafkaStreamsExecutionContext.registerProperties(properties);
 
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
-        assertEquals("abc.appId", KafkaStreamsExecutionContext.getProperties()
-            .get(StreamsConfig.APPLICATION_ID_CONFIG));
+        assertEquals(
+                "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
     }
 
     @Test
@@ -61,8 +60,7 @@ class KafkaStreamsExecutionContextTest {
         KafkaStreamsExecutionContext.registerProperties(properties);
 
         assertEquals("", KafkaStreamsExecutionContext.getPrefix());
-        assertEquals("appId", KafkaStreamsExecutionContext.getProperties()
-            .get(StreamsConfig.APPLICATION_ID_CONFIG));
+        assertEquals("appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
     }
 
     @Test

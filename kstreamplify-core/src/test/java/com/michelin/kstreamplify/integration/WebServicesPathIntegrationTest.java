@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.integration;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
@@ -51,17 +50,21 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
     @BeforeAll
     static void globalSetUp() {
         createTopics(
-            broker.getBootstrapServers(),
-            new TopicPartition("INPUT_TOPIC", 2),
-            new TopicPartition("OUTPUT_TOPIC", 2)
-        );
+                broker.getBootstrapServers(),
+                new TopicPartition("INPUT_TOPIC", 2),
+                new TopicPartition("OUTPUT_TOPIC", 2));
 
-        initializer = new KafkaStreamInitializerStub(8081, Map.of(
-            KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers(),
-            "kubernetes.readiness.path", "custom-readiness",
-            "kubernetes.liveness.path", "custom-liveness",
-            "topology.path", "custom-topology"
-        ));
+        initializer = new KafkaStreamInitializerStub(
+                8081,
+                Map.of(
+                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
+                        broker.getBootstrapServers(),
+                        "kubernetes.readiness.path",
+                        "custom-readiness",
+                        "kubernetes.liveness.path",
+                        "custom-liveness",
+                        "topology.path",
+                        "custom-topology"));
         initializer.init(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub());
     }
 
@@ -75,7 +78,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
-            new ArrayList<>(initializer.getKafkaStreams().metadataForAllStreamsClients());
+                new ArrayList<>(initializer.getKafkaStreams().metadataForAllStreamsClients());
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
@@ -84,55 +87,57 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
 
-        assertTrue(Set.of(
-            new TopicPartition("INPUT_TOPIC", 0),
-            new TopicPartition("INPUT_TOPIC", 1)
-        ).containsAll(topicPartitions));
+        assertTrue(Set.of(new TopicPartition("INPUT_TOPIC", 0), new TopicPartition("INPUT_TOPIC", 1))
+                .containsAll(topicPartitions));
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
-        assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdesConfig().get("default.key.serde"));
-        assertEquals("org.apache.kafka.common.serialization.Serdes$StringSerde",
-            KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                KafkaStreamsExecutionContext.getSerdesConfig().get("default.key.serde"));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
-        assertEquals("localhost:8081",
-            KafkaStreamsExecutionContext.getProperties().get("application.server"));
+        assertEquals(
+                "localhost:8081", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         HttpRequest requestReady = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/custom-readiness"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8081/custom-readiness"))
+                .GET()
+                .build();
 
         HttpResponse<Void> responseReady = httpClient.send(requestReady, HttpResponse.BodyHandlers.discarding());
 
         assertEquals(200, responseReady.statusCode());
 
         HttpRequest requestLiveness = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/custom-liveness"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8081/custom-liveness"))
+                .GET()
+                .build();
 
         HttpResponse<Void> responseLiveness = httpClient.send(requestLiveness, HttpResponse.BodyHandlers.discarding());
 
         assertEquals(200, responseLiveness.statusCode());
 
         HttpRequest requestTopology = HttpRequest.newBuilder()
-            .uri(URI.create("http://localhost:8081/custom-topology"))
-            .GET()
-            .build();
+                .uri(URI.create("http://localhost:8081/custom-topology"))
+                .GET()
+                .build();
 
         HttpResponse<String> responseTopology = httpClient.send(requestTopology, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, responseTopology.statusCode());
-        assertEquals("""
+        assertEquals(
+                """
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> KSTREAM-SINK-0000000001
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
-            
-            """, responseTopology.body());
+
+            """,
+                responseTopology.body());
     }
 }

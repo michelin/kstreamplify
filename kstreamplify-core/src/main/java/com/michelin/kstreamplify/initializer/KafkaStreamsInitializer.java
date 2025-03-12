@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.initializer;
 
 import static java.util.Optional.ofNullable;
@@ -37,65 +36,41 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.state.HostInfo;
 
-/**
- * The Kafka Streams initializer class.
- */
+/** The Kafka Streams initializer class. */
 @Slf4j
 @Getter
 public class KafkaStreamsInitializer {
-    /**
-     * The application server property name.
-     */
+    /** The application server property name. */
     public static final String APPLICATION_SERVER_PROPERTY_NAME = "application.server.var.name";
 
-    /**
-     * The server port property name.
-     */
+    /** The server port property name. */
     public static final String SERVER_PORT_PROPERTY_NAME = "server.port";
 
-    /**
-     * The default application server variable name.
-     */
+    /** The default application server variable name. */
     public static final String DEFAULT_APPLICATION_SERVER_VARIABLE_NAME = "APPLICATION_SERVER";
 
-    /**
-     * The Kafka Streams instance.
-     */
+    /** The Kafka Streams instance. */
     private KafkaStreams kafkaStreams;
 
-    /**
-     * The Kafka Streams starter.
-     */
+    /** The Kafka Streams starter. */
     private KafkaStreamsStarter kafkaStreamsStarter;
 
-    /**
-     * The topology.
-     */
+    /** The topology. */
     private Topology topology;
 
-    /**
-     * The Kafka properties.
-     */
+    /** The Kafka properties. */
     protected Properties kafkaProperties;
 
-    /**
-     * The application properties.
-     */
+    /** The application properties. */
     protected Properties properties = new Properties();
 
-    /**
-     * The DLQ topic.
-     */
+    /** The DLQ topic. */
     private String dlq;
 
-    /**
-     * The host info.
-     */
+    /** The host info. */
     private HostInfo hostInfo;
 
-    /**
-     * The server port.
-     */
+    /** The server port. */
     protected int serverPort;
 
     /**
@@ -130,8 +105,7 @@ public class KafkaStreamsInitializer {
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
         kafkaStreams.setUncaughtExceptionHandler(
-            ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler())
-                .orElse(this::onStreamsUncaughtException));
+                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::onStreamsUncaughtException));
 
         kafkaStreams.setStateListener(this::onStateChange);
 
@@ -139,62 +113,49 @@ public class KafkaStreamsInitializer {
         startHttpServer();
     }
 
-    /**
-     * Init the Kafka Streams execution context.
-     */
+    /** Init the Kafka Streams execution context. */
     private void initSerdeConfig() {
-        KafkaStreamsExecutionContext.setSerdesConfig(
-            kafkaProperties.entrySet()
-                .stream()
+        KafkaStreamsExecutionContext.setSerdesConfig(kafkaProperties.entrySet().stream()
                 .collect(Collectors.toMap(
-                    e -> String.valueOf(e.getKey()),
-                    e -> String.valueOf(e.getValue()),
-                    (prev, next) -> next, HashMap::new
-                ))
-        );
+                        e -> String.valueOf(e.getKey()),
+                        e -> String.valueOf(e.getValue()),
+                        (prev, next) -> next,
+                        HashMap::new)));
     }
 
-    /**
-     * Init the Kafka Streams default DLQ.
-     */
+    /** Init the Kafka Streams default DLQ. */
     private void initDlq() {
         dlq = kafkaStreamsStarter.dlqTopic();
         KafkaStreamsExecutionContext.setDlqTopicName(dlq);
     }
 
-    /**
-     * Init the host information.
-     */
+    /** Init the host information. */
     private void initHostInfo() {
-        String applicationServerVarName =
-            (String) kafkaProperties.getOrDefault(APPLICATION_SERVER_PROPERTY_NAME,
-                DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
+        String applicationServerVarName = (String) kafkaProperties.getOrDefault(
+                APPLICATION_SERVER_PROPERTY_NAME, DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
 
         String applicationServer = System.getenv(applicationServerVarName);
         String host = StringUtils.isNotBlank(applicationServer) ? applicationServer : "localhost";
 
         hostInfo = new HostInfo(host, serverPort);
 
-        log.info("The Kafka Streams \"{}\" is running on {}:{}",
-            KafkaStreamsExecutionContext.getProperties()
-                .getProperty(StreamsConfig.APPLICATION_ID_CONFIG), hostInfo.host(),
-            hostInfo.port());
+        log.info(
+                "The Kafka Streams \"{}\" is running on {}:{}",
+                KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
+                hostInfo.host(),
+                hostInfo.port());
 
-        KafkaStreamsExecutionContext.getProperties().put(StreamsConfig.APPLICATION_SERVER_CONFIG,
-            String.format("%s:%s", hostInfo.host(), hostInfo.port()));
+        KafkaStreamsExecutionContext.getProperties()
+                .put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", hostInfo.host(), hostInfo.port()));
     }
 
-    /**
-     * Init the HTTP server.
-     */
+    /** Init the HTTP server. */
     protected void startHttpServer() {
         KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(this);
         server.start();
     }
 
-    /**
-     * Init all properties.
-     */
+    /** Init all properties. */
     protected void initProperties() {
         properties = PropertiesUtils.loadProperties();
         serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY_NAME);
@@ -209,9 +170,11 @@ public class KafkaStreamsInitializer {
      * @return The execution
      */
     protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(
-        Throwable exception) {
-        log.error("A not covered exception occurred in {} Kafka Streams. Shutting down...",
-            kafkaProperties.get(StreamsConfig.APPLICATION_ID_CONFIG), exception);
+            Throwable exception) {
+        log.error(
+                "A not covered exception occurred in {} Kafka Streams. Shutting down...",
+                kafkaProperties.get(StreamsConfig.APPLICATION_ID_CONFIG),
+                exception);
         return StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
     }
 
@@ -223,8 +186,9 @@ public class KafkaStreamsInitializer {
      */
     protected void onStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
         if (newState.equals(KafkaStreams.State.ERROR)) {
-            log.error("The {} Kafka Streams is in error state...",
-                kafkaProperties.get(StreamsConfig.APPLICATION_ID_CONFIG));
+            log.error(
+                    "The {} Kafka Streams is in error state...",
+                    kafkaProperties.get(StreamsConfig.APPLICATION_ID_CONFIG));
             System.exit(3);
         }
     }

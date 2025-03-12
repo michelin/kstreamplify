@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.service.interactivequeries;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,9 +43,7 @@ import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.state.HostInfo;
 
-/**
- * Interactive queries service.
- */
+/** Interactive queries service. */
 @Slf4j
 @AllArgsConstructor
 public abstract class CommonStoreService {
@@ -74,18 +71,16 @@ public abstract class CommonStoreService {
     public Set<String> getStateStores() {
         checkStreamsRunning();
 
-        final Collection<StreamsMetadata> metadata = kafkaStreamsInitializer
-            .getKafkaStreams()
-            .metadataForAllStreamsClients();
+        final Collection<StreamsMetadata> metadata =
+                kafkaStreamsInitializer.getKafkaStreams().metadataForAllStreamsClients();
 
         if (metadata == null || metadata.isEmpty()) {
             return Collections.emptySet();
         }
 
-        return metadata
-            .stream()
-            .flatMap(streamsMetadata -> streamsMetadata.stateStoreNames().stream())
-            .collect(Collectors.toSet());
+        return metadata.stream()
+                .flatMap(streamsMetadata -> streamsMetadata.stateStoreNames().stream())
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -97,38 +92,33 @@ public abstract class CommonStoreService {
     public Collection<StreamsMetadata> getStreamsMetadataForStore(final String store) {
         checkStreamsRunning();
 
-        return kafkaStreamsInitializer
-            .getKafkaStreams()
-            .streamsMetadataForStore(store);
+        return kafkaStreamsInitializer.getKafkaStreams().streamsMetadataForStore(store);
     }
 
     /**
      * Get the host by store and key.
      *
      * @param store The store
-     * @param key   The key
+     * @param key The key
      * @return The host
      */
     protected <K> KeyQueryMetadata getKeyQueryMetadata(String store, K key, Serializer<K> serializer) {
         checkStreamsRunning();
 
-        return kafkaStreamsInitializer
-            .getKafkaStreams()
-            .queryMetadataForKey(store, key, serializer);
+        return kafkaStreamsInitializer.getKafkaStreams().queryMetadataForKey(store, key, serializer);
     }
 
     /**
      * Request remote instance.
      *
-     * @param host         The host instance
+     * @param host The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
     protected List<StateStoreRecord> getAllOnRemoteHost(HostInfo host, String endpointPath) {
         try {
             String jsonResponse = sendRequest(host, endpointPath);
-            return objectMapper.readValue(jsonResponse, new TypeReference<>() {
-            });
+            return objectMapper.readValue(jsonResponse, new TypeReference<>() {});
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return Collections.emptyList();
@@ -140,7 +130,7 @@ public abstract class CommonStoreService {
     /**
      * Request remote instance.
      *
-     * @param host         The host instance
+     * @param host The host instance
      * @param endpointPath The endpoint path to request
      * @return The response
      */
@@ -159,25 +149,25 @@ public abstract class CommonStoreService {
     /**
      * Send request to the remote host.
      *
-     * @param host         The host
+     * @param host The host
      * @param endpointPath The endpoint path
      * @return The response
-     * @throws URISyntaxException   URI syntax exception
-     * @throws ExecutionException   Execution exception
+     * @throws URISyntaxException URI syntax exception
+     * @throws ExecutionException Execution exception
      * @throws InterruptedException Interrupted exception
      */
     private String sendRequest(HostInfo host, String endpointPath)
-        throws URISyntaxException, ExecutionException, InterruptedException {
+            throws URISyntaxException, ExecutionException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-            .header("Accept", "application/json")
-            .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
-            .GET()
-            .build();
+                .header("Accept", "application/json")
+                .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
+                .GET()
+                .build();
 
         return httpClient
-            .sendAsync(request, HttpResponse.BodyHandlers.ofString())
-            .thenApply(HttpResponse::body)
-            .get();
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .get();
     }
 
     /**
@@ -188,12 +178,10 @@ public abstract class CommonStoreService {
      */
     protected boolean isNotCurrentHost(HostInfo compareHostInfo) {
         return !kafkaStreamsInitializer.getHostInfo().host().equals(compareHostInfo.host())
-            || kafkaStreamsInitializer.getHostInfo().port() != compareHostInfo.port();
+                || kafkaStreamsInitializer.getHostInfo().port() != compareHostInfo.port();
     }
 
-    /**
-     * Check if the streams are started.
-     */
+    /** Check if the streams are started. */
     private void checkStreamsRunning() {
         if (kafkaStreamsInitializer.isNotRunning()) {
             KafkaStreams.State state = kafkaStreamsInitializer.getKafkaStreams().state();
