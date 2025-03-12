@@ -22,7 +22,6 @@ import com.michelin.kstreamplify.error.ProcessingResult;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.time.Duration;
 import java.util.function.Function;
-import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -33,7 +32,6 @@ import org.apache.kafka.streams.state.Stores;
 import org.apache.kafka.streams.state.WindowStore;
 
 /** Deduplication utility class. Only streams with String keys are supported. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class DeduplicationUtils {
     /** Default values for the topic names. It should be noted that if used multiple times, this dedup will not work */
     private static final String DEFAULT_DEDUP_NAME = "Dedup_";
@@ -217,4 +215,7 @@ public final class DeduplicationUtils {
                 () -> new DedupWithPredicateProcessor<>(storeName, windowDuration, deduplicationKeyExtractor),
                 storeName);
     }
+
+    /** Private constructor. */
+    private DeduplicationUtils() {}
 }

@@ -56,6 +56,9 @@ public abstract class KafkaStreamsStarterTest {
     /** The dlq topic, initialized in {@link #generalSetUp()}. */
     protected TestOutputTopic<String, KafkaError> dlqTopic;
 
+    /** Constructor. */
+    protected KafkaStreamsStarterTest() {}
+
     /** Set up topology test driver. */
     @BeforeEach
     void generalSetUp() {

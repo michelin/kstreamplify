@@ -34,6 +34,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class BeanConfig {
+
+    /** Constructor. */
+    public BeanConfig() {
+        // Default constructor
+    }
+
     /**
      * Register the Kubernetes service as a bean.
      *

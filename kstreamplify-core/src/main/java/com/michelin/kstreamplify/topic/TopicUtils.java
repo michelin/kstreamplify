@@ -22,10 +22,8 @@ import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARA
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Properties;
-import lombok.NoArgsConstructor;
 
 /** The topic utils class. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class TopicUtils {
     /** The topic property name. */
     public static final String TOPIC_PROPERTY_NAME = "topic";
@@ -77,4 +75,7 @@ public final class TopicUtils {
         String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixPropertyKey, "");
         return prefix.concat(resultTopicName);
     }
+
+    /** Private constructor. */
+    private TopicUtils() {}
 }

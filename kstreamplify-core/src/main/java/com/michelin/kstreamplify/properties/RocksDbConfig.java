@@ -74,6 +74,11 @@ public class RocksDbConfig implements RocksDBConfigSetter {
     /** The RocksDB cache. */
     private org.rocksdb.Cache cache = null;
 
+    /** Constructor. */
+    public RocksDbConfig() {
+        // Default constructor
+    }
+
     /**
      * Set the RocksDB configuration.
      *

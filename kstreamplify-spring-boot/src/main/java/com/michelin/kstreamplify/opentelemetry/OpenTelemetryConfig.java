@@ -43,6 +43,11 @@ public class OpenTelemetryConfig {
     @Value("${otel.resource.attributes:#{null}}")
     private String otelResourceAttributes;
 
+    /** Constructor. */
+    public OpenTelemetryConfig() {
+        // Default constructor
+    }
+
     /**
      * Register tags in Open Telemetry meter registry. It enables to add custom tags given in the property
      * otel.resource.attributes to metrics.

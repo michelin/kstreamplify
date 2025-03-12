@@ -24,9 +24,7 @@ import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
 
 import java.util.Map;
 import java.util.Properties;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +32,6 @@ import org.apache.kafka.streams.StreamsConfig;
 
 /** The class to represent the context of the KStream. */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KafkaStreamsExecutionContext {
 
     /** The DLQ topic name. */
@@ -84,4 +81,7 @@ public class KafkaStreamsExecutionContext {
 
         KafkaStreamsExecutionContext.properties = properties;
     }
+
+    /** Private constructor. */
+    private KafkaStreamsExecutionContext() {}
 }

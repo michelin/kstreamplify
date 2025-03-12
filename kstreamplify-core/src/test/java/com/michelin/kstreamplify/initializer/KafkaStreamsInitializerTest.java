@@ -39,7 +39,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaStreamsInitializerTest {
-
     private final KafkaStreamsInitializer initializer = new KafkaStreamsInitializer();
 
     @Test

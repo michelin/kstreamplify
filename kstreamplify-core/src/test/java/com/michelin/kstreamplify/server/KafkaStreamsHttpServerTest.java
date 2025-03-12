@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 class KafkaStreamsHttpServerTest {
     @Test
     void shouldCreateServerWithDefaultHostAndPort() {
-        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer());
+        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer() {});
         server.start();
 
         assertNotNull(server.server.getAddress().getHostName());

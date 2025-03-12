@@ -73,6 +73,9 @@ public class KafkaStreamsInitializer {
     /** The server port. */
     protected int serverPort;
 
+    /** Constructor. */
+    protected KafkaStreamsInitializer() {}
+
     /**
      * Init the Kafka Streams.
      *

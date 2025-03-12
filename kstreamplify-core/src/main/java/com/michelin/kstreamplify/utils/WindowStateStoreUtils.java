@@ -29,8 +29,6 @@ import org.apache.kafka.streams.state.WindowStore;
  */
 @Deprecated(since = "1.1.0")
 public class WindowStateStoreUtils {
-    private WindowStateStoreUtils() {}
-
     /**
      * Put the key/value into the state store.
      *
@@ -64,4 +62,7 @@ public class WindowStateStoreUtils {
 
         return null;
     }
+
+    /** The private constructor. */
+    private WindowStateStoreUtils() {}
 }

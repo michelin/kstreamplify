@@ -26,7 +26,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,9 +37,16 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnBean(KafkaStreamsStarter.class)
 @Tag(name = "Kubernetes", description = "Kubernetes Controller")
 public class KubernetesController {
-    /** The Kubernetes service. */
-    @Autowired
-    private KubernetesService kubernetesService;
+    private final KubernetesService kubernetesService;
+
+    /**
+     * Constructor.
+     *
+     * @param kubernetesService The Kubernetes service
+     */
+    public KubernetesController(KubernetesService kubernetesService) {
+        this.kubernetesService = kubernetesService;
+    }
 
     /**
      * Readiness Kubernetes probe endpoint.

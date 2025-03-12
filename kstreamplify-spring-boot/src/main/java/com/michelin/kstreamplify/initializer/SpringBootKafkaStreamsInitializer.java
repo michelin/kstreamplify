@@ -25,7 +25,6 @@ import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -39,24 +38,39 @@ import org.springframework.stereotype.Component;
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
     /** The application context. */
-    @Autowired
-    private ConfigurableApplicationContext applicationContext;
+    private final ConfigurableApplicationContext applicationContext;
 
     /** The meter registry. */
-    @Autowired
-    private MeterRegistry registry;
+    private final MeterRegistry registry;
 
     /** The server port. */
     @Value("${server.port:8080}")
     private int springBootServerPort;
 
     /** The Kafka properties. */
-    @Autowired
-    private KafkaProperties springBootKafkaProperties;
+    private final KafkaProperties springBootKafkaProperties;
 
     /** The Kafka Streams starter. */
-    @Autowired
-    private KafkaStreamsStarter kafkaStreamsStarter;
+    private final KafkaStreamsStarter kafkaStreamsStarter;
+
+    /**
+     * Constructor.
+     *
+     * @param applicationContext The application context
+     * @param registry The meter registry
+     * @param springBootKafkaProperties The Kafka properties
+     * @param kafkaStreamsStarter The Kafka Streams starter
+     */
+    public SpringBootKafkaStreamsInitializer(
+            ConfigurableApplicationContext applicationContext,
+            MeterRegistry registry,
+            KafkaProperties springBootKafkaProperties,
+            KafkaStreamsStarter kafkaStreamsStarter) {
+        this.applicationContext = applicationContext;
+        this.registry = registry;
+        this.springBootKafkaProperties = springBootKafkaProperties;
+        this.kafkaStreamsStarter = kafkaStreamsStarter;
+    }
 
     /**
      * Run method.

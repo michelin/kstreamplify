@@ -32,6 +32,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ControllerExceptionHandler {
 
+    /** Constructor. */
+    public ControllerExceptionHandler() {
+        // Default constructor
+    }
+
     /**
      * Handle the unknown state store exception.
      *

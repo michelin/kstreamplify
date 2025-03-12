@@ -19,12 +19,10 @@
 package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /** Kafka Streams topology service. */
 @Slf4j
-@AllArgsConstructor
 public class TopologyService {
     /** The topology path property. */
     public static final String TOPOLOGY_PATH_PROPERTY_NAME = "topology.path";
@@ -34,6 +32,15 @@ public class TopologyService {
 
     /** The Kafka Streams initializer. */
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     */
+    public TopologyService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+        this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+    }
 
     /**
      * Get the Kafka Streams topology.
