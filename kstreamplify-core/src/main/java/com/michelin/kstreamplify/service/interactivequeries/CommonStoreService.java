@@ -48,9 +48,14 @@ import org.apache.kafka.streams.state.HostInfo;
 @AllArgsConstructor
 public abstract class CommonStoreService {
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
+
+    /** Error message when the state store is not found. */
     protected static final String UNKNOWN_STATE_STORE = "State store %s not found";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient;
+
+    /** The Kafka Streams initializer. */
     protected final KafkaStreamsInitializer kafkaStreamsInitializer;
 
     /**
@@ -100,7 +105,9 @@ public abstract class CommonStoreService {
      *
      * @param store The store
      * @param key The key
+     * @param serializer The key serializer
      * @return The host
+     * @param <K> The key type
      */
     protected <K> KeyQueryMetadata getKeyQueryMetadata(String store, K key, Serializer<K> serializer) {
         checkStreamsRunning();
