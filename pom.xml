@@ -246,7 +246,7 @@
                             <configuration>
                                 <stringType>String</stringType>
                                 <enableDecimalLogicalType>true</enableDecimalLogicalType>
-                                <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+                                <sourceDirectory>${project.basedir}/src/main/avro</sourceDirectory>
                                 <outputDirectory>${project.basedir}/target/generated-sources</outputDirectory>
                             </configuration>
                         </execution>
