@@ -82,8 +82,8 @@
 
     <modules>
         <module>kstreamplify-core</module>
-        <module>kstreamplify-spring-boot</module>
         <module>kstreamplify-core-test</module>
+        <module>kstreamplify-spring-boot</module>
     </modules>
 
     <scm>
@@ -104,33 +104,39 @@
     </distributionManagement>
 
     <properties>
-        <avro.version>1.12.0</avro.version>
+        <avro-maven-plugin.version>1.12.0</avro-maven-plugin.version>
         <commons-io.version>2.18.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <gson.version>2.12.1</gson.version>
+        <jackson-core.version>2.18.3</jackson-core.version>
+        <jacoco.version>0.8.12</jacoco.version>
         <junit-jupiter.version>5.11.4</junit-jupiter.version>
-        <kafka.version>3.8.1</kafka.version>
         <kafka-streams-avro-serde.version>7.9.0</kafka-streams-avro-serde.version>
+        <kafka.version>3.8.1</kafka.version>
         <lombok.version>1.18.36</lombok.version>
-        <mockito.version>5.16.0</mockito.version>
-        <maven.compiler.java.version>17</maven.compiler.java.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-        <jacoco.version>0.8.12</jacoco.version>
-        <spring-boot.version>3.4.3</spring-boot.version>
-        <testcontainers.version>1.20.6</testcontainers.version>
+        <maven.compiler.java.version>17</maven.compiler.java.version>
+        <mockito.version>5.16.0</mockito.version>
+        <palantir.version>2.39.0</palantir.version>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <spotless-maven-plugin.version>2.44.3</spotless-maven-plugin.version>
-        <palantir.version>2.39.0</palantir.version>
+        <spring-boot.version>3.4.3</spring-boot.version>
         <springdoc.version>2.8.5</springdoc.version>
+        <testcontainers.version>1.20.6</testcontainers.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson-core.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -155,6 +161,7 @@
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
@@ -224,13 +231,12 @@
     </repositories>
 
     <build>
-
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.avro</groupId>
                     <artifactId>avro-maven-plugin</artifactId>
-                    <version>${avro.version}</version>
+                    <version>${avro-maven-plugin.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -248,7 +254,59 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+
         <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <palantirJavaFormat>
+                            <version>${palantir.version}</version>
+                            <style>PALANTIR</style>
+                            <formatJavadoc>true</formatJavadoc>
+                        </palantirJavaFormat>
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                        <importOrder />
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
+                        <licenseHeader>
+                            <file>.spotless/HEADER</file>
+                        </licenseHeader>
+                    </java>
+                    <pom>
+                        <includes>
+                            <include>pom.xml</include>
+                        </includes>
+                        <sortPom>
+                            <nrOfIndentSpace>4</nrOfIndentSpace>
+                            <expandEmptyElements>false</expandEmptyElements>
+                            <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
+                            <sortDependencies>groupId,artifactId</sortDependencies>
+                            <sortDependencyManagement>groupId,artifactId</sortDependencyManagement>
+                            <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
+                            <sortPlugins>groupId,artifactId</sortPlugins>
+                            <sortProperties>true</sortProperties>
+                            <sortModules>true</sortModules>
+                            <endWithNewline />
+                        </sortPom>
+                    </pom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -260,13 +318,13 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin.version}</version>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>attach-sources</id>
+                        <id>attach-javadocs</id>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>jar</goal>
                         </goals>
                         <phase>verify</phase>
                     </execution>
@@ -275,13 +333,13 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin.version}</version>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>attach-javadocs</id>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                         <phase>verify</phase>
                     </execution>
@@ -331,50 +389,6 @@
                             <!-- Sets the output directory for the code coverage report. -->
                             <outputDirectory>target/jacoco-ut</outputDirectory>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless-maven-plugin.version}</version>
-                <configuration>
-                    <java>
-                        <includes>
-                            <include>src/main/java/**/*.java</include>
-                            <include>src/test/java/**/*.java</include>
-                        </includes>
-                        <palantirJavaFormat>
-                            <version>${palantir.version}</version>
-                            <style>PALANTIR</style>
-                            <formatJavadoc>true</formatJavadoc>
-                        </palantirJavaFormat>
-                        <removeUnusedImports />
-                        <formatAnnotations />
-                        <importOrder />
-                        <trimTrailingWhitespace />
-                        <endWithNewline />
-                        <licenseHeader>
-                            <file>.spotless/HEADER</file>
-                        </licenseHeader>
-                    </java>
-                    <pom>
-                        <includes>
-                            <include>pom.xml</include>
-                        </includes>
-                        <sortPom>
-                            <nrOfIndentSpace>4</nrOfIndentSpace>
-                            <expandEmptyElements>false</expandEmptyElements>
-                            <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
-                        </sortPom>
-                    </pom>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
