@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,7 +72,7 @@ class DlqDeserializationExceptionHandlerTest {
         handler = new DlqDeserializationExceptionHandler(producer);
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, consumerRecord, new RuntimeException("Exception..."));
+                handler.handle(processorContext, consumerRecord, new RuntimeException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
@@ -83,7 +82,7 @@ class DlqDeserializationExceptionHandlerTest {
         handler = new DlqDeserializationExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
+                handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
@@ -98,7 +97,7 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.topic()).thenReturn("topic");
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-            handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
+                handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
     }
@@ -119,17 +118,19 @@ class DlqDeserializationExceptionHandlerTest {
     @Test
     void shouldEnrichWithException() {
         KafkaError.Builder kafkaError = KafkaError.newBuilder()
-            .setTopic("topic")
-            .setStack("stack")
-            .setPartition(0)
-            .setOffset(0)
-            .setCause("cause")
-            .setValue("value");
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value");
 
         handler = new DlqDeserializationExceptionHandler();
-        KafkaError.Builder enrichedBuilder = handler.enrichWithException(kafkaError,
-            new RuntimeException("Exception..."), "key".getBytes(StandardCharsets.UTF_8),
-            "value".getBytes(StandardCharsets.UTF_8));
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(
+                kafkaError,
+                new RuntimeException("Exception..."),
+                "key".getBytes(StandardCharsets.UTF_8),
+                "value".getBytes(StandardCharsets.UTF_8));
 
         KafkaError error = enrichedBuilder.build();
         assertEquals("Unknown cause", error.getCause());
@@ -139,21 +140,24 @@ class DlqDeserializationExceptionHandlerTest {
     @Test
     void shouldEnrichWithRecordTooLargeException() {
         KafkaError.Builder kafkaError = KafkaError.newBuilder()
-            .setTopic("topic")
-            .setStack("stack")
-            .setPartition(0)
-            .setOffset(0)
-            .setCause("cause")
-            .setValue("value");
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value");
 
         handler = new DlqDeserializationExceptionHandler();
-        KafkaError.Builder enrichedBuilder = handler.enrichWithException(kafkaError,
-            new RecordTooLargeException("Exception..."), "key".getBytes(StandardCharsets.UTF_8),
-            "value".getBytes(StandardCharsets.UTF_8));
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(
+                kafkaError,
+                new RecordTooLargeException("Exception..."),
+                "key".getBytes(StandardCharsets.UTF_8),
+                "value".getBytes(StandardCharsets.UTF_8));
 
         KafkaError error = enrichedBuilder.build();
         assertEquals("Unknown cause", error.getCause());
-        assertEquals("The record is too large to be set as value (5 bytes). "
-            + "The key will be used instead", error.getValue());
+        assertEquals(
+                "The record is too large to be set as value (5 bytes). " + "The key will be used instead",
+                error.getValue());
     }
 }

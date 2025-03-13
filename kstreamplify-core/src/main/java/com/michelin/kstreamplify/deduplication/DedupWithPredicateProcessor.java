@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
@@ -36,42 +35,32 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <V> The type of the value
  */
 public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
-    implements Processor<K, V, K, ProcessingResult<V, V>> {
+        implements Processor<K, V, K, ProcessingResult<V, V>> {
 
-    /**
-     * Kstream context for this transformer.
-     */
+    /** Kstream context for this transformer. */
     private ProcessorContext<K, ProcessingResult<V, V>> processorContext;
 
-    /**
-     * Window store containing all the records seen on the given window.
-     */
+    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, V> dedupWindowStore;
 
-    /**
-     * Window store name, initialized @ construction.
-     */
+    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
 
-    /**
-     * Retention window for the state store. Used for fetching data.
-     */
+    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
 
-    /**
-     * Deduplication key extractor.
-     */
+    /** Deduplication key extractor. */
     private final Function<V, String> deduplicationKeyExtractor;
 
     /**
      * Constructor.
      *
-     * @param windowStoreName           Name of the deduplication state store
-     * @param retentionWindowDuration   Retention window duration
+     * @param windowStoreName Name of the deduplication state store
+     * @param retentionWindowDuration Retention window duration
      * @param deduplicationKeyExtractor Deduplication function
      */
-    public DedupWithPredicateProcessor(String windowStoreName, Duration retentionWindowDuration,
-                                       Function<V, String> deduplicationKeyExtractor) {
+    public DedupWithPredicateProcessor(
+            String windowStoreName, Duration retentionWindowDuration, Function<V, String> deduplicationKeyExtractor) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
         this.deduplicationKeyExtractor = deduplicationKeyExtractor;
@@ -91,9 +80,10 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
             String identifier = deduplicationKeyExtractor.apply(message.value());
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-            try (var resultIterator = dedupWindowStore.backwardFetch(identifier,
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
+            try (var resultIterator = dedupWindowStore.backwardFetch(
+                    identifier,
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
@@ -107,9 +97,11 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord>
             processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
 
         } catch (Exception e) {
-            processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Could not figure out what to do with the current payload: "
-                    + "An unlikely error occurred during deduplication transform"));
+            processorContext.forward(ProcessingResult.wrapRecordFailure(
+                    e,
+                    message,
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.utils;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -30,8 +29,7 @@ import org.apache.avro.specific.SpecificRecord;
  */
 @Deprecated(since = "1.1.0")
 public final class SerdesUtils {
-    private SerdesUtils() {
-    }
+    private SerdesUtils() {}
 
     /**
      * Return a key serdes for a requested class.
@@ -57,11 +55,10 @@ public final class SerdesUtils {
      * Return a serdes for a requested class.
      *
      * @param isSerdeForKey Is the serdes for a key or a value
-     * @param <T>           The class of requested serdes
+     * @param <T> The class of requested serdes
      * @return a serdes for requested class
      */
-    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(
-        boolean isSerdeForKey) {
+    private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();
         serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), isSerdeForKey);
         return serde;

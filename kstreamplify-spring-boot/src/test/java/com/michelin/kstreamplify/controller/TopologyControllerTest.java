@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,8 +40,7 @@ class TopologyControllerTest {
 
     @Test
     void shouldGetTopology() {
-        when(topologyService.getTopology())
-            .thenReturn("Topology");
+        when(topologyService.getTopology()).thenReturn("Topology");
 
         ResponseEntity<String> response = topologyController.topology();
 

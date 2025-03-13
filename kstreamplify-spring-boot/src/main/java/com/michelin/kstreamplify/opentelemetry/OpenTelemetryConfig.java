@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.opentelemetry;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -34,24 +33,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
-/**
- * The OpenTelemetry configuration class.
- */
+/** The OpenTelemetry configuration class. */
 @Slf4j
 @Getter
 @Setter
 @Configuration
 public class OpenTelemetryConfig {
-    /**
-     * The OpenTelemetry resource attributes.
-     */
+    /** The OpenTelemetry resource attributes. */
     @Value("${otel.resource.attributes:#{null}}")
     private String otelResourceAttributes;
 
     /**
-     * Register tags in Open Telemetry meter registry.
-     * It enables to add custom tags given in the property otel.resource.attributes
-     * to metrics.
+     * Register tags in Open Telemetry meter registry. It enables to add custom tags given in the property
+     * otel.resource.attributes to metrics.
      *
      * @return A meter registry customizer
      */
@@ -59,16 +53,22 @@ public class OpenTelemetryConfig {
     @ConditionalOnProperty(value = "otel.resource.attributes")
     public MeterRegistryCustomizer<MeterRegistry> addTagsOnMetrics() {
         List<Tag> tags = StringUtils.hasText(otelResourceAttributes)
-            ? Arrays.stream(otelResourceAttributes.split(","))
-            .map(resourceAttribute -> Tag.of(resourceAttribute.split("=")[0], resourceAttribute.split("=")[1]))
-            .toList() : Collections.emptyList();
+                ? Arrays.stream(otelResourceAttributes.split(","))
+                        .map(resourceAttribute -> Tag.of(
+                                resourceAttribute.split("=")[0],
+                                resourceAttribute.split("=")[1]))
+                        .toList()
+                : Collections.emptyList();
 
         return registry -> {
             // Only add tags and Kafka metrics to Open Telemetry meter registry whose Java agent reads from it
             if (registry.getClass().getName().contains("OpenTelemetryMeterRegistry")) {
-                log.info("Adding tags {} to registry {}",
-                    tags.stream().map(tag -> tag.getKey() + "=" + tag.getValue()).toList(),
-                    registry.getClass().getName());
+                log.info(
+                        "Adding tags {} to registry {}",
+                        tags.stream()
+                                .map(tag -> tag.getKey() + "=" + tag.getValue())
+                                .toList(),
+                        registry.getClass().getName());
                 registry.config().commonTags(tags);
             }
         };

@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.context;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
@@ -33,37 +32,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.StreamsConfig;
 
-/**
- * The class to represent the context of the KStream.
- */
+/** The class to represent the context of the KStream. */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KafkaStreamsExecutionContext {
 
-    /**
-     * The DLQ topic name.
-     */
+    /** The DLQ topic name. */
     @Getter
     @Setter
     private static String dlqTopicName;
 
-    /**
-     * The Serdes config Map.
-     */
+    /** The Serdes config Map. */
     @Getter
     @Setter
     private static Map<String, String> serdesConfig;
 
-    /**
-     * The properties of the stream execution context.
-     */
+    /** The properties of the stream execution context. */
     @Getter
     @Setter
     private static Properties properties;
 
     /**
-     * The prefix that will be applied to the application.id if provided.
-     * It needs to be defined like this:
+     * The prefix that will be applied to the application.id if provided. It needs to be defined like this:
+     *
      * <pre>{@code
      * kafka:
      *   properties:
@@ -85,10 +76,10 @@ public class KafkaStreamsExecutionContext {
         }
 
         prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
-        if (StringUtils.isNotBlank(prefix)
-            && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
-            properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG,
-                prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
+        if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
+            properties.setProperty(
+                    StreamsConfig.APPLICATION_ID_CONFIG,
+                    prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
         }
 
         KafkaStreamsExecutionContext.properties = properties;

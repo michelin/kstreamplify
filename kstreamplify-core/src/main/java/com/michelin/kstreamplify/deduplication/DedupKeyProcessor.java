@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.deduplication;
 
 import com.michelin.kstreamplify.error.ProcessingResult;
@@ -34,32 +33,24 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <V> The type of the value
  */
 public class DedupKeyProcessor<V extends SpecificRecord>
-    implements Processor<String, V, String, ProcessingResult<V, V>> {
+        implements Processor<String, V, String, ProcessingResult<V, V>> {
 
-    /**
-     * Context for this transformer.
-     */
+    /** Context for this transformer. */
     private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
 
-    /**
-     * Window store containing all the records seen on the given window.
-     */
+    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, String> dedupWindowStore;
 
-    /**
-     * Window store name, initialized @ construction.
-     */
+    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
 
-    /**
-     * Retention window for the state store. Used for fetching data.
-     */
+    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
 
     /**
      * Constructor.
      *
-     * @param windowStoreName         The name of the constructor
+     * @param windowStoreName The name of the constructor
      * @param retentionWindowDuration The retentionWindow Duration
      */
     public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration) {
@@ -80,9 +71,10 @@ public class DedupKeyProcessor<V extends SpecificRecord>
             var currentInstant = Instant.ofEpochMilli(message.timestamp());
 
             // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-            try (var resultIterator = dedupWindowStore.backwardFetch(message.key(),
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
+            try (var resultIterator = dedupWindowStore.backwardFetch(
+                    message.key(),
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
                     var currentKeyValue = resultIterator.next();
                     if (message.key().equals(currentKeyValue.value)) {
@@ -95,9 +87,11 @@ public class DedupKeyProcessor<V extends SpecificRecord>
             dedupWindowStore.put(message.key(), message.key(), message.timestamp());
             processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
         } catch (Exception e) {
-            processorContext.forward(ProcessingResult.wrapRecordFailure(e, message,
-                "Could not figure out what to do with the current payload: "
-                    + "An unlikely error occurred during deduplication transform"));
+            processorContext.forward(ProcessingResult.wrapRecordFailure(
+                    e,
+                    message,
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
         }
     }
 }

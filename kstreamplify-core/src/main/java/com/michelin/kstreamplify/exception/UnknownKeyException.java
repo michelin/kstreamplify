@@ -16,12 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.exception;
 
-/**
- * Exception thrown when a key is not found.
- */
+/** Exception thrown when a key is not found. */
 public class UnknownKeyException extends RuntimeException {
     private static final String UNKNOWN_KEY = "Key %s not found";
 

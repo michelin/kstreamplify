@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify.integration.container;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -42,9 +41,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * Base class for Kafka integration tests.
- */
+/** Base class for Kafka integration tests. */
 @Slf4j
 public abstract class KafkaIntegrationTest {
     protected static final String CONFLUENT_PLATFORM_VERSION = "7.7.0";
@@ -57,34 +54,35 @@ public abstract class KafkaIntegrationTest {
     protected TestRestTemplate restTemplate;
 
     @Container
-    protected static ConfluentKafkaContainer broker = new ConfluentKafkaContainer(DockerImageName
-        .parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
-        .withNetwork(NETWORK)
-        .withNetworkAliases("broker");
+    protected static ConfluentKafkaContainer broker = new ConfluentKafkaContainer(
+                    DockerImageName.parse("confluentinc/cp-kafka:" + CONFLUENT_PLATFORM_VERSION))
+            .withNetwork(NETWORK)
+            .withNetworkAliases("broker");
 
     @Container
-    protected static GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName
-        .parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
-        .dependsOn(broker)
-        .withNetwork(NETWORK)
-        .withNetworkAliases("schema-registry")
-        .withExposedPorts(8081)
-        .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
-        .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
-        .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9093")
-        .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
+    protected static GenericContainer<?> schemaRegistry = new GenericContainer<>(
+                    DockerImageName.parse("confluentinc/cp-schema-registry:" + CONFLUENT_PLATFORM_VERSION))
+            .dependsOn(broker)
+            .withNetwork(NETWORK)
+            .withNetworkAliases("schema-registry")
+            .withExposedPorts(8081)
+            .withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
+            .withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:8081")
+            .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9093")
+            .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
     @DynamicPropertySource
     static void kafkaProperties(DynamicPropertyRegistry registry) {
         registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG, broker::getBootstrapServers);
-        registry.add("kafka.properties." + SCHEMA_REGISTRY_URL_CONFIG,
-            () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
+        registry.add(
+                "kafka.properties." + SCHEMA_REGISTRY_URL_CONFIG,
+                () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
     }
 
     protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
         var newTopics = Arrays.stream(topicPartitions)
-            .map(topicPartition -> new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1))
-            .toList();
+                .map(topicPartition -> new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1))
+                .toList();
         try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
         }
@@ -98,23 +96,26 @@ public abstract class KafkaIntegrationTest {
     }
 
     protected void waitingForLocalStoreToReachOffset(Map<String, Map<Integer, Long>> topicPartitionOffset)
-        throws InterruptedException {
+            throws InterruptedException {
 
         while (hasLag(topicPartitionOffset)) {
-            log.info("Waiting for local stores {} to reach offsets", topicPartitionOffset.keySet().stream().toList());
+            log.info(
+                    "Waiting for local stores {} to reach offsets",
+                    topicPartitionOffset.keySet().stream().toList());
             Thread.sleep(5000); // NOSONAR
         }
     }
 
     private boolean hasLag(Map<String, Map<Integer, Long>> topicPartitionOffset) {
-        Map<String, Map<Integer, LagInfo>> currentLag = initializer.getKafkaStreams().allLocalStorePartitionLags();
+        Map<String, Map<Integer, LagInfo>> currentLag =
+                initializer.getKafkaStreams().allLocalStorePartitionLags();
 
-        return !topicPartitionOffset.entrySet()
-            .stream()
-            .allMatch(topicPartitionOffsetEntry -> topicPartitionOffsetEntry.getValue().entrySet()
-                .stream()
-                .anyMatch(partitionOffsetEntry -> currentLag.get(topicPartitionOffsetEntry.getKey())
-                    .get(partitionOffsetEntry.getKey())
-                    .currentOffsetPosition() == partitionOffsetEntry.getValue()));
+        return !topicPartitionOffset.entrySet().stream()
+                .allMatch(topicPartitionOffsetEntry -> topicPartitionOffsetEntry.getValue().entrySet().stream()
+                        .anyMatch(partitionOffsetEntry -> currentLag
+                                        .get(topicPartitionOffsetEntry.getKey())
+                                        .get(partitionOffsetEntry.getKey())
+                                        .currentOffsetPosition()
+                                == partitionOffsetEntry.getValue()));
     }
 }

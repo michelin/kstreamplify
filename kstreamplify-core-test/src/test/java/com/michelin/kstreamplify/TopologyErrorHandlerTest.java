@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.michelin.kstreamplify;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
@@ -41,7 +40,6 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,43 +66,46 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
 
             @Override
             public void topology(StreamsBuilder streamsBuilder) {
-                KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder
-                    .stream(STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
-                    .mapValues(value -> "error".equals(value)
-                        ? ProcessingResult.fail(new NullPointerException(), value) :
-                        ProcessingResult.success(value));
+                KStream<String, ProcessingResult<String, String>> stringStream = streamsBuilder.stream(
+                                STRING_TOPIC, Consumed.with(Serdes.String(), Serdes.String()))
+                        .mapValues(value -> "error".equals(value)
+                                ? ProcessingResult.fail(new NullPointerException(), value)
+                                : ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(stringStream)
-                    .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+                        .to(OUTPUT_STRING_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
-                KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream =
-                    streamsBuilder
-                        .stream(AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getValueSerdes()))
+                KStream<String, ProcessingResult<KafkaError, KafkaError>> avroStream = streamsBuilder.stream(
+                                AVRO_TOPIC, Consumed.with(Serdes.String(), SerdesUtils.<KafkaError>getValueSerdes()))
                         .mapValues(value -> value == null
-                            ? ProcessingResult.fail(new NullPointerException(), null) :
-                            ProcessingResult.success(value));
+                                ? ProcessingResult.fail(new NullPointerException(), null)
+                                : ProcessingResult.success(value));
 
                 TopologyErrorHandler.catchErrors(avroStream)
-                    .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+                        .to(OUTPUT_AVRO_TOPIC, Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
             }
         };
     }
 
     @BeforeEach
     void setUp() {
-        stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(),
-            new StringSerializer());
-        avroInputTopic = testDriver.createInputTopic(AVRO_TOPIC, new StringSerializer(),
-            SerdesUtils.<KafkaError>getValueSerdes().serializer());
+        stringInputTopic = testDriver.createInputTopic(STRING_TOPIC, new StringSerializer(), new StringSerializer());
+        avroInputTopic = testDriver.createInputTopic(
+                AVRO_TOPIC,
+                new StringSerializer(),
+                SerdesUtils.<KafkaError>getValueSerdes().serializer());
 
         stringOutputTopic =
-            testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(),
-                new StringDeserializer());
-        avroOutputTopic = testDriver.createOutputTopic(OUTPUT_AVRO_TOPIC, new StringDeserializer(),
-            SerdesUtils.<KafkaError>getValueSerdes().deserializer());
+                testDriver.createOutputTopic(OUTPUT_STRING_TOPIC, new StringDeserializer(), new StringDeserializer());
+        avroOutputTopic = testDriver.createOutputTopic(
+                OUTPUT_AVRO_TOPIC,
+                new StringDeserializer(),
+                SerdesUtils.<KafkaError>getValueSerdes().deserializer());
 
-        dlqTopic = testDriver.createOutputTopic(DLQ_TOPIC, new StringDeserializer(),
-            SerdesUtils.<KafkaError>getValueSerdes().deserializer());
+        dlqTopic = testDriver.createOutputTopic(
+                DLQ_TOPIC,
+                new StringDeserializer(),
+                SerdesUtils.<KafkaError>getValueSerdes().deserializer());
     }
 
     @Test
@@ -136,13 +137,13 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     @Test
     void shouldContinueWhenProcessingValueIsValidAvro() {
         KafkaError avroModel = KafkaError.newBuilder()
-            .setTopic("topic")
-            .setStack("stack")
-            .setPartition(0)
-            .setOffset(0)
-            .setCause("cause")
-            .setValue("value")
-            .build();
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value")
+                .build();
 
         avroInputTopic.pipeInput("key", avroModel);
 
@@ -167,63 +168,55 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     @Test
     @SuppressWarnings("deprecation")
     void shouldCreateInputAndOutputTopicsWithDeprecatedSerde() {
-        TestInputTopic<String, String> inputTopic = createInputTestTopic(
-            new com.michelin.kstreamplify.utils.TopicWithSerde<>(
-                "INPUT_TOPIC",
-                "APP_NAME",
-                Serdes.String(),
-                Serdes.String()
-            )
-        );
+        TestInputTopic<String, String> inputTopic =
+                createInputTestTopic(new com.michelin.kstreamplify.utils.TopicWithSerde<>(
+                        "INPUT_TOPIC", "APP_NAME", Serdes.String(), Serdes.String()));
 
-        assertEquals("TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
-            + "valueSerializer=StringSerializer]", inputTopic.toString());
+        assertEquals(
+                "TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
+                        + "valueSerializer=StringSerializer]",
+                inputTopic.toString());
 
-        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(
-            new com.michelin.kstreamplify.utils.TopicWithSerde<>(
-                "OUTPUT_TOPIC",
-                "APP_NAME",
-                Serdes.String(),
-                Serdes.String()
-            )
-        );
+        TestOutputTopic<String, String> outputTopic =
+                createOutputTestTopic(new com.michelin.kstreamplify.utils.TopicWithSerde<>(
+                        "OUTPUT_TOPIC", "APP_NAME", Serdes.String(), Serdes.String()));
 
-        assertEquals("TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
-            + "valueDeserializer=StringDeserializer, size=0]", outputTopic.toString());
+        assertEquals(
+                "TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
+                        + "valueDeserializer=StringDeserializer, size=0]",
+                outputTopic.toString());
     }
 
     @Test
     void shouldCreateInputAndOutputTopicsWithSerde() {
-        TestInputTopic<String, String> inputTopic = createInputTestTopic(new TopicWithSerde<>("INPUT_TOPIC",
-            "APP_NAME", Serdes.String(), Serdes.String()));
+        TestInputTopic<String, String> inputTopic =
+                createInputTestTopic(new TopicWithSerde<>("INPUT_TOPIC", "APP_NAME", Serdes.String(), Serdes.String()));
 
-        assertEquals("TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
-            + "valueSerializer=StringSerializer]", inputTopic.toString());
+        assertEquals(
+                "TestInputTopic[topic='INPUT_TOPIC', keySerializer=StringSerializer, "
+                        + "valueSerializer=StringSerializer]",
+                inputTopic.toString());
 
-        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(new TopicWithSerde<>("OUTPUT_TOPIC",
-            "APP_NAME", Serdes.String(), Serdes.String()));
+        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(
+                new TopicWithSerde<>("OUTPUT_TOPIC", "APP_NAME", Serdes.String(), Serdes.String()));
 
-        assertEquals("TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
-            + "valueDeserializer=StringDeserializer, size=0]", outputTopic.toString());
+        assertEquals(
+                "TestOutputTopic[topic='OUTPUT_TOPIC', keyDeserializer=StringDeserializer, "
+                        + "valueDeserializer=StringDeserializer, size=0]",
+                outputTopic.toString());
     }
 
-    /**
-     * Test the default storage path.
-     */
+    /** Test the default storage path. */
     @Test
     void shouldValidateDefaultStorageDir() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(),
-            properties.getProperty(STATE_DIR_CONFIG));
+        assertEquals("/tmp/kafka-streams/" + getClass().getSimpleName(), properties.getProperty(STATE_DIR_CONFIG));
     }
 
-    /**
-     * Test the default schema registry url.
-     */
+    /** Test the default schema registry url. */
     @Test
     void shouldValidateDefaultSchemaRegistryUrl() {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
-        Assertions.assertEquals("mock://" + getClass().getSimpleName(),
-                properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
+        assertEquals("mock://" + getClass().getSimpleName(), properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
     }
 }
