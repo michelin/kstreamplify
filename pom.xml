@@ -120,7 +120,7 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
-        <mockito.version>5.16.0</mockito.version>
+        <mockito.version>5.16.1</mockito.version>
         <palantir.version>2.39.0</palantir.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
