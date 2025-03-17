@@ -160,8 +160,10 @@ public class JsonToAvroConverter {
                             }
                             message.put(currentKey, map);
                         }
-                        default -> message.put(
-                                currentKey, populateFieldWithCorrespondingType(currentValue, currentSchema.getType()));
+                        default ->
+                            message.put(
+                                    currentKey,
+                                    populateFieldWithCorrespondingType(currentValue, currentSchema.getType()));
                     }
                 } else if (currentValue instanceof JsonArray jsonArray) {
                     // If this is an Array, call method for each one of them
