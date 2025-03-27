@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - 'main'
+  pull_request:
+    branches:
+      - 'main'
+      - 'hotfix/v*.*.*'
+  schedule:
+    - cron: '0 5 * * 1'
 
 jobs:
   build:
@@ -48,10 +54,7 @@ jobs:
         run: mvn spotless:check
 
       - name: Build
-        id: build
-        run: |
-          mvn clean package
-          echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
+        run: mvn clean package
 
       - name: Publish test report
         if: always()
@@ -59,15 +62,37 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
-      - name: Sonar
+      - name: Grype source code
         if: matrix.java == '17'
+        id: grype_source_code
+        uses: anchore/scan-action@v6
+        with:
+          path: .
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+
+      - name: Upload Grype source code report
+        if: always() && steps.grype_source_code.outputs.sarif != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.grype_source_code.outputs.sarif }}
+          category: 'source-code'
+
+      - name: Sonar
+        if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
         run: mvn verify sonar:sonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Metadata
+        if: matrix.java == '17' && github.ref == 'refs/heads/main'
+        id: metadata
+        run: echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
+
       - name: Deploy
-        if: endsWith(steps.build.outputs.current_version, '-SNAPSHOT') && matrix.java == '17'
+        if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
