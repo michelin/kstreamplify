@@ -395,7 +395,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         KStream<String, KafkaPerson> stream = inputTopic().stream(streamsBuilder);
-        outputTopic().produce(streamsBuilder);
+        outputTopic().produce(stream);
     }
 }
 ```
