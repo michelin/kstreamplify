@@ -26,6 +26,9 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import java.util.Map;
 import java.util.Properties;
+
+import com.michelin.kstreamplify.serde.TopicWithSerde;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +36,15 @@ class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
     private static final String DLQ_TOPIC = "dlqTopic";
     private static final String SPECIFIC_STORAGE_PATH = "/tmp/PersonalPath";
     private static final String SPECIFIC_SCHEMA_REGISTRY_URL = "mock://specific-schema-registry-url";
+    private static final String INPUT_TOPIC = "inputTopic";
+    private static final String OUTPUT_TOPIC = "outputTopic";
+    private static final String SELF_TOPIC = "selfTopic";
+    private static final String COMMA = ",";
+    private static final String EQUALS = "=";
+    private static final String APOSTROPHE = "'";
+    private static final String EMPTY = "";
+    private static final int ZERO = 0;
+    private static final int ONE = 1;
 
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
@@ -50,14 +62,18 @@ class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
     }
 
     /**
-     * Overwrite the default storage path.
+     * Overrides the default properties with specific values for the test.
      *
-     * @return the new properties
+     * @return a map containing the overridden properties
      */
     @Override
     protected Map<String, String> getSpecificProperties() {
         return Map.of(
-                STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH, SCHEMA_REGISTRY_URL_CONFIG, SPECIFIC_SCHEMA_REGISTRY_URL);
+                STATE_DIR_CONFIG, SPECIFIC_STORAGE_PATH,
+                SCHEMA_REGISTRY_URL_CONFIG, SPECIFIC_SCHEMA_REGISTRY_URL,
+                "prefix.abc", "abc.",
+                "prefix.def", "def."
+        );
     }
 
     /** Test when default properties are overridden. */
@@ -66,5 +82,27 @@ class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
         assertEquals(SPECIFIC_STORAGE_PATH, properties.getProperty(STATE_DIR_CONFIG));
         assertEquals(SPECIFIC_SCHEMA_REGISTRY_URL, properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG));
+    }
+
+    /**
+     * Test to verify that input and output topics are created with the correct prefixes.
+     */
+    @Test
+    void shouldCreateInputAndOutputTopicsWithPrefixes() {
+        var inputTopicWithSerde = new TopicWithSerde<>(INPUT_TOPIC, "abc", Serdes.String(), Serdes.String());
+        var outputTopicWithSerde = new TopicWithSerde<>(OUTPUT_TOPIC, "def", Serdes.String(), Serdes.String());
+        var selfTopicWithSerde = new TopicWithSerde<>(SELF_TOPIC, Serdes.String(), Serdes.String());
+
+        var inputTopic = createInputTestTopic(inputTopicWithSerde);
+        var outputTopic = createOutputTestTopic(outputTopicWithSerde);
+        var selfTopic = createInputTestTopic(selfTopicWithSerde);
+
+        var inputTopicName = inputTopic.toString().split(COMMA)[ZERO].split(EQUALS)[ONE].replace(APOSTROPHE, EMPTY);
+        var outputTopicName = outputTopic.toString().split(COMMA)[ZERO].split(EQUALS)[ONE].replace(APOSTROPHE, EMPTY);
+        var selfTopicName = selfTopic.toString().split(COMMA)[ZERO].split(EQUALS)[ONE].replace(APOSTROPHE, EMPTY);
+
+        assertEquals("abc.inputTopic", inputTopicName);
+        assertEquals("def.outputTopic", outputTopicName);
+        assertEquals("selfTopic", selfTopicName);
     }
 }
