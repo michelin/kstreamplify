@@ -31,6 +31,7 @@ import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
@@ -89,12 +90,14 @@ public class KafkaStreamsHttpServer {
         this.timestampedWindowStoreService = new TimestampedWindowStoreService(kafkaStreamsInitializer);
     }
 
-    /** Start the HTTP server. */
-    public void start() {
+    /**
+     * Start the HTTP server.
+     *
+     * @param properties The application properties containing the server port and the endpoints
+     */
+    public void start(Properties properties) {
         try {
             server = HttpServer.create(new InetSocketAddress(kafkaStreamsInitializer.getServerPort()), 0);
-
-            Properties properties = kafkaStreamsInitializer.getProperties();
 
             createKubernetesEndpoint(
                     (String) properties.getOrDefault(READINESS_PATH_PROPERTY_NAME, DEFAULT_READINESS_PATH),
@@ -104,7 +107,7 @@ public class KafkaStreamsHttpServer {
                     (String) properties.getOrDefault(LIVENESS_PATH_PROPERTY_NAME, DEFAULT_LIVENESS_PATH),
                     kubernetesService::getLiveness);
 
-            createTopologyEndpoint();
+            createTopologyEndpoint(properties);
             createStoreEndpoints();
 
             addEndpoint(kafkaStreamsInitializer);
@@ -122,9 +125,8 @@ public class KafkaStreamsHttpServer {
         }));
     }
 
-    private void createTopologyEndpoint() {
-        String topologyEndpointPath = (String) kafkaStreamsInitializer
-                .getProperties()
+    private void createTopologyEndpoint(Properties properties) {
+        String topologyEndpointPath = (String) properties
                 .getOrDefault(TOPOLOGY_PATH_PROPERTY_NAME, TOPOLOGY_DEFAULT_PATH);
 
         server.createContext("/" + topologyEndpointPath, (exchange -> {

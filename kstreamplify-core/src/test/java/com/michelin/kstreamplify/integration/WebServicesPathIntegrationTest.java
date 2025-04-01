@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -33,6 +34,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
@@ -54,18 +56,21 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("INPUT_TOPIC", 2),
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
-        initializer = new KafkaStreamInitializerStub(
-                8081,
-                Map.of(
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
-                        broker.getBootstrapServers(),
-                        "kubernetes.readiness.path",
-                        "custom-readiness",
-                        "kubernetes.liveness.path",
-                        "custom-liveness",
-                        "topology.path",
-                        "custom-topology"));
-        initializer.init(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub());
+        Properties properties = PropertiesUtils.loadProperties();
+        properties.putAll(
+            Map.of(
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
+                broker.getBootstrapServers(),
+                "kubernetes.readiness.path",
+                "custom-readiness",
+                "kubernetes.liveness.path",
+                "custom-liveness",
+                "topology.path",
+                "custom-topology")
+        );
+
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(), 8081, properties);
+        initializer.startKafkaStreams();
     }
 
     @BeforeEach

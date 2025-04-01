@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
 /** The Serde utils class. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class SerdesUtils {
     /**
      * Return a key serde for a requested class.
@@ -58,4 +57,9 @@ public final class SerdesUtils {
         serde.configure(KafkaStreamsExecutionContext.getSerdesConfig(), isSerdeForKey);
         return serde;
     }
+
+    /**
+     * Private constructor.
+     */
+    private SerdesUtils() {}
 }

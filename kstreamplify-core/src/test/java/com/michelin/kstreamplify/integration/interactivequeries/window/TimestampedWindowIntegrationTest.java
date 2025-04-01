@@ -31,9 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.michelin.kstreamplify.avro.KafkaPersonStub;
+import com.michelin.kstreamplify.avro.KafkaUserStub;
+import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.service.interactivequeries.window.TimestampedWindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
@@ -47,6 +49,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
@@ -95,12 +98,12 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                 VALUE_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class.getName()))) {
 
-            ProducerRecord<String, String> message = new ProducerRecord<>("STRING_TOPIC", "person", "Doe");
+            ProducerRecord<String, String> message = new ProducerRecord<>("STRING_TOPIC", "user", "Doe");
 
             stringKafkaProducer.send(message).get();
         }
 
-        try (KafkaProducer<String, KafkaPersonStub> avroKafkaProducer = new KafkaProducer<>(Map.of(
+        try (KafkaProducer<String, KafkaUserStub> avroKafkaProducer = new KafkaProducer<>(Map.of(
                 BOOTSTRAP_SERVERS_CONFIG,
                 broker.getBootstrapServers(),
                 KEY_SERIALIZER_CLASS_CONFIG,
@@ -110,31 +113,33 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                 SCHEMA_REGISTRY_URL_CONFIG,
                 "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
 
-            KafkaPersonStub kafkaPersonStub = KafkaPersonStub.newBuilder()
+            KafkaUserStub kafkaUserStub = KafkaUserStub.newBuilder()
                     .setId(1L)
                     .setFirstName("John")
                     .setLastName("Doe")
                     .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
                     .build();
 
-            ProducerRecord<String, KafkaPersonStub> message =
-                    new ProducerRecord<>("AVRO_TOPIC", "person", kafkaPersonStub);
+            ProducerRecord<String, KafkaUserStub> message = new ProducerRecord<>("AVRO_TOPIC", "user", kafkaUserStub);
 
             avroKafkaProducer.send(message).get();
         }
 
-        initializer = new KafkaStreamInitializerStub(
-                8084,
-                Map.of(
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
-                        broker.getBootstrapServers(),
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
-                        "appTimestampedWindowInteractiveQueriesId",
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
-                        "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
-                        "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window"));
-        initializer.init(new KafkaStreamsStarterStub());
+        Properties properties = PropertiesUtils.loadProperties();
+        properties.putAll(
+            Map.of(
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
+                broker.getBootstrapServers(),
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
+                "appTimestampedWindowInteractiveQueriesId",
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
+                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
+                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window")
+        );
+
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8084, properties);
+        initializer.startKafkaStreams();
     }
 
     @BeforeEach
@@ -186,7 +191,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/timestamped/WRONG_STORE/person,State store WRONG_STORE not found",
+        "http://localhost:8084/store/window/timestamped/WRONG_STORE/user,State store WRONG_STORE not found",
         "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
         "http://localhost:8084/store/window/timestamped/WRONG_STORE,State store WRONG_STORE not found"
     })
@@ -203,7 +208,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_KV_STORE/person"))
+                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_KV_STORE/user"))
                 .GET()
                 .build();
 
@@ -216,8 +221,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(
-                        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person"))
+                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/user"))
                 .GET()
                 .build();
 
@@ -225,7 +229,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
         assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
+        assertEquals("user", body.get(0).getKey());
         assertEquals("Doe", body.get(0).getValue());
         assertNotNull(body.get(0).getTimestamp());
     }
@@ -233,7 +237,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"))
+                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/user"))
                 .GET()
                 .build();
 
@@ -241,7 +245,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
         assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
+        assertEquals("user", body.get(0).getKey());
         assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
@@ -251,8 +255,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
-        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/user",
+        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/user"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) throws IOException, InterruptedException {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -268,8 +272,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/person",
-        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/person"
+        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/user",
+        "http://localhost:8084/store/window/timestamped/STRING_AVRO_TIMESTAMPED_STORE/user"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) throws IOException, InterruptedException {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -296,7 +300,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
         assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
+        assertEquals("user", body.get(0).getKey());
         assertEquals("Doe", body.get(0).getValue());
         assertNotNull(body.get(0).getTimestamp());
     }
@@ -314,7 +318,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
 
         assertEquals(200, response.statusCode());
-        assertEquals("person", body.get(0).getKey());
+        assertEquals("user", body.get(0).getKey());
         assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
@@ -325,9 +329,9 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStoreFromService() {
         List<StateStoreRecord> stateStoreRecord = timestampedWindowService.getByKey(
-                "STRING_AVRO_TIMESTAMPED_STORE", "person", Instant.EPOCH, Instant.now());
+                "STRING_AVRO_TIMESTAMPED_STORE", "user", Instant.EPOCH, Instant.now());
 
-        assertEquals("person", stateStoreRecord.get(0).getKey());
+        assertEquals("user", stateStoreRecord.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("lastName"));
@@ -341,7 +345,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> stateQueryData =
                 timestampedWindowService.getAll("STRING_AVRO_TIMESTAMPED_STORE", Instant.EPOCH, Instant.now());
 
-        assertEquals("person", stateQueryData.get(0).getKey());
+        assertEquals("user", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
@@ -397,11 +401,11 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                     });
 
             streamsBuilder.stream(
-                            "AVRO_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPersonStub>getValueSerdes()))
-                    .process(new ProcessorSupplier<String, KafkaPersonStub, String, KafkaPersonStub>() {
+                            "AVRO_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaUserStub>getValueSerdes()))
+                    .process(new ProcessorSupplier<String, KafkaUserStub, String, KafkaUserStub>() {
                         @Override
                         public Set<StoreBuilder<?>> stores() {
-                            StoreBuilder<TimestampedWindowStore<String, KafkaPersonStub>> stringAvroWindowStoreBuilder =
+                            StoreBuilder<TimestampedWindowStore<String, KafkaUserStub>> stringAvroWindowStoreBuilder =
                                     Stores.timestampedWindowStoreBuilder(
                                             Stores.persistentTimestampedWindowStore(
                                                     "STRING_AVRO_TIMESTAMPED_STORE",
@@ -411,7 +415,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                                             Serdes.String(),
                                             SerdesUtils.getValueSerdes());
 
-                            StoreBuilder<KeyValueStore<String, KafkaPersonStub>> stringAvroKeyValueStoreBuilder =
+                            StoreBuilder<KeyValueStore<String, KafkaUserStub>> stringAvroKeyValueStoreBuilder =
                                     Stores.keyValueStoreBuilder(
                                             Stores.persistentKeyValueStore("STRING_AVRO_KV_STORE"),
                                             Serdes.String(),
@@ -421,19 +425,19 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                         }
 
                         @Override
-                        public Processor<String, KafkaPersonStub, String, KafkaPersonStub> get() {
+                        public Processor<String, KafkaUserStub, String, KafkaUserStub> get() {
                             return new Processor<>() {
-                                private TimestampedWindowStore<String, KafkaPersonStub> stringAvroWindowStore;
-                                private KeyValueStore<String, KafkaPersonStub> stringAvroKeyValueStore;
+                                private TimestampedWindowStore<String, KafkaUserStub> stringAvroWindowStore;
+                                private KeyValueStore<String, KafkaUserStub> stringAvroKeyValueStore;
 
                                 @Override
-                                public void init(ProcessorContext<String, KafkaPersonStub> context) {
+                                public void init(ProcessorContext<String, KafkaUserStub> context) {
                                     this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_TIMESTAMPED_STORE");
                                     this.stringAvroKeyValueStore = context.getStateStore("STRING_AVRO_KV_STORE");
                                 }
 
                                 @Override
-                                public void process(Record<String, KafkaPersonStub> message) {
+                                public void process(Record<String, KafkaUserStub> message) {
                                     stringAvroWindowStore.put(
                                             message.key(),
                                             ValueAndTimestamp.make(message.value(), message.timestamp()),

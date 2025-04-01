@@ -33,7 +33,6 @@ import org.apache.kafka.streams.kstream.Produced;
 
 /** The topology error handler class. */
 @Slf4j
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class TopologyErrorHandler {
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
@@ -103,4 +102,9 @@ public class TopologyErrorHandler {
                         KafkaStreamsExecutionContext.getDlqTopicName(),
                         Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
     }
+
+    /**
+     * Private constructor.
+     */
+    private TopologyErrorHandler() {}
 }

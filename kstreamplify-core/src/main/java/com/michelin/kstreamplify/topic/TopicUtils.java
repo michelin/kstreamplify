@@ -25,7 +25,6 @@ import java.util.Properties;
 import lombok.NoArgsConstructor;
 
 /** The topic utils class. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class TopicUtils {
     /** The topic property name. */
     public static final String TOPIC_PROPERTY_NAME = "topic";
@@ -37,19 +36,18 @@ public final class TopicUtils {
     public static final String REMAP_PROPERTY_NAME = "remap";
 
     /**
-     * Prefix the given topic name with the configured prefix and applies the dynamic remap. Prefix is retrieved at
-     * runtime from kafka.properties.prefix.[prefixPropertyKey].
+     * Prefix the given topic name with the configured prefix and applies the remapping. Prefix is retrieved from
+     * ${@code kafka.properties.prefix.<prefixKey>}.
      *
      * <pre>{@code
      * kafka:
      *   properties:
      *     prefix:
-     *       self: "myNamespacePrefix."
+     *       self: "myPrefix."
      * }</pre>
      *
-     * This allows interactions with multiple topics from different owners/namespaces. If not provided, prefixing will
-     * not occur. <br>
-     * Dynamic remap is retrieved from the configuration like so:
+     * This allows interactions with multiple topics from different environment. If not provided, prefixing will not
+     * occur. Dynamic remap is retrieved from the configuration like so:
      *
      * <pre>{@code
      * kafka:
@@ -61,20 +59,23 @@ public final class TopicUtils {
      *
      * It can be applied to both input and output topics.
      *
-     * @param topicName The topicName that needs to be prefixed and remapped
-     * @param prefixPropertyKey The prefixPropertyKey matching the configuration file
-     * @return The prefixed and/or remapped topic.
+     * @param topicName The topic name that needs to be prefixed and remapped
+     * @param prefixKey The prefix key to use
+     * @return The prefixed and remapped topic name
      */
-    public static String remapAndPrefix(String topicName, String prefixPropertyKey) {
+    public static String remapAndPrefix(String topicName, String prefixKey) {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
 
-        // Check for dynamic remap in properties
-        String resultTopicName = properties.getProperty(
+        String remappedTopicName = properties.getProperty(
                 TOPIC_PROPERTY_NAME + PROPERTY_SEPARATOR + REMAP_PROPERTY_NAME + PROPERTY_SEPARATOR + topicName,
                 topicName);
 
-        // Check if topic prefix property exists
-        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixPropertyKey, "");
-        return prefix.concat(resultTopicName);
+        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixKey, "");
+        return prefix.concat(remappedTopicName);
     }
+
+    /**
+     * Private constructor.
+     */
+    private TopicUtils() {}
 }

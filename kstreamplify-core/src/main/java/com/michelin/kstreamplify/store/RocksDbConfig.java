@@ -70,6 +70,13 @@ public class RocksDbConfig implements RocksDBConfigSetter {
     private org.rocksdb.Cache cache = null;
 
     /**
+     * Constructor.
+     */
+    public RocksDbConfig() {
+        // Empty constructor
+    }
+
+    /**
      * Set the RocksDB configuration.
      *
      * @param storeName The store name

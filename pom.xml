@@ -7,7 +7,7 @@
     <version>1.2.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>kstreamplify</name>
-    <description>Kstreamplify is a Java library that brings new features on top of Kafka Streams.</description>
+    <description>Swiftly build and enhance your Kafka Streams applications.</description>
     <url>https://github.com/michelin/kstreamplify</url>
 
     <licenses>
@@ -277,7 +277,7 @@
                         <trimTrailingWhitespace />
                         <endWithNewline />
                         <licenseHeader>
-                            <file>.spotless/HEADER</file>
+                            <file>${maven.multiModuleProjectDirectory}/.spotless/HEADER</file>
                         </licenseHeader>
                     </java>
                     <pom>
@@ -321,9 +321,9 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
-                    <excludes>
-                        <exclude>**/KafkaError.java</exclude>
-                    </excludes>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/KafkaError.java</sourceFileExclude>
+                    </sourceFileExcludes>
                 </configuration>
                 <executions>
                     <execution>

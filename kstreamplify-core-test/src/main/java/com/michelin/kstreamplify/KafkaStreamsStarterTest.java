@@ -151,7 +151,7 @@ public abstract class KafkaStreamsStarterTest {
      */
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
         return this.testDriver.createInputTopic(
-                topicWithSerde.getUnPrefixedName(),
+                topicWithSerde.toString(),
                 topicWithSerde.getKeySerde().serializer(),
                 topicWithSerde.getValueSerde().serializer());
     }

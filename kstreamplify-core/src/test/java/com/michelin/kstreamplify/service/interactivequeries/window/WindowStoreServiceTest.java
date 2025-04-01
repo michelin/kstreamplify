@@ -234,7 +234,7 @@ class WindowStoreServiceTest {
 
         when(iterator.next())
                 .thenReturn(
-                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new PersonStub("John", "Doe")));
+                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new UserStub("John", "Doe")));
 
         List<StateStoreRecord> responses = windowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
@@ -319,7 +319,7 @@ class WindowStoreServiceTest {
 
         when(iterator.next())
                 .thenReturn(
-                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new PersonStub("John", "Doe")));
+                        KeyValue.pair(new Windowed<>("key", new TimeWindow(0L, 150L)), new UserStub("John", "Doe")));
 
         Instant instant = Instant.now();
         List<StateStoreRecord> responses = windowStoreService.getAllOnLocalInstance("store", instant, instant);
@@ -394,7 +394,7 @@ class WindowStoreServiceTest {
         doCallRealMethod().when(windowStoreIterator).forEachRemaining(any());
         when(windowStoreIterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
 
-        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, new PersonStub("John", "Doe")));
+        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, new UserStub("John", "Doe")));
 
         List<StateStoreRecord> responses = windowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
 
@@ -480,5 +480,5 @@ class WindowStoreServiceTest {
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {}
+    record UserStub(String firstName, String lastName) {}
 }

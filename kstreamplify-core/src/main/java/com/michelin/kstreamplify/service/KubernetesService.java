@@ -29,7 +29,6 @@ import org.apache.kafka.streams.processor.internals.StreamThread;
 
 /** Kafka Streams Kubernetes service. */
 @Slf4j
-@AllArgsConstructor
 public final class KubernetesService {
     /** The readiness path property name. */
     public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness.path";
@@ -45,6 +44,15 @@ public final class KubernetesService {
 
     /** The Kafka Streams initializer. */
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     */
+    public KubernetesService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+        this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+    }
 
     /**
      * Kubernetes' readiness probe.

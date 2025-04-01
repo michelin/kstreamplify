@@ -30,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 
-/** The OpenTelemetry configuration test class. */
 @ExtendWith(MockitoExtension.class)
 class OpenTelemetryConfigTest {
     private final OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig();

@@ -199,8 +199,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()))
-            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()));
+            .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.<KafkaUser>getValueSerdes()))
+            .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), SerdesUtils.<KafkaUser>getValueSerdes()));
     }
 }
 ```
@@ -236,7 +236,7 @@ To handle processing errors and route them to the DLQ topic, you can use the `Pr
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> stream = streamsBuilder
+        KStream<String, KafkaUser> stream = streamsBuilder
             .stream("INPUT_TOPIC", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()));
 
         TopologyErrorHandler
@@ -249,7 +249,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
         return "DLQ_TOPIC";
     }
 
-    private static ProcessingResult<KafkaPerson, KafkaPerson> toUpperCase(KafkaPerson value) {
+    private static ProcessingResult<KafkaUser, KafkaUser> toUpperCase(KafkaUser value) {
         try {
             value.setLastName(value.getLastName().toUpperCase());
             return ProcessingResult.success(value);
@@ -369,7 +369,7 @@ Declare your consumption and production points in a separate class.
 It requires a topic name, a key SerDe, and a value SerDe.
 
 ```java
-public static TopicWithSerde<String, KafkaPerson> inputTopic() {
+public static TopicWithSerde<String, KafkaUser> inputTopic() {
     return new TopicWithSerde<>(
         "INPUT_TOPIC",
         Serdes.String(),
@@ -377,7 +377,7 @@ public static TopicWithSerde<String, KafkaPerson> inputTopic() {
     );
 }
 
-public static TopicWithSerde<String, KafkaPerson> outputTopic() {
+public static TopicWithSerde<String, KafkaUser> outputTopic() {
     return new TopicWithSerde<>(
         "OUTPUT_TOPIC",
         Serdes.String(),
@@ -394,7 +394,7 @@ Use it in your topology:
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> stream = inputTopic().stream(streamsBuilder);
+        KStream<String, KafkaUser> stream = inputTopic().stream(streamsBuilder);
         outputTopic().produce(stream);
     }
 }
@@ -419,7 +419,7 @@ kafka:
 Include the prefix `TopicWithSerde` declaration:
 
 ```java
-public static TopicWithSerde<String, KafkaPerson> inputTopic() {
+public static TopicWithSerde<String, KafkaUser> inputTopic() {
     return new TopicWithSerde<>(
         "INPUT_TOPIC",
         "team1",
@@ -533,7 +533,7 @@ Only streams with String keys and Avro values are supported.
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("INPUT_TOPIC");
 
         DeduplicationUtils
@@ -550,7 +550,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("INPUT_TOPIC");
 
         DeduplicationUtils
@@ -567,7 +567,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("INPUT_TOPIC");
 
         DeduplicationUtils
@@ -623,8 +623,8 @@ and start writing your tests.
 
 ```java
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
-    private TestInputTopic<String, KafkaPerson> inputTopic;
-    private TestOutputTopic<String, KafkaPerson> outputTopic;
+    private TestInputTopic<String, KafkaUser> inputTopic;
+    private TestOutputTopic<String, KafkaUser> outputTopic;
 
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
@@ -634,27 +634,27 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     @BeforeEach
     void setUp() {
         inputTopic = testDriver.createInputTopic("INPUT_TOPIC", new StringSerializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().serializer());
+            SerdesUtils.<KafkaUser>getValueSerdes().serializer());
 
         outputTopic = testDriver.createOutputTopic("OUTPUT_TOPIC", new StringDeserializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().deserializer());
+            SerdesUtils.<KafkaUser>getValueSerdes().deserializer());
     }
 
     @Test
     void shouldUpperCase() {
-        inputTopic.pipeInput("1", person);
-        List<KeyValue<String, KafkaPerson>> results = outputTopic.readKeyValuesToList();
-        assertThat(results.get(0).value.getFirstName()).isEqualTo("FIRST NAME");
-        assertThat(results.get(0).value.getLastName()).isEqualTo("LAST NAME");
+        inputTopic.pipeInput("1", user);
+        List<KeyValue<String, KafkaUser>> results = outputTopic.readKeyValuesToList();
+        assertEquals("FIRST NAME", results.get(0).value.getFirstName());
+        assertEquals("LAST NAME", results.get(0).value.getLastName());
     }
 
     @Test
     void shouldFailAndRouteToDlqTopic() {
-        inputTopic.pipeInput("1", person);
+        inputTopic.pipeInput("1", user);
         List<KeyValue<String, KafkaError>> errors = dlqTopic.readKeyValuesToList();
-        assertThat(errors.get(0).key).isEqualTo("1");
-        assertThat(errors.get(0).value.getContextMessage()).isEqualTo("Something bad happened...");
-        assertThat(errors.get(0).value.getOffset()).isZero();
+        assertEquals("1", errors.get(0).key);
+        assertEquals("Something bad happened...", errors.get(0).value.getContextMessage());
+        assertEquals(0, errors.get(0).value.getOffset());
     }
 }
 ```

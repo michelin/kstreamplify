@@ -34,19 +34,21 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaStreamsInitializerTest {
-
-    private final KafkaStreamsInitializer initializer = new KafkaStreamsInitializer();
+    @Mock
+    private KafkaStreamsStarter kafkaStreamsStarter;
 
     @Test
-    void shouldInitProperties() {
+    void shouldInstantiateKafkaStreamsInitializer() {
         try (MockedStatic<PropertiesUtils> propertiesUtilsMockedStatic = mockStatic(PropertiesUtils.class)) {
             Properties properties = new Properties();
             properties.put(SERVER_PORT_PROPERTY_NAME, 8080);
+            properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + StreamsConfig.APPLICATION_ID_CONFIG, "appId");
             properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "prefix.self", "abc.");
 
@@ -56,14 +58,14 @@ class KafkaStreamsInitializerTest {
                     .when(() -> PropertiesUtils.loadKafkaProperties(any()))
                     .thenCallRealMethod();
 
-            initializer.initProperties();
+            KafkaStreamsInitializer initializer = new KafkaStreamsInitializer(kafkaStreamsStarter);
 
-            assertNotNull(initializer.getProperties());
             assertEquals(8080, initializer.getServerPort());
             assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
             assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
             assertEquals(
                     "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
+
         }
     }
 
@@ -80,7 +82,7 @@ class KafkaStreamsInitializerTest {
                     .when(() -> PropertiesUtils.loadKafkaProperties(any()))
                     .thenCallRealMethod();
 
-            initializer.initProperties();
+            KafkaStreamsInitializer initializer = new KafkaStreamsInitializer(kafkaStreamsStarter);
 
             StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
                     initializer.onStreamsUncaughtException(new RuntimeException("Test Exception"));
@@ -88,4 +90,6 @@ class KafkaStreamsInitializerTest {
             assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         }
     }
+
+
 }

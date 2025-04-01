@@ -18,14 +18,17 @@
  */
 package com.michelin.kstreamplify.initializer;
 
+import static java.util.Optional.ofNullable;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -38,25 +41,28 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
-    /** The application context. */
-    @Autowired
-    private ConfigurableApplicationContext applicationContext;
+    private final ConfigurableApplicationContext applicationContext;
 
-    /** The meter registry. */
-    @Autowired
-    private MeterRegistry registry;
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsStarter The Kafka Streams starter
+     * @param serverPort The server port
+     * @param kafkaProperties The Kafka properties
+     * @param applicationContext The Spring Boot application context
+     * @param registry The Spring Boot meter registry
+     */
+    public SpringBootKafkaStreamsInitializer(KafkaStreamsStarter kafkaStreamsStarter,
+                                             @Value("${server.port:8080}") int serverPort,
+                                             KafkaProperties kafkaProperties,
+                                             ConfigurableApplicationContext applicationContext,
+                                             MeterRegistry registry) {
+        super(kafkaStreamsStarter, serverPort, kafkaProperties.asProperties());
+        this.applicationContext = applicationContext;
 
-    /** The server port. */
-    @Value("${server.port:8080}")
-    private int springBootServerPort;
-
-    /** The Kafka properties. */
-    @Autowired
-    private KafkaProperties springBootKafkaProperties;
-
-    /** The Kafka Streams starter. */
-    @Autowired
-    private KafkaStreamsStarter kafkaStreamsStarter;
+        KafkaStreamsMetrics kafkaStreamsMetrics = new KafkaStreamsMetrics(kafkaStreams);
+        kafkaStreamsMetrics.bindTo(registry);
+    }
 
     /**
      * Run method.
@@ -65,21 +71,7 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
      */
     @Override
     public void run(ApplicationArguments args) {
-        init(kafkaStreamsStarter);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void startHttpServer() {
-        // Nothing to do here as the server is already started by Spring Boot
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void initProperties() {
-        serverPort = springBootServerPort;
-        kafkaProperties = springBootKafkaProperties.asProperties();
-        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+        kafkaStreams.start();
     }
 
     /** {@inheritDoc} */
@@ -98,16 +90,6 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         }
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected void registerMetrics(KafkaStreams kafkaStreams) {
-        // As the Kafka Streams metrics are not picked up by the OpenTelemetry Java agent automatically,
-        // register them manually to the Spring Boot registry as the agent will pick metrics up from there
-        KafkaStreamsMetrics kafkaStreamsMetrics = new KafkaStreamsMetrics(kafkaStreams);
-        kafkaStreamsMetrics.bindTo(registry);
-    }
-
-    /** Close the application context. */
     private void closeApplicationContext() {
         if (applicationContext != null) {
             applicationContext.close();

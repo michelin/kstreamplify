@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -34,11 +35,13 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +51,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
-
     @BeforeAll
     static void globalSetUp() {
         createTopics(
@@ -56,10 +58,11 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("INPUT_TOPIC", 2),
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
-        initializer = new KafkaStreamInitializerStub(Map.of(
-                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()));
+        Properties properties = PropertiesUtils.loadProperties();
+        properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
 
-        initializer.init(new KafkaStreamsStarterStub());
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), properties);
+        initializer.startKafkaStreams();
     }
 
     @BeforeEach
@@ -68,7 +71,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldInitAndRun() throws InterruptedException, IOException {
+    void shouldInitAndStartKafkaStreams() throws InterruptedException, IOException {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
@@ -84,6 +87,12 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertTrue(Set.of(new TopicPartition("INPUT_TOPIC", 0), new TopicPartition("INPUT_TOPIC", 1))
                 .containsAll(topicPartitions));
 
+        assertEquals(8080, initializer.getServerPort());
+        assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
+        assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
+        assertEquals(
+            "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
+
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals(
                 "org.apache.kafka.common.serialization.Serdes$StringSerde",
@@ -91,7 +100,6 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(
                 "org.apache.kafka.common.serialization.Serdes$StringSerde",
                 KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
-
         assertEquals(
                 "localhost:8080", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 

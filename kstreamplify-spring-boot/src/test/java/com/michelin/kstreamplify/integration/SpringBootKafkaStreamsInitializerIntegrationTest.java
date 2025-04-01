@@ -66,7 +66,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
     }
 
     @Test
-    void shouldInitAndRun() {
+    void shouldInitAndStartKafkaStreams() {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =

@@ -222,7 +222,7 @@ class KeyValueServiceTest {
         doCallRealMethod().when(iterator).forEachRemaining(any());
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
-        when(iterator.next()).thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
+        when(iterator.next()).thenReturn(KeyValue.pair("key", new UserStub("John", "Doe")));
 
         List<StateStoreRecord> responses = keyValueService.getAll("store");
 
@@ -299,7 +299,7 @@ class KeyValueServiceTest {
         doCallRealMethod().when(iterator).forEachRemaining(any());
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
-        when(iterator.next()).thenReturn(KeyValue.pair("key", new PersonStub("John", "Doe")));
+        when(iterator.next()).thenReturn(KeyValue.pair("key", new UserStub("John", "Doe")));
 
         List<StateStoreRecord> responses = keyValueService.getAllOnLocalInstance("store");
 
@@ -364,7 +364,7 @@ class KeyValueServiceTest {
         when(kafkaStreams.query(any())).thenReturn(stateKeyQueryResult);
 
         when(stateKeyQueryResult.getOnlyPartitionResult())
-                .thenReturn(QueryResult.forResult(new PersonStub("John", "Doe")));
+                .thenReturn(QueryResult.forResult(new UserStub("John", "Doe")));
 
         StateStoreRecord response = keyValueService.getByKey("store", "key");
 
@@ -444,5 +444,5 @@ class KeyValueServiceTest {
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {}
+    record UserStub(String firstName, String lastName) {}
 }

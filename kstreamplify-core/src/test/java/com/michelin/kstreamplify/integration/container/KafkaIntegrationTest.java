@@ -23,6 +23,7 @@ import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.net.http.HttpClient;
 import java.util.Arrays;
@@ -113,33 +114,13 @@ public abstract class KafkaIntegrationTest {
      * Define a KafkaStreamsInitializer stub for testing. This stub allows to override some properties of the
      * application.properties file or to set some properties dynamically from Testcontainers.
      */
-    @AllArgsConstructor
     public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
-        private Integer newServerPort;
-        private Map<String, String> additionalProperties;
-
-        public KafkaStreamInitializerStub(Map<String, String> properties) {
-            this.additionalProperties = properties;
+        public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Properties properties) {
+            super(kafkaStreamsStarter, (Integer) properties.get("server.port"), properties);
         }
 
-        /**
-         * Override properties of the application.properties file. Some properties are dynamically set from
-         * Testcontainers.
-         */
-        @Override
-        protected void initProperties() {
-            super.initProperties();
-
-            if (newServerPort != null) {
-                serverPort = newServerPort;
-            }
-
-            properties.putAll(additionalProperties);
-
-            Properties convertedAdditionalProperties = new Properties();
-            convertedAdditionalProperties.putAll(additionalProperties);
-            kafkaProperties.putAll(PropertiesUtils.loadKafkaProperties(convertedAdditionalProperties));
-            KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+        public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Integer serverPort, Properties properties) {
+            super(kafkaStreamsStarter, serverPort, properties);
         }
     }
 }

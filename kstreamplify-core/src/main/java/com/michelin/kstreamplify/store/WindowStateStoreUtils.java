@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 import org.apache.kafka.streams.state.WindowStore;
 
 /** The window state store utils. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class WindowStateStoreUtils {
     /**
      * Put the key/value into the state store.
@@ -59,4 +58,9 @@ public final class WindowStateStoreUtils {
 
         return null;
     }
+
+    /**
+     * Private constructor.
+     */
+    private WindowStateStoreUtils() {}
 }
