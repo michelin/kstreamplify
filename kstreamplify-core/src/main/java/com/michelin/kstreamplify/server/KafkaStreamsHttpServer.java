@@ -31,7 +31,6 @@ import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;
 import com.michelin.kstreamplify.exception.UnknownKeyException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import com.michelin.kstreamplify.property.PropertiesUtils;
 import com.michelin.kstreamplify.service.KubernetesService;
 import com.michelin.kstreamplify.service.TopologyService;
 import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
@@ -126,8 +125,8 @@ public class KafkaStreamsHttpServer {
     }
 
     private void createTopologyEndpoint(Properties properties) {
-        String topologyEndpointPath = (String) properties
-                .getOrDefault(TOPOLOGY_PATH_PROPERTY_NAME, TOPOLOGY_DEFAULT_PATH);
+        String topologyEndpointPath =
+                (String) properties.getOrDefault(TOPOLOGY_PATH_PROPERTY_NAME, TOPOLOGY_DEFAULT_PATH);
 
         server.createContext("/" + topologyEndpointPath, (exchange -> {
             String response = topologyService.getTopology();

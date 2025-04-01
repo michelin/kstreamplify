@@ -75,9 +75,9 @@ class KafkaStreamsStarterTest {
         assertNotNull(builder.build().describe());
         assertEquals("DLQ_TOPIC", starter.dlqTopic());
         assertEquals(
+                REPLACE_THREAD,
                 starter.uncaughtExceptionHandler()
-                        .handle(new Exception("Register a custom uncaught exception handler test.")),
-                REPLACE_THREAD);
+                        .handle(new Exception("Register a custom uncaught exception handler test.")));
 
         starter.onStart(null);
         assertTrue(starter.isStarted());

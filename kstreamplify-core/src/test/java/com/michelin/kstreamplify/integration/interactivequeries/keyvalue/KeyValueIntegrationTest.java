@@ -124,8 +124,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
         }
 
         Properties properties = PropertiesUtils.loadProperties();
-        properties.putAll(
-            Map.of(
+        properties.putAll(Map.of(
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
                 broker.getBootstrapServers(),
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
@@ -133,8 +132,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
                 "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
-                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/key-value")
-        );
+                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/key-value"));
 
         initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8082, properties);
         initializer.startKafkaStreams();

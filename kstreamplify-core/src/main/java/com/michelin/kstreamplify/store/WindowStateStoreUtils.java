@@ -20,7 +20,6 @@ package com.michelin.kstreamplify.store;
 
 import java.time.Duration;
 import java.time.Instant;
-import lombok.NoArgsConstructor;
 import org.apache.kafka.streams.state.WindowStore;
 
 /** The window state store utils. */
@@ -59,8 +58,6 @@ public final class WindowStateStoreUtils {
         return null;
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private WindowStateStoreUtils() {}
 }

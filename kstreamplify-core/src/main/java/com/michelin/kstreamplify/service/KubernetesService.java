@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.service;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.HttpURLConnection;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;

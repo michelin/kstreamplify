@@ -34,7 +34,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +58,8 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
         Properties properties = PropertiesUtils.loadProperties();
-        properties.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
+        properties.put(
+                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
 
         initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), properties);
         initializer.startKafkaStreams();
@@ -91,7 +91,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
         assertEquals(
-            "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
+                "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
 
         assertEquals("DLQ_TOPIC", KafkaStreamsExecutionContext.getDlqTopicName());
         assertEquals(

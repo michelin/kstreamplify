@@ -19,7 +19,6 @@
 package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /** Kafka Streams topology service. */

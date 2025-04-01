@@ -22,7 +22,6 @@ import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARA
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Properties;
-import lombok.NoArgsConstructor;
 
 /** The topic utils class. */
 public final class TopicUtils {
@@ -74,8 +73,6 @@ public final class TopicUtils {
         return prefix.concat(remappedTopicName);
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private TopicUtils() {}
 }

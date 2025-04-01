@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.michelin.kstreamplify.avro.KafkaUserStub;
-import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import com.michelin.kstreamplify.property.PropertiesUtils;
@@ -126,8 +125,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         }
 
         Properties properties = PropertiesUtils.loadProperties();
-        properties.putAll(
-            Map.of(
+        properties.putAll(Map.of(
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
                 broker.getBootstrapServers(),
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
@@ -135,8 +133,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
                 "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
-                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window")
-        );
+                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window"));
 
         initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8084, properties);
         initializer.startKafkaStreams();

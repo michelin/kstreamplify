@@ -18,16 +18,11 @@
  */
 package com.michelin.kstreamplify.initializer;
 
-import static java.util.Optional.ofNullable;
-
-import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -52,11 +47,12 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
      * @param applicationContext The Spring Boot application context
      * @param registry The Spring Boot meter registry
      */
-    public SpringBootKafkaStreamsInitializer(KafkaStreamsStarter kafkaStreamsStarter,
-                                             @Value("${server.port:8080}") int serverPort,
-                                             KafkaProperties kafkaProperties,
-                                             ConfigurableApplicationContext applicationContext,
-                                             MeterRegistry registry) {
+    public SpringBootKafkaStreamsInitializer(
+            KafkaStreamsStarter kafkaStreamsStarter,
+            @Value("${server.port:8080}") int serverPort,
+            KafkaProperties kafkaProperties,
+            ConfigurableApplicationContext applicationContext,
+            MeterRegistry registry) {
         super(kafkaStreamsStarter, serverPort, kafkaProperties.asProperties());
         this.applicationContext = applicationContext;
 

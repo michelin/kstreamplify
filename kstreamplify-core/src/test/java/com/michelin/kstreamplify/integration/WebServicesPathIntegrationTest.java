@@ -57,8 +57,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
         Properties properties = PropertiesUtils.loadProperties();
-        properties.putAll(
-            Map.of(
+        properties.putAll(Map.of(
                 KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
                 broker.getBootstrapServers(),
                 "kubernetes.readiness.path",
@@ -66,10 +65,10 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 "kubernetes.liveness.path",
                 "custom-liveness",
                 "topology.path",
-                "custom-topology")
-        );
+                "custom-topology"));
 
-        initializer = new KafkaStreamInitializerStub(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(), 8081, properties);
+        initializer = new KafkaStreamInitializerStub(
+                new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(), 8081, properties);
         initializer.startKafkaStreams();
     }
 

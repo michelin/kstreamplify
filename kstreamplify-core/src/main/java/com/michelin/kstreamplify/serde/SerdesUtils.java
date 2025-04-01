@@ -20,7 +20,6 @@ package com.michelin.kstreamplify.serde;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
 /** The Serde utils class. */
@@ -58,8 +57,6 @@ public final class SerdesUtils {
         return serde;
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private SerdesUtils() {}
 }

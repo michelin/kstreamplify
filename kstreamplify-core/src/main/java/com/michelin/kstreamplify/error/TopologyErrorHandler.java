@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.error;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.util.Map;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
@@ -103,8 +102,6 @@ public class TopologyErrorHandler {
                         Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
     }
 
-    /**
-     * Private constructor.
-     */
+    /** Private constructor. */
     private TopologyErrorHandler() {}
 }

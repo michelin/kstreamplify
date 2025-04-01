@@ -80,7 +80,8 @@ public class KafkaStreamsInitializer {
      * @param serverPort The server port
      * @param kafkaProperties The Kafka properties
      */
-    protected KafkaStreamsInitializer(KafkaStreamsStarter kafkaStreamsStarter, int serverPort, Properties kafkaProperties) {
+    protected KafkaStreamsInitializer(
+            KafkaStreamsStarter kafkaStreamsStarter, int serverPort, Properties kafkaProperties) {
         this.kafkaStreamsStarter = kafkaStreamsStarter;
 
         this.serverPort = serverPort;
@@ -91,6 +92,7 @@ public class KafkaStreamsInitializer {
         initKafkaStreams();
     }
 
+    /** Init the Kafka Streams instance. */
     private void initKafkaStreams() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         kafkaStreamsStarter.topology(streamsBuilder);
@@ -105,14 +107,12 @@ public class KafkaStreamsInitializer {
         Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
 
         kafkaStreams.setUncaughtExceptionHandler(
-            ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::onStreamsUncaughtException));
+                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::onStreamsUncaughtException));
 
         kafkaStreams.setStateListener(this::onStateChange);
     }
 
-    /**
-     * Init the Kafka Streams.
-     */
+    /** Start the Kafka Streams instance. */
     public void startKafkaStreams() {
         kafkaStreams.start();
         startHttpServer();
@@ -157,22 +157,24 @@ public class KafkaStreamsInitializer {
         return !kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
     }
 
+    /** Init the Kafka Streams execution context. */
     private void initKafkaStreamsExecutionContext() {
         KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
 
         KafkaStreamsExecutionContext.setSerdesConfig(kafkaProperties.entrySet().stream()
-            .collect(Collectors.toMap(
-                e -> String.valueOf(e.getKey()),
-                e -> String.valueOf(e.getValue()),
-                (prev, next) -> next,
-                HashMap::new)));
+                .collect(Collectors.toMap(
+                        e -> String.valueOf(e.getKey()),
+                        e -> String.valueOf(e.getValue()),
+                        (prev, next) -> next,
+                        HashMap::new)));
 
         KafkaStreamsExecutionContext.setDlqTopicName(kafkaStreamsStarter.dlqTopic());
     }
 
+    /** Init the host info. */
     private void initHostInfo() {
         String applicationServerVarName = (String) kafkaProperties.getOrDefault(
-            APPLICATION_SERVER_PROPERTY_NAME, DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
+                APPLICATION_SERVER_PROPERTY_NAME, DEFAULT_APPLICATION_SERVER_VARIABLE_NAME);
 
         String applicationServer = System.getenv(applicationServerVarName);
         String host = StringUtils.isNotBlank(applicationServer) ? applicationServer : "localhost";
@@ -180,15 +182,16 @@ public class KafkaStreamsInitializer {
         hostInfo = new HostInfo(host, serverPort);
 
         log.info(
-            "The Kafka Streams \"{}\" is running on {}:{}",
-            KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
-            hostInfo.host(),
-            hostInfo.port());
+                "The Kafka Streams \"{}\" is running on {}:{}",
+                KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
+                hostInfo.host(),
+                hostInfo.port());
 
         KafkaStreamsExecutionContext.getProperties()
-            .put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", hostInfo.host(), hostInfo.port()));
+                .put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", hostInfo.host(), hostInfo.port()));
     }
 
+    /** Start the HTTP server. */
     private void startHttpServer() {
         KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(this);
         server.start(PropertiesUtils.loadProperties());

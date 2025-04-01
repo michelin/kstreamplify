@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.integration.container;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.property.PropertiesUtils;
@@ -29,7 +28,6 @@ import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -116,11 +114,15 @@ public abstract class KafkaIntegrationTest {
      */
     public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
         public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Properties properties) {
-            super(kafkaStreamsStarter, (Integer) properties.get("server.port"), properties);
+            super(
+                    kafkaStreamsStarter,
+                    (Integer) properties.get("server.port"),
+                    PropertiesUtils.loadKafkaProperties(properties));
         }
 
-        public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Integer serverPort, Properties properties) {
-            super(kafkaStreamsStarter, serverPort, properties);
+        public KafkaStreamInitializerStub(
+                KafkaStreamsStarter kafkaStreamsStarter, Integer serverPort, Properties properties) {
+            super(kafkaStreamsStarter, serverPort, PropertiesUtils.loadKafkaProperties(properties));
         }
     }
 }
