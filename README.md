@@ -14,7 +14,7 @@
 [![SonarCloud Tests](https://img.shields.io/sonar/tests/michelin_kstreamplify/main?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud)](https://sonarcloud.io/component_measures?metric=tests&view=list&id=michelin_kstreamplify)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache&style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
 
-[Overview](#overview) • [Getting Started](#bootstrapping)
+[Overview](#overview) • [Getting Started](#getting-started)
 
 Swiftly build and enhance your Kafka Streams applications.
 
@@ -183,6 +183,8 @@ kafka:
 server:
   port: 8080
 ```
+
+You're now ready to start your Kstreamplify Java application.
 
 A few important notes:
 - A `server.port` is required to enable the [web services](#web-services).
