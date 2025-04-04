@@ -33,7 +33,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
   * [Set up DLQ Topic](#set-up-dlq-topic)
-  * [Processing Errors](#processing-errors)
+  * [Handling Processing Errors](#handling-processing-errors)
     * [DSL](#dsl)
     * [Processor API](#processor-api)
   * [Production and Deserialization Errors](#production-and-deserialization-errors)
@@ -241,7 +241,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### Processing Errors
+### Handling Processing Errors
 
 To catch processing errors and route them to the DLQ, use the `ProcessingResult` class.
 
