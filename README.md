@@ -6,7 +6,7 @@
 
 [![GitHub Build](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/build.yml?branch=main&logo=github&style=for-the-badge)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/build.yml)
 [![Maven Central](https://img.shields.io/nexus/r/com.michelin/kstreamplify?server=https%3A%2F%2Fs01.oss.sonatype.org%2F&style=for-the-badge&logo=apache-maven&label=Maven%20Central)](https://central.sonatype.com/search?q=com.michelin.kstreamplify&sort=name)
-[![Supported Java Versions](https://img.shields.io/badge/Java-17--21-blue.svg?style=for-the-badge&logo=openjdk)](https://img.shields.io/github/actions/workflow/status/michelin/kstreamplify/build.yml)
+![Supported Java Versions](https://img.shields.io/badge/Java-17--21-blue.svg?style=for-the-badge&logo=openjdk)
 [![Kafka Version](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmichelin%2Fkstreamplify%2Fmain%2Fpom.xml&query=%2F*%5Blocal-name()%3D'project'%5D%2F*%5Blocal-name()%3D'properties'%5D%2F*%5Blocal-name()%3D'kafka.version'%5D%2Ftext()&style=for-the-badge&logo=apachekafka&label=version)](https://github.com/michelin/kstreamplify/blob/main/pom.xml)
 [![Spring Boot Version](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmichelin%2Fkstreamplify%2Fmain%2Fpom.xml&query=%2F*%5Blocal-name()%3D'project'%5D%2F*%5Blocal-name()%3D'properties'%5D%2F*%5Blocal-name()%3D'spring-boot.version'%5D%2Ftext()&style=for-the-badge&logo=spring-boot&label=version)](https://github.com/michelin/kstreamplify/blob/main/pom.xml)
 [![GitHub Stars](https://img.shields.io/github/stars/michelin/kstreamplify?logo=github&style=for-the-badge)](https://github.com/michelin/kstreamplify)
