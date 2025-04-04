@@ -30,6 +30,9 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Getting Started](#getting-started)
   * [Spring Boot](#spring-boot)
   * [Java](#java)
+  * [Testing](#testing)
+    * [Getting Started](#getting-started-1)
+    * [Override Properties](#override-properties)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
   * [Set up DLQ Topic](#set-up-dlq-topic)
@@ -59,9 +62,6 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [By Predicate](#by-predicate)
 * [Open Telemetry](#open-telemetry)
 * [Swagger](#swagger)
-* [Testing](#testing)
-  * [Getting Started](#getting-started-1)
-  * [Override Properties](#override-properties)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
 
@@ -189,6 +189,82 @@ You're now ready to start your Kstreamplify Java application.
 A few important notes:
 - A `server.port` is required to enable the [web services](#web-services).
 - The core dependency does not include a logger—be sure to add one to your project.
+
+## Testing
+
+Kstreamplify simplifies the use of the **Topology Test Driver** for testing Kafka Streams applications.
+
+### Getting Started
+
+[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
+
+For both Java and Spring Boot applications, add the following dependency:
+
+```xml
+<dependency>
+    <groupId>com.michelin</groupId>
+    <artifactId>kstreamplify-core-test</artifactId>
+    <version>${kstreamplify.version}</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Create a test class that extends `KafkaStreamsStarterTest`.
+Override the `getKafkaStreamsStarter()` method to provide your custom to provide your `KafkaStreamsStarter` implementation.
+
+```java
+public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
+    private TestInputTopic<String, KafkaPerson> inputTopic;
+    private TestOutputTopic<String, KafkaPerson> outputTopic;
+
+    @Override
+    protected KafkaStreamsStarter getKafkaStreamsStarter() {
+        return new MyKafkaStreams();
+    }
+
+    @BeforeEach
+    void setUp() {
+        inputTopic = testDriver.createInputTopic("input_topic", new StringSerializer(),
+            SerdesUtils.<KafkaPerson>getValueSerdes().serializer());
+
+        outputTopic = testDriver.createOutputTopic("output_topic", new StringDeserializer(),
+            SerdesUtils.<KafkaPerson>getValueSerdes().deserializer());
+    }
+
+    @Test
+    void shouldUpperCase() {
+        inputTopic.pipeInput("1", person);
+        List<KeyValue<String, KafkaPerson>> results = outputTopic.readKeyValuesToList();
+        assertEquals("FIRST NAME", results.get(0).value.getFirstName());
+        assertEquals("LAST NAME", results.get(0).value.getLastName());
+    }
+
+    @Test
+    void shouldFailAndRouteToDlqTopic() {
+        inputTopic.pipeInput("1", person);
+        List<KeyValue<String, KafkaError>> errors = dlqTopic.readKeyValuesToList();
+        assertEquals("1", errors.get(0).key);
+        assertEquals("Something bad happened...", errors.get(0).value.getContextMessage());
+        assertEquals(0, errors.get(0).value.getOffset());
+    }
+}
+```
+
+### Override Properties
+
+Kstreamplify uses default properties for the tests. 
+You can provide additional properties or override the default ones by overriding the `getSpecificProperties()` method:
+
+```java
+public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
+    @Override
+    protected Map<String, String> getSpecificProperties() {
+        return Map.of(
+            STATE_DIR_CONFIG, "/tmp/kafka-streams"
+        );
+    }
+}
+```
 
 ## Avro Serializer and Deserializer
 
@@ -666,82 +742,6 @@ By default:
 - The OpenAPI documentation can be accessed at `http://host:port/v3/api-docs`.
 
 Both the Swagger UI and the OpenAPI description can be customized using the [Springdoc properties](https://springdoc.org/#properties).
-
-## Testing
-
-Kstreamplify simplifies the use of the **Topology Test Driver** for testing Kafka Streams applications.
-
-### Getting Started
-
-[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
-
-For both Java and Spring Boot applications, add the following dependency:
-
-```xml
-<dependency>
-    <groupId>com.michelin</groupId>
-    <artifactId>kstreamplify-core-test</artifactId>
-    <version>${kstreamplify.version}</version>
-    <scope>test</scope>
-</dependency>
-```
-
-Create a test class that extends `KafkaStreamsStarterTest`.
-Override the `getKafkaStreamsStarter()` method to provide your custom to provide your `KafkaStreamsStarter` implementation.
-
-```java
-public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
-    private TestInputTopic<String, KafkaPerson> inputTopic;
-    private TestOutputTopic<String, KafkaPerson> outputTopic;
-
-    @Override
-    protected KafkaStreamsStarter getKafkaStreamsStarter() {
-        return new MyKafkaStreams();
-    }
-
-    @BeforeEach
-    void setUp() {
-        inputTopic = testDriver.createInputTopic("input_topic", new StringSerializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().serializer());
-
-        outputTopic = testDriver.createOutputTopic("output_topic", new StringDeserializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().deserializer());
-    }
-
-    @Test
-    void shouldUpperCase() {
-        inputTopic.pipeInput("1", person);
-        List<KeyValue<String, KafkaPerson>> results = outputTopic.readKeyValuesToList();
-        assertEquals("FIRST NAME", results.get(0).value.getFirstName());
-        assertEquals("LAST NAME", results.get(0).value.getLastName());
-    }
-
-    @Test
-    void shouldFailAndRouteToDlqTopic() {
-        inputTopic.pipeInput("1", person);
-        List<KeyValue<String, KafkaError>> errors = dlqTopic.readKeyValuesToList();
-        assertEquals("1", errors.get(0).key);
-        assertEquals("Something bad happened...", errors.get(0).value.getContextMessage());
-        assertEquals(0, errors.get(0).value.getOffset());
-    }
-}
-```
-
-### Override Properties
-
-Kstreamplify uses default properties for the tests. 
-You can provide additional properties or override the default ones by overriding the `getSpecificProperties()` method:
-
-```java
-public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
-    @Override
-    protected Map<String, String> getSpecificProperties() {
-        return Map.of(
-            STATE_DIR_CONFIG, "/tmp/kafka-streams"
-        );
-    }
-}
-```
 
 ## Motivation
 
