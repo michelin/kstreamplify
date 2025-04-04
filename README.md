@@ -31,7 +31,6 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Spring Boot](#spring-boot)
   * [Java](#java)
   * [Testing](#testing)
-    * [Getting Started](#getting-started-1)
     * [Override Properties](#override-properties)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
@@ -192,11 +191,9 @@ A few important notes:
 
 ## Testing
 
-Kstreamplify simplifies the use of the **Topology Test Driver** for testing Kafka Streams applications.
-
-### Getting Started
-
 [![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
+
+Kstreamplify simplifies the use of the **Topology Test Driver** for testing Kafka Streams applications.
 
 For both Java and Spring Boot applications, add the following dependency:
 
