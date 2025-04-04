@@ -120,8 +120,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
                     .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
                     .build();
 
-            ProducerRecord<String, KafkaUserStub> message =
-                    new ProducerRecord<>("AVRO_TOPIC", "user", KafkaUserStub);
+            ProducerRecord<String, KafkaUserStub> message = new ProducerRecord<>("AVRO_TOPIC", "user", KafkaUserStub);
 
             avroKafkaProducer.send(message).get();
         }
@@ -182,8 +181,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user", String.class);
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user", String.class);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());

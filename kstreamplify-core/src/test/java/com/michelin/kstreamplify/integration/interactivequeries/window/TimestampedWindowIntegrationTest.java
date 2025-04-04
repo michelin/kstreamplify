@@ -117,8 +117,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                     .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
                     .build();
 
-            ProducerRecord<String, KafkaUserStub> message =
-                    new ProducerRecord<>("AVRO_TOPIC", "user", KafkaUserStub);
+            ProducerRecord<String, KafkaUserStub> message = new ProducerRecord<>("AVRO_TOPIC", "user", KafkaUserStub);
 
             avroKafkaProducer.send(message).get();
         }
@@ -216,8 +215,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(
-                        "http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/user"))
+                .uri(URI.create("http://localhost:8084/store/window/timestamped/STRING_STRING_TIMESTAMPED_STORE/user"))
                 .GET()
                 .build();
 
