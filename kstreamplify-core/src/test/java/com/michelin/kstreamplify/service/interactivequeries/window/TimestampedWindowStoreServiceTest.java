@@ -245,7 +245,7 @@ class TimestampedWindowStoreServiceTest {
         when(iterator.next())
                 .thenReturn(KeyValue.pair(
                         new Windowed<>("key", new TimeWindow(0L, 150L)),
-                        ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                        ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         List<StateStoreRecord> responses = timestampedWindowStoreService.getAll("store", Instant.EPOCH, Instant.now());
 
@@ -334,7 +334,7 @@ class TimestampedWindowStoreServiceTest {
         when(iterator.next())
                 .thenReturn(KeyValue.pair(
                         new Windowed<>("key", new TimeWindow(0L, 150L)),
-                        ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                        ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         Instant instant = Instant.now();
         List<StateStoreRecord> responses =
@@ -415,7 +415,7 @@ class TimestampedWindowStoreServiceTest {
         when(windowStoreIterator.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
 
         when(windowStoreIterator.next())
-                .thenReturn(KeyValue.pair(0L, ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                .thenReturn(KeyValue.pair(0L, ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         List<StateStoreRecord> responses =
                 timestampedWindowStoreService.getByKey("store", "key", Instant.EPOCH, Instant.now());
@@ -505,5 +505,5 @@ class TimestampedWindowStoreServiceTest {
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {}
+    record UserStub(String firstName, String lastName) {}
 }

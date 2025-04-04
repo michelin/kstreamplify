@@ -226,7 +226,7 @@ class TimestampedKeyValueServiceTest {
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
         when(iterator.next())
-                .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAll("store");
 
@@ -307,7 +307,7 @@ class TimestampedKeyValueServiceTest {
         when(iterator.hasNext()).thenReturn(true).thenReturn(false);
 
         when(iterator.next())
-                .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                .thenReturn(KeyValue.pair("key", ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         List<StateStoreRecord> responses = timestampedKeyValueStoreService.getAllOnLocalInstance("store");
 
@@ -373,7 +373,7 @@ class TimestampedKeyValueServiceTest {
                 .thenReturn(stateKeyQueryResult);
 
         when(stateKeyQueryResult.getOnlyPartitionResult())
-                .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new PersonStub("John", "Doe"), 150L)));
+                .thenReturn(QueryResult.forResult(ValueAndTimestamp.make(new UserStub("John", "Doe"), 150L)));
 
         StateStoreRecord response = timestampedKeyValueStoreService.getByKey("store", "key");
 
@@ -454,5 +454,5 @@ class TimestampedKeyValueServiceTest {
         assertEquals("Fail to read other instance response", exception.getMessage());
     }
 
-    record PersonStub(String firstName, String lastName) {}
+    record UserStub(String firstName, String lastName) {}
 }
