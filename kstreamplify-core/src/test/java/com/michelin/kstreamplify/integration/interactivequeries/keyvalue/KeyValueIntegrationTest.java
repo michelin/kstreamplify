@@ -139,7 +139,7 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     void setUp() throws InterruptedException {
         waitingForKafkaStreamsToStart();
         waitingForLocalStoreToReachOffset(Map.of(
-                "STRING_STRING_KV_STORE", Map.of(1, 1L),
+                "STRING_STRING_KV_STORE", Map.of(2, 1L),
                 "STRING_AVRO_KV_STORE", Map.of(0, 1L),
                 "STRING_AVRO_WINDOW_STORE", Map.of(0, 1L)));
     }

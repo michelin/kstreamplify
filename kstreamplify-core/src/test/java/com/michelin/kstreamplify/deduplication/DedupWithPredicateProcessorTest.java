@@ -69,18 +69,18 @@ class DedupWithPredicateProcessorTest {
     @Test
     void shouldProcessNewRecord() {
         final KafkaError kafkaError = new KafkaError();
-        final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0);
+        final Record<String, KafkaError> message = new Record<>("key", kafkaError, 0);
 
-        processor.process(record);
+        processor.process(message);
 
-        verify(windowStore).put("", record.value(), record.timestamp());
-        verify(context).forward(argThat(arg -> arg.value().getValue().equals(record.value())));
+        verify(windowStore).put("", message.value(), message.timestamp());
+        verify(context).forward(argThat(arg -> arg.value().getValue().equals(message.value())));
     }
 
     @Test
     void shouldProcessDuplicate() {
         final KafkaError kafkaError = new KafkaError();
-        final Record<String, KafkaError> record = new Record<>("key", kafkaError, 0L);
+        final Record<String, KafkaError> message = new Record<>("key", kafkaError, 0L);
 
         // Simulate hasNext() returning true once and then false
         when(windowStoreIterator.hasNext()).thenReturn(true);
@@ -92,7 +92,7 @@ class DedupWithPredicateProcessorTest {
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(windowStoreIterator);
 
         // Call the process method
-        processor.process(record);
+        processor.process(message);
 
         verify(windowStore, never()).put(anyString(), any(), anyLong());
         verify(context, never()).forward(any());
@@ -100,7 +100,7 @@ class DedupWithPredicateProcessorTest {
 
     @Test
     void shouldThrowException() {
-        Record<String, KafkaError> record = new Record<>("key", new KafkaError(), 0L);
+        Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
 
         when(windowStore.backwardFetch(any(), any(), any()))
                 .thenReturn(null)
@@ -108,7 +108,7 @@ class DedupWithPredicateProcessorTest {
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
-        processor.process(record);
+        processor.process(message);
 
         verify(context).forward(argThat(arg -> arg.value()
                 .getError()
