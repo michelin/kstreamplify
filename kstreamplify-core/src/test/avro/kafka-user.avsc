@@ -1,25 +1,25 @@
 {
   "namespace": "com.michelin.kstreamplify.avro",
   "type": "record",
-  "name": "KafkaPersonStub",
+  "name": "KafkaUserStub",
   "fields": [
     {
       "name": "id",
       "type": ["null", "long"],
       "default": null,
-      "doc": "Person id"
+      "doc": "User id"
     },
     {
       "name": "firstName",
       "type": ["null", "string"],
       "default": null,
-      "doc": "Person first name"
+      "doc": "User first name"
     },
     {
       "name": "lastName",
       "type": ["null", "string"],
       "default": null,
-      "doc": "Person last name"
+      "doc": "User last name"
     },
     {
       "name": "birthDate",
@@ -31,7 +31,7 @@
         }
       ],
       "default": null,
-      "doc": "Person date of birth"
+      "doc": "User date of birth"
     }
   ]
 }

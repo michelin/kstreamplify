@@ -30,7 +30,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Getting Started](#getting-started)
   * [Spring Boot](#spring-boot)
   * [Java](#java)
-  * [Testing](#testing)
+  * [Test](#test)
     * [Override Properties](#override-properties)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
@@ -49,6 +49,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Declaration](#declaration)
   * [Prefix](#prefix)
   * [Remapping](#remapping)
+  * [Unit Testing](#unit-testing)
 * [Interactive Queries](#interactive-queries-1)
   * [Configuration](#configuration)
   * [Services](#services)
@@ -189,7 +190,7 @@ A few important notes:
 - A `server.port` is required to enable the [web services](#web-services).
 - The core dependency does not include a logger—be sure to add one to your project.
 
-## Testing
+## Test
 
 [![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
 
@@ -211,8 +212,8 @@ Override the `getKafkaStreamsStarter()` method to provide your custom to provide
 
 ```java
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
-    private TestInputTopic<String, KafkaPerson> inputTopic;
-    private TestOutputTopic<String, KafkaPerson> outputTopic;
+    private TestInputTopic<String, KafkaUser> inputTopic;
+    private TestOutputTopic<String, KafkaUser> outputTopic;
 
     @Override
     protected KafkaStreamsStarter getKafkaStreamsStarter() {
@@ -222,23 +223,23 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     @BeforeEach
     void setUp() {
         inputTopic = testDriver.createInputTopic("input_topic", new StringSerializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().serializer());
+            SerdesUtils.<KafkaUser>getValueSerdes().serializer());
 
         outputTopic = testDriver.createOutputTopic("output_topic", new StringDeserializer(),
-            SerdesUtils.<KafkaPerson>getValueSerdes().deserializer());
+            SerdesUtils.<KafkaUser>getValueSerdes().deserializer());
     }
 
     @Test
     void shouldUpperCase() {
-        inputTopic.pipeInput("1", person);
-        List<KeyValue<String, KafkaPerson>> results = outputTopic.readKeyValuesToList();
+        inputTopic.pipeInput("1", user);
+        List<KeyValue<String, KafkaUser>> results = outputTopic.readKeyValuesToList();
         assertEquals("FIRST NAME", results.get(0).value.getFirstName());
         assertEquals("LAST NAME", results.get(0).value.getLastName());
     }
 
     @Test
     void shouldFailAndRouteToDlqTopic() {
-        inputTopic.pipeInput("1", person);
+        inputTopic.pipeInput("1", user);
         List<KeyValue<String, KafkaError>> errors = dlqTopic.readKeyValuesToList();
         assertEquals("1", errors.get(0).key);
         assertEquals("Something bad happened...", errors.get(0).value.getContextMessage());
@@ -285,8 +286,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
         streamsBuilder
-            .stream("input_topic", Consumed.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()))
-            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.<KafkaPerson>getValueSerdes()));
+            .stream("input_topic", Consumed.with(Serdes.String(), SerdesUtils.<KafkaUser>getValueSerdes()))
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.<KafkaUser>getValueSerdes()));
     }
 }
 ```
@@ -325,7 +326,7 @@ To catch processing errors and route them to the DLQ, use the `ProcessingResult`
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> stream = streamsBuilder
+        KStream<String, KafkaUser> stream = streamsBuilder
             .stream("input_topic", Consumed.with(Serdes.String(), SerdesUtils.getValueSerdes()));
 
         TopologyErrorHandler
@@ -338,7 +339,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
         return "dlq_topic";
     }
 
-    private static ProcessingResult<KafkaPerson, KafkaPerson> toUpperCase(KafkaPerson value) {
+    private static ProcessingResult<KafkaUser, KafkaUser> toUpperCase(KafkaUser value) {
         try {
             value.setLastName(value.getLastName().toUpperCase());
             return ProcessingResult.success(value);
@@ -500,7 +501,7 @@ Kstreamplify provides an API called `TopicWithSerde` that unifies all consumptio
 You can declare your consumption and production points in a separate class. This requires a topic name, a key SerDe, and a value SerDe.
 
 ```java
-public static TopicWithSerde<String, KafkaPerson> inputTopic() {
+public static TopicWithSerde<String, KafkaUser> inputTopic() {
     return new TopicWithSerde<>(
         "input_topic",
         Serdes.String(),
@@ -508,7 +509,7 @@ public static TopicWithSerde<String, KafkaPerson> inputTopic() {
     );
 }
 
-public static TopicWithSerde<String, KafkaPerson> outputTopic() {
+public static TopicWithSerde<String, KafkaUser> outputTopic() {
     return new TopicWithSerde<>(
         "output_topic",
         Serdes.String(),
@@ -525,7 +526,7 @@ Use it in your topology:
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> stream = inputTopic().stream(streamsBuilder);
+        KStream<String, KafkaUser> stream = inputTopic().stream(streamsBuilder);
         outputTopic().produce(stream);
     }
 }
@@ -549,7 +550,7 @@ kafka:
 Then, include the prefix when declaring your `TopicWithSerde`:
 
 ```java
-public static TopicWithSerde<String, KafkaPerson> inputTopic() {
+public static TopicWithSerde<String, KafkaUser> inputTopic() {
     return new TopicWithSerde<>(
         "input_topic",
         "team1",
@@ -582,6 +583,15 @@ kafka:
 > The topic `oldTopicName` in the topology will be mapped to `newTopicName`.
 
 This feature works with both input and output topics.
+
+### Unit Testing
+
+When testing, you can use the `TopicWithSerde` API to create test topics with the same name as those in your topology.
+
+```java
+TestInputTopic<String, KafkaUser> inputTopic = createInputTestTopic(inputTopic());
+TestInputTopic<String, KafkaUser> outputTopic = createOutputTestTopic(outputTopic());
+```
 
 ## Interactive Queries
 
@@ -661,7 +671,7 @@ All deduplication methods return a `KStream<String, ProcessingResult<V,V2>`, whi
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
         DeduplicationUtils
@@ -678,7 +688,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
         DeduplicationUtils
@@ -695,7 +705,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 public class MyKafkaStreams extends KafkaStreamsStarter {
     @Override
     public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaPerson> myStream = streamsBuilder
+        KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
         DeduplicationUtils

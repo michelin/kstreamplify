@@ -46,7 +46,7 @@ class AvroToJsonConverterTest {
 
     @Test
     void shouldConvertObject() {
-        String json = AvroToJsonConverter.convertObject(new PersonStub("John", "Doe"));
+        String json = AvroToJsonConverter.convertObject(new UserStub("John", "Doe"));
         assertEquals(
                 """
             {
@@ -106,7 +106,7 @@ class AvroToJsonConverterTest {
 
     @Test
     void shouldConvertListObject() {
-        String json = AvroToJsonConverter.convertObject(List.of(new PersonStub("John", "Doe")));
+        String json = AvroToJsonConverter.convertObject(List.of(new UserStub("John", "Doe")));
         assertEquals(
                 """
             [{
@@ -150,5 +150,5 @@ class AvroToJsonConverterTest {
                 .build();
     }
 
-    record PersonStub(String firstName, String lastName) {}
+    record UserStub(String firstName, String lastName) {}
 }

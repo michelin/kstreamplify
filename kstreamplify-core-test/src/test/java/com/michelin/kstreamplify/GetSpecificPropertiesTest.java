@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 
 class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
     private static final String DLQ_TOPIC = "dlqTopic";
-    private static final String SPECIFIC_STORAGE_PATH = "/tmp/PersonalPath";
+    private static final String SPECIFIC_STORAGE_PATH = "/tmp/personal-path";
     private static final String SPECIFIC_SCHEMA_REGISTRY_URL = "mock://specific-schema-registry-url";
     private static final String INPUT_TOPIC = "INPUT_TOPIC";
     private static final String OUTPUT_TOPIC = "OUTPUT_TOPIC";
