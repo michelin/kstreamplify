@@ -33,11 +33,10 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCusto
 /** The OpenTelemetry configuration test class. */
 @ExtendWith(MockitoExtension.class)
 class OpenTelemetryConfigTest {
-    private final OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig();
-
     @Test
     void shouldNotAddTagsToMetricsWhenNull() {
-        openTelemetryConfig.setOtelResourceAttributes(null);
+        OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig(null);
+
         MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
 
         MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
@@ -51,7 +50,8 @@ class OpenTelemetryConfigTest {
 
     @Test
     void shouldNotAddTagsToMetricsWhenEmpty() {
-        openTelemetryConfig.setOtelResourceAttributes(EMPTY);
+        OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig(EMPTY);
+
         MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
 
         MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
@@ -65,7 +65,8 @@ class OpenTelemetryConfigTest {
 
     @Test
     void shouldAddTagsToMetricsWhenOpenTelemetryRegistry() {
-        openTelemetryConfig.setOtelResourceAttributes("tagName=tagValue,tagName2=tagValue2");
+        OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig("tagName=tagValue,tagName2=tagValue2");
+
         MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
 
         MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
@@ -83,21 +84,9 @@ class OpenTelemetryConfigTest {
     }
 
     @Test
-    void shouldNotAddTagsToMetricsIfEmpty() {
-        MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
-
-        MeterRegistry meterRegistry = new OpenTelemetryMeterRegistry();
-        customizer.customize(meterRegistry);
-        meterRegistry.counter("fakeCounterMetric");
-
-        assertEquals(
-                "fakeCounterMetric", meterRegistry.getMeters().get(0).getId().getName());
-        assertTrue(meterRegistry.getMeters().get(0).getId().getTags().isEmpty());
-    }
-
-    @Test
     void shouldNotAddTagsToMetricsWhenNotOpenTelemetryRegistry() {
-        openTelemetryConfig.setOtelResourceAttributes("tagName=tagValue,tagName2=tagValue2");
+        OpenTelemetryConfig openTelemetryConfig = new OpenTelemetryConfig("tagName=tagValue,tagName2=tagValue2");
+
         MeterRegistryCustomizer<MeterRegistry> customizer = openTelemetryConfig.addTagsOnMetrics();
 
         MeterRegistry meterRegistry = new SimpleMeterRegistry();

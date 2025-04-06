@@ -66,8 +66,12 @@ public class RocksDbConfig implements RocksDBConfigSetter {
     /** The RocksDB default cache index block enabled. */
     public static final Boolean ROCKSDB_CACHE_INDEX_BLOCK_ENABLED_DEFAULT = true;
 
-    /** The RocksDB cache. */
     private org.rocksdb.Cache cache = null;
+
+    /** Constructor. */
+    public RocksDbConfig() {
+        // Default constructor
+    }
 
     /**
      * Set the RocksDB configuration.

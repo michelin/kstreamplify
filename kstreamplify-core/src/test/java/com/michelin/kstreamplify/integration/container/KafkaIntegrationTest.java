@@ -28,7 +28,6 @@ import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -113,13 +112,17 @@ public abstract class KafkaIntegrationTest {
      * Define a KafkaStreamsInitializer stub for testing. This stub allows to override some properties of the
      * application.properties file or to set some properties dynamically from Testcontainers.
      */
-    @AllArgsConstructor
     public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
         private Integer newServerPort;
-        private Map<String, String> additionalProperties;
+        private final Map<String, String> additionalProperties;
 
         public KafkaStreamInitializerStub(Map<String, String> properties) {
             this.additionalProperties = properties;
+        }
+
+        public KafkaStreamInitializerStub(Integer newServerPort, Map<String, String> additionalProperties) {
+            this.newServerPort = newServerPort;
+            this.additionalProperties = additionalProperties;
         }
 
         /**

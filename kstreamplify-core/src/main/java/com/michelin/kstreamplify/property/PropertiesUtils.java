@@ -23,13 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Properties;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 
 /** Properties utils. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PropertiesUtils {
     /** The Kafka properties prefix. */
     public static final String KAFKA_PROPERTIES_PREFIX = "kafka.properties";
@@ -39,6 +36,8 @@ public final class PropertiesUtils {
 
     /** The property separator. */
     public static final String PROPERTY_SEPARATOR = ".";
+
+    private PropertiesUtils() {}
 
     /**
      * Load the properties from the default properties file.

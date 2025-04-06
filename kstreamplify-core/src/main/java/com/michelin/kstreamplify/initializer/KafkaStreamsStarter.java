@@ -24,6 +24,10 @@ import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 
 /** The Kafka Streams starter interface. */
 public abstract class KafkaStreamsStarter {
+
+    /** Constructor. */
+    protected KafkaStreamsStarter() {}
+
     /**
      * Define the topology of the Kafka Streams.
      *

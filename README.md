@@ -30,7 +30,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Getting Started](#getting-started)
   * [Spring Boot](#spring-boot)
   * [Java](#java)
-  * [Test](#test)
+  * [Unit Test](#test)
     * [Override Properties](#override-properties)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
@@ -49,7 +49,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Declaration](#declaration)
   * [Prefix](#prefix)
   * [Remapping](#remapping)
-  * [Unit Testing](#unit-testing)
+  * [Unit Test](#unit-test-1)
 * [Interactive Queries](#interactive-queries-1)
   * [Configuration](#configuration)
   * [Services](#services)
@@ -190,7 +190,7 @@ A few important notes:
 - A `server.port` is required to enable the [web services](#web-services).
 - The core dependency does not include a logger—be sure to add one to your project.
 
-## Test
+## Unit Test
 
 [![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
 
@@ -584,7 +584,7 @@ kafka:
 
 This feature works with both input and output topics.
 
-### Unit Testing
+### Unit Test
 
 When testing, you can use the `TopicWithSerde` API to create test topics with the same name as those in your topology.
 

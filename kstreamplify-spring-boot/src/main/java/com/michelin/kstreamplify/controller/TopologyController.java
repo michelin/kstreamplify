@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +35,16 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnBean(KafkaStreamsStarter.class)
 @Tag(name = "Topology", description = "Topology Controller")
 public class TopologyController {
-    /** The topology service. */
-    @Autowired
-    private TopologyService topologyService;
+    private final TopologyService topologyService;
+
+    /**
+     * Constructor.
+     *
+     * @param topologyService The topology service
+     */
+    public TopologyController(TopologyService topologyService) {
+        this.topologyService = topologyService;
+    }
 
     /**
      * Get the Kafka Streams topology.

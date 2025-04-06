@@ -24,9 +24,7 @@ import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
 
 import java.util.Map;
 import java.util.Properties;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,41 +32,28 @@ import org.apache.kafka.streams.StreamsConfig;
 
 /** The class to represent the context of the KStream. */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class KafkaStreamsExecutionContext {
-
-    /** The DLQ topic name. */
     @Getter
     @Setter
     private static String dlqTopicName;
 
-    /** The Serdes config Map. */
     @Getter
     @Setter
     private static Map<String, String> serdesConfig;
 
-    /** The properties of the stream execution context. */
     @Getter
     @Setter
     private static Properties properties;
 
-    /**
-     * The prefix that will be applied to the application.id if provided. It needs to be defined like this:
-     *
-     * <pre>{@code
-     * kafka:
-     *   properties:
-     *     prefix:
-     *       self: "myNamespacePrefix."
-     * }</pre>
-     */
     @Getter
     private static String prefix;
 
+    private KafkaStreamsExecutionContext() {}
+
     /**
-     * Register KStream properties.
+     * Register Kafka properties.
      *
-     * @param properties The Kafka Streams properties
+     * @param properties The Kafka properties
      */
     public static void registerProperties(Properties properties) {
         if (properties == null) {
