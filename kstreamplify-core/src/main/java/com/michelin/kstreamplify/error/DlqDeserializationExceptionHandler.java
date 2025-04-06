@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.error;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Map;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -33,9 +32,13 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 
 /** The class managing deserialization exceptions. */
 @Slf4j
-@NoArgsConstructor
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
+
+    /** Constructor. */
+    public DlqDeserializationExceptionHandler() {
+        // Default constructor
+    }
 
     /**
      * Constructor.

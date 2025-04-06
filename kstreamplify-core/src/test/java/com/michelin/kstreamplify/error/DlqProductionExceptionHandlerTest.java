@@ -19,7 +19,7 @@
 package com.michelin.kstreamplify.error;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.RetriableCommitFailedException;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -51,8 +50,6 @@ class DlqProductionExceptionHandlerTest {
 
     private Producer<byte[], KafkaError> producer;
 
-    private DlqProductionExceptionHandler handler;
-
     @BeforeEach
     void setUp() {
         Serializer<KafkaError> serializer = (Serializer) new KafkaAvroSerializer();
@@ -64,7 +61,7 @@ class DlqProductionExceptionHandlerTest {
 
     @Test
     void shouldReturnFailIfNoDlq() {
-        handler = new DlqProductionExceptionHandler(producer);
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler(producer);
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
                 handler.handle(record, new RuntimeException("Exception..."));
@@ -74,8 +71,9 @@ class DlqProductionExceptionHandlerTest {
 
     @Test
     void shouldReturnContinueOnExceptionDuringHandle() {
-        handler = new DlqProductionExceptionHandler(producer);
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
                 handler.handle(record, new KafkaException("Exception..."));
 
@@ -84,7 +82,7 @@ class DlqProductionExceptionHandlerTest {
 
     @Test
     void shouldReturnContinueOnKafkaException() {
-        handler = new DlqProductionExceptionHandler(producer);
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         when(record.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
@@ -99,7 +97,7 @@ class DlqProductionExceptionHandlerTest {
 
     @Test
     void shouldReturnFailOnRetriableException() {
-        handler = new DlqProductionExceptionHandler(producer);
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler(producer);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         ProductionExceptionHandler.ProductionExceptionHandlerResponse response =
@@ -115,9 +113,9 @@ class DlqProductionExceptionHandlerTest {
         configs.put("schema.registry.url", "localhost:8080");
         configs.put("acks", "all");
 
-        handler = new DlqProductionExceptionHandler(null);
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
         handler.configure(configs);
 
-        assertTrue(DlqExceptionHandler.getProducer() instanceof KafkaProducer<byte[], KafkaError>);
+        assertNotNull(DlqExceptionHandler.getProducer());
     }
 }

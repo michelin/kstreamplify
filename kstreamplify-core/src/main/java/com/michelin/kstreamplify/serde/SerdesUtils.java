@@ -20,12 +20,12 @@ package com.michelin.kstreamplify.serde;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import lombok.NoArgsConstructor;
 import org.apache.avro.specific.SpecificRecord;
 
 /** The Serde utils class. */
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class SerdesUtils {
+    private SerdesUtils() {}
+
     /**
      * Return a key serde for a requested class.
      *

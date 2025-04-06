@@ -36,7 +36,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,17 +51,29 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnBean(KafkaStreamsStarter.class)
 @Tag(name = "Interactive Queries", description = "Interactive Queries Controller")
 public class InteractiveQueriesController {
-    @Autowired
-    private KeyValueStoreService keyValueService;
+    private final KeyValueStoreService keyValueService;
+    private final TimestampedKeyValueStoreService timestampedKeyValueService;
+    private final WindowStoreService windowStoreService;
+    private final TimestampedWindowStoreService timestampedWindowStoreService;
 
-    @Autowired
-    private TimestampedKeyValueStoreService timestampedKeyValueService;
-
-    @Autowired
-    private WindowStoreService windowStoreService;
-
-    @Autowired
-    private TimestampedWindowStoreService timestampedWindowStoreService;
+    /**
+     * Constructor.
+     *
+     * @param keyValueService The key-value store service
+     * @param timestampedKeyValueService The timestamped key-value store service
+     * @param windowStoreService The window store service
+     * @param timestampedWindowStoreService The timestamped window store service
+     */
+    public InteractiveQueriesController(
+            KeyValueStoreService keyValueService,
+            TimestampedKeyValueStoreService timestampedKeyValueService,
+            WindowStoreService windowStoreService,
+            TimestampedWindowStoreService timestampedWindowStoreService) {
+        this.keyValueService = keyValueService;
+        this.timestampedKeyValueService = timestampedKeyValueService;
+        this.windowStoreService = windowStoreService;
+        this.timestampedWindowStoreService = timestampedWindowStoreService;
+    }
 
     /**
      * Get the stores.

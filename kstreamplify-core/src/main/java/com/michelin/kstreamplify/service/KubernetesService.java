@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.service;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.HttpURLConnection;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
@@ -29,7 +28,6 @@ import org.apache.kafka.streams.processor.internals.StreamThread;
 
 /** Kafka Streams Kubernetes service. */
 @Slf4j
-@AllArgsConstructor
 public final class KubernetesService {
     /** The readiness path property name. */
     public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness.path";
@@ -43,8 +41,16 @@ public final class KubernetesService {
     /** The default liveness path. */
     public static final String DEFAULT_LIVENESS_PATH = "liveness";
 
-    /** The Kafka Streams initializer. */
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
+
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     */
+    public KubernetesService(KafkaStreamsInitializer kafkaStreamsInitializer) {
+        this.kafkaStreamsInitializer = kafkaStreamsInitializer;
+    }
 
     /**
      * Kubernetes' readiness probe.

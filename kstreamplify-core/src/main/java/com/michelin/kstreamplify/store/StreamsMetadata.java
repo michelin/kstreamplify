@@ -21,17 +21,20 @@ package com.michelin.kstreamplify.store;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.state.HostInfo;
 
 /** State store metadata. */
 @Getter
-@NoArgsConstructor
 public class StreamsMetadata {
     private Set<String> stateStoreNames;
     private StreamsHostInfo hostInfo;
     private Set<String> topicPartitions;
+
+    /** Constructor. */
+    public StreamsMetadata() {
+        // Default constructor
+    }
 
     /**
      * Constructor.

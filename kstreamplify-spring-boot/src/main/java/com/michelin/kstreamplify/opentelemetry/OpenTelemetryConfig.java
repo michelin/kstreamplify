@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
@@ -36,12 +35,18 @@ import org.springframework.util.StringUtils;
 /** The OpenTelemetry configuration class. */
 @Slf4j
 @Getter
-@Setter
 @Configuration
 public class OpenTelemetryConfig {
-    /** The OpenTelemetry resource attributes. */
-    @Value("${otel.resource.attributes:#{null}}")
-    private String otelResourceAttributes;
+    private final String otelResourceAttributes;
+
+    /**
+     * Constructor.
+     *
+     * @param otelResourceAttributes The OpenTelemetry resource attributes
+     */
+    public OpenTelemetryConfig(@Value("${otel.resource.attributes:#{null}}") String otelResourceAttributes) {
+        this.otelResourceAttributes = otelResourceAttributes;
+    }
 
     /**
      * Register tags in Open Telemetry meter registry. It enables to add custom tags given in the property

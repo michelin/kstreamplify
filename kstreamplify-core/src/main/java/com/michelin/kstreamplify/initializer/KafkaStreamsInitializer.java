@@ -53,7 +53,7 @@ public class KafkaStreamsInitializer {
     private KafkaStreams kafkaStreams;
 
     /** The Kafka Streams starter. */
-    private KafkaStreamsStarter kafkaStreamsStarter;
+    protected KafkaStreamsStarter kafkaStreamsStarter;
 
     /** The topology. */
     private Topology topology;
@@ -72,6 +72,11 @@ public class KafkaStreamsInitializer {
 
     /** The server port. */
     protected int serverPort;
+
+    /** Constructor. */
+    public KafkaStreamsInitializer() {
+        // Default constructor
+    }
 
     /**
      * Init the Kafka Streams.

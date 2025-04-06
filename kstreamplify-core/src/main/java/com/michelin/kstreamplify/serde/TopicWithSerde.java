@@ -19,8 +19,6 @@
 package com.michelin.kstreamplify.serde;
 
 import com.michelin.kstreamplify.topic.TopicUtils;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
@@ -34,107 +32,91 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 /**
- * Wrapper class for simplifying topics interactions and their behaviors.
+ * TopicWithSerde API.
  *
- * @param <K> The model used as the key avro of the topic. Can be String (Recommended)
- * @param <V> The model used as the value avro of the topic.
+ * @param <K> The type of the key.
+ * @param <V> The type of the value.
  */
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class TopicWithSerde<K, V> {
     /** Default prefix property name. */
     public static final String SELF = "self";
 
-    /** Name of the topic. */
     private final String topicName;
+    private final String prefixKey;
 
-    /**
-     * Name of the property key defined under kafka.properties.prefix. Used to prefix the topicName dynamically at
-     * runtime. For instance, with the given following configuration:
-     *
-     * <pre>{@code
-     * kafka:
-     *   properties:
-     *     prefix:
-     *       nsKey: "myNamespacePrefix."
-     * }</pre>
-     *
-     * If the topic name is {@code myTopic}, at stream initialization the topic name wil resolve to
-     * {@code myNamespacePrefix.myTopic}.
-     */
-    private final String prefixPropertyKey;
-
-    /** Key serde for the topic. */
     @Getter
     private final Serde<K> keySerde;
 
-    /** Value serde for the topic. */
     @Getter
     private final Serde<V> valueSerde;
 
     /**
-     * Additional constructor which uses default parameter "self" for prefixPropertyKey. For instance, with the given
-     * following configuration:
+     * Constructor.
      *
-     * <pre>{@code
-     * kafka:
-     *   properties:
-     *     prefix:
-     *       self: "myNamespacePrefix."
-     * }</pre>
-     *
-     * If the topic name is {@code myTopic}, at stream initialization the topic name wil resolve to
-     * {@code myNamespacePrefix.myTopic}.
-     *
-     * @param topicName Name of the topic
-     * @param keySerde Key serde for the topic
-     * @param valueSerde Value serde for the topic
+     * @param topicName The name of the topic
+     * @param keySerde The key serde
+     * @param valueSerde The value serde
      */
     public TopicWithSerde(String topicName, Serde<K> keySerde, Serde<V> valueSerde) {
         this.topicName = topicName;
-        this.prefixPropertyKey = SELF;
+        this.prefixKey = SELF;
         this.keySerde = keySerde;
         this.valueSerde = valueSerde;
     }
 
     /**
-     * Get the un-prefixed name of the Topic for specific usage.
+     * Constructor.
      *
-     * @return The name of the topic, as defined during initialization
+     * @param topicName The name of the topic
+     * @param prefixKey The prefix key
+     * @param keySerde The key serde
+     * @param valueSerde The value serde
+     */
+    public TopicWithSerde(String topicName, String prefixKey, Serde<K> keySerde, Serde<V> valueSerde) {
+        this.topicName = topicName;
+        this.prefixKey = prefixKey;
+        this.keySerde = keySerde;
+        this.valueSerde = valueSerde;
+    }
+
+    /**
+     * Get the unprefixed topic name.
+     *
+     * @return The unprefixed topic name
      */
     public String getUnPrefixedName() {
         return topicName;
     }
 
     /**
-     * Override of the toString method, dynamically builds the topicName based on springBoot properties for
-     * environment/application.
+     * Remap and prefix the topic name.
      *
-     * @return The prefixed name of the topic
+     * @return The remapped and prefixed topic name
      */
     @Override
     public String toString() {
-        return TopicUtils.remapAndPrefix(topicName, prefixPropertyKey);
+        return TopicUtils.remapAndPrefix(topicName, prefixKey);
     }
 
     /**
-     * Wrapper for the .stream method of KafkaStreams. Allows simple usage of a topic with type inference
+     * Wrapper for {@link StreamsBuilder#stream(String, Consumed)}.
      *
-     * @param sb The streamsBuilder
-     * @return a Kstream from the given topic
+     * @param streamsBuilder The streams builder
+     * @return A ${@link KStream} from the given topic
      */
-    public KStream<K, V> stream(StreamsBuilder sb) {
-        return sb.stream(this.toString(), Consumed.with(keySerde, valueSerde));
+    public KStream<K, V> stream(StreamsBuilder streamsBuilder) {
+        return streamsBuilder.stream(this.toString(), Consumed.with(keySerde, valueSerde));
     }
 
     /**
-     * Wrapper for the .table method of KafkaStreams. Allows simple usage of a topic with type inference
+     * Wrapper for {@link StreamsBuilder#table(String, Consumed, Materialized)}.
      *
-     * @param sb The streamsBuilder
-     * @param storeName The StoreName
-     * @return a KTable from the given topic
+     * @param streamsBuilder The streams builder
+     * @param storeName The store name
+     * @return A ${@link KTable} from the given topic
      */
-    public KTable<K, V> table(StreamsBuilder sb, String storeName) {
-        return sb.table(
+    public KTable<K, V> table(StreamsBuilder streamsBuilder, String storeName) {
+        return streamsBuilder.table(
                 this.toString(),
                 Consumed.with(keySerde, valueSerde),
                 Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
@@ -143,14 +125,14 @@ public class TopicWithSerde<K, V> {
     }
 
     /**
-     * Wrapper for the .globalTable method of KafkaStreams. Allows simple usage of a topic with type inference
+     * Wrapper for {@link StreamsBuilder#globalTable(String, Consumed, Materialized)}.
      *
-     * @param sb The streamsBuilder
-     * @param storeName The StoreName
-     * @return a GlobalKTable from the given topic
+     * @param streamsBuilder The streams builder
+     * @param storeName The store name
+     * @return A ${@link GlobalKTable} from the given topic
      */
-    public GlobalKTable<K, V> globalTable(StreamsBuilder sb, String storeName) {
-        return sb.globalTable(
+    public GlobalKTable<K, V> globalTable(StreamsBuilder streamsBuilder, String storeName) {
+        return streamsBuilder.globalTable(
                 this.toString(),
                 Consumed.with(keySerde, valueSerde),
                 Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
@@ -159,9 +141,9 @@ public class TopicWithSerde<K, V> {
     }
 
     /**
-     * Wrapper for the .to method of Kafka streams. Allows simple usage of a topic with type inference
+     * Wrapper for {@link KStream#to(String, Produced)}.
      *
-     * @param stream The stream to produce in the topic
+     * @param stream The stream to produce
      */
     public void produce(KStream<K, V> stream) {
         stream.to(this.toString(), Produced.with(keySerde, valueSerde));

@@ -40,6 +40,9 @@ public abstract class DlqExceptionHandler {
     @Getter
     protected static Producer<byte[], KafkaError> producer;
 
+    /** Constructor. */
+    protected DlqExceptionHandler() {}
+
     /**
      * Create a producer.
      *
