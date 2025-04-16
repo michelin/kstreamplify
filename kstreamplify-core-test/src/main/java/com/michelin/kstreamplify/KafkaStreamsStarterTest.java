@@ -64,7 +64,7 @@ public abstract class KafkaStreamsStarterTest {
     void generalSetUp() {
         Properties properties = getProperties();
 
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         String schemaRegistryUrl = properties.getProperty(SCHEMA_REGISTRY_URL_CONFIG);
         KafkaStreamsExecutionContext.setSerdesConfig(

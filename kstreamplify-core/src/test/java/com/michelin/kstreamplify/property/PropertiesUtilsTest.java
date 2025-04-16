@@ -44,4 +44,32 @@ class PropertiesUtilsTest {
         assertTrue(properties.containsKey(APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
     }
+
+    @Test
+    void shouldRemoveKafkaPrefix() {
+        Properties prop = new Properties();
+        prop.put("kafka.properties.kafkaProp", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(resultProperties.containsKey("kafkaProp"));
+        assertTrue(resultProperties.containsValue("propValue"));
+    }
+
+    @Test
+    void shouldNotRemoveKafkaPrefix() {
+        Properties prop = new Properties();
+        prop.put("another.properties.prop", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(resultProperties.containsKey("another.properties.prop"));
+    }
+
+    @Test
+    void shouldNotRemoveKafkaPropertiesStringWhenNotPrefix() {
+        Properties prop = new Properties();
+        prop.put("prefix.kafka.properties.kafkaProp", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(resultProperties.containsKey("prefix.kafka.properties.kafkaProp"));
+    }
 }

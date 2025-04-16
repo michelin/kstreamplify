@@ -165,7 +165,7 @@ public class KafkaStreamsInitializer {
         properties = PropertiesUtils.loadProperties();
         serverPort = (Integer) properties.get(SERVER_PORT_PROPERTY_NAME);
         kafkaProperties = PropertiesUtils.loadKafkaProperties(properties);
-        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+        KafkaStreamsExecutionContext.registerProperties(properties, kafkaProperties);
     }
 
     /**

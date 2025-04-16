@@ -64,13 +64,29 @@ public final class PropertiesUtils {
      */
     public static Properties loadKafkaProperties(Properties props) {
         Properties resultProperties = new Properties();
-        for (var prop : props.entrySet()) {
-            if (StringUtils.contains(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX)) {
-                resultProperties.put(
-                        StringUtils.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR),
-                        prop.getValue());
-            }
-        }
+        props.keySet()
+            .stream()
+            .filter(key -> key.toString().startsWith(KAFKA_PROPERTIES_PREFIX))
+            .forEach(key -> resultProperties.put(
+                key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
+                props.get(key).toString()));
+
+        return resultProperties;
+    }
+
+    /**
+     * Get the Kafka properties only from the given properties.
+     *
+     * @param props The properties
+     * @return The Kafka properties
+     */
+    public static Properties removeKafkaPrefix(Properties props) {
+        Properties resultProperties = new Properties();
+        props.keySet()
+            .forEach(key -> resultProperties.put(
+                key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
+                props.get(key).toString()));
+
         return resultProperties;
     }
 

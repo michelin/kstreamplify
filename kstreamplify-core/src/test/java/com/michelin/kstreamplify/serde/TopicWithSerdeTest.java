@@ -30,7 +30,7 @@ class TopicWithSerdeTest {
 
     @Test
     void shouldCreateTopicWithSerde() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         TopicWithSerde<String, String> topicWithSerde =
                 new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
@@ -44,7 +44,7 @@ class TopicWithSerdeTest {
         Properties properties = new Properties();
         properties.put("prefix.self", "abc.");
 
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         TopicWithSerde<String, String> topicWithSerde =
                 new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
@@ -55,7 +55,7 @@ class TopicWithSerdeTest {
 
     @Test
     void shouldCreateStream() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         TopicWithSerde<String, String> topicWithSerde =
                 new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
@@ -76,7 +76,7 @@ class TopicWithSerdeTest {
 
     @Test
     void shouldCreateTable() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         TopicWithSerde<String, String> topicWithSerde =
                 new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
@@ -100,7 +100,7 @@ class TopicWithSerdeTest {
 
     @Test
     void shouldCreateGlobalKtable() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         TopicWithSerde<String, String> topicWithSerde =
                 new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());

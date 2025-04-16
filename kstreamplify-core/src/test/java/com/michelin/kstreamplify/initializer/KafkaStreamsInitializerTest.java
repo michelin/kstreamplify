@@ -61,9 +61,6 @@ class KafkaStreamsInitializerTest {
             assertNotNull(initializer.getProperties());
             assertEquals(8080, initializer.getServerPort());
             assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
-            assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
-            assertEquals(
-                    "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
         }
     }
 

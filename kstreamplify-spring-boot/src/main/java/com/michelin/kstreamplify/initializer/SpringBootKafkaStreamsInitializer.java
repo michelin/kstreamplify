@@ -84,7 +84,7 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
     protected void initProperties() {
         serverPort = springBootServerPort;
         kafkaProperties = springBootKafkaProperties.asProperties();
-        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+        KafkaStreamsExecutionContext.registerProperties(kafkaProperties, kafkaProperties);
     }
 
     /** {@inheritDoc} */

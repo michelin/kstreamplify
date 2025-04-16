@@ -22,6 +22,7 @@ import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARA
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
 
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Map;
 import java.util.Properties;
 import lombok.Getter;
@@ -46,6 +47,10 @@ public class KafkaStreamsExecutionContext {
     private static Properties properties;
 
     @Getter
+    @Setter
+    private static Properties kafkaProperties;
+
+    @Getter
     private static String prefix;
 
     private KafkaStreamsExecutionContext() {}
@@ -55,18 +60,20 @@ public class KafkaStreamsExecutionContext {
      *
      * @param properties The Kafka properties
      */
-    public static void registerProperties(Properties properties) {
+    public static void registerProperties(Properties properties, Properties kafkaProperties) {
         if (properties == null) {
             return;
         }
 
-        prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
+        KafkaStreamsExecutionContext.properties = PropertiesUtils.removeKafkaPrefix(properties);
+        KafkaStreamsExecutionContext.kafkaProperties = kafkaProperties;
+
+        KafkaStreamsExecutionContext.prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
-            properties.setProperty(
+            KafkaStreamsExecutionContext.properties.setProperty(
                     StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
         }
 
-        KafkaStreamsExecutionContext.properties = properties;
     }
 }
