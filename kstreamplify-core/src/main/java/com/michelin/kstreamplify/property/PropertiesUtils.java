@@ -57,35 +57,34 @@ public final class PropertiesUtils {
     }
 
     /**
-     * Get the Kafka properties only from the given properties.
+     * Get the Kafka properties from the given properties, without the kafka properties prefix.
      *
      * @param props The properties
      * @return The Kafka properties
      */
     public static Properties loadKafkaProperties(Properties props) {
         Properties resultProperties = new Properties();
-        props.keySet()
-            .stream()
-            .filter(key -> key.toString().startsWith(KAFKA_PROPERTIES_PREFIX))
-            .forEach(key -> resultProperties.put(
-                key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
-                props.get(key).toString()));
+        props.keySet().stream()
+                .filter(key -> key.toString().startsWith(KAFKA_PROPERTIES_PREFIX))
+                .forEach(key -> resultProperties.put(
+                        key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
+                        props.get(key).toString()));
 
         return resultProperties;
     }
 
     /**
-     * Get the Kafka properties only from the given properties.
+     * Remove the kafka properties prefix from the given properties keys.
      *
      * @param props The properties
-     * @return The Kafka properties
+     * @return The updated properties
      */
     public static Properties removeKafkaPrefix(Properties props) {
         Properties resultProperties = new Properties();
         props.keySet()
-            .forEach(key -> resultProperties.put(
-                key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
-                props.get(key).toString()));
+                .forEach(key -> resultProperties.put(
+                        key.toString().replaceAll("^" + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR, ""),
+                        props.get(key).toString()));
 
         return resultProperties;
     }

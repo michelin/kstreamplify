@@ -68,12 +68,12 @@ public class KafkaStreamsExecutionContext {
         KafkaStreamsExecutionContext.properties = PropertiesUtils.removeKafkaPrefix(properties);
         KafkaStreamsExecutionContext.kafkaProperties = kafkaProperties;
 
-        KafkaStreamsExecutionContext.prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
+        KafkaStreamsExecutionContext.prefix =
+                properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
         if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
             KafkaStreamsExecutionContext.properties.setProperty(
                     StreamsConfig.APPLICATION_ID_CONFIG,
                     prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
         }
-
     }
 }
