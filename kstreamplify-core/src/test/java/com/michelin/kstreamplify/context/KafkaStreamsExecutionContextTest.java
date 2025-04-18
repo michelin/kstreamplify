@@ -93,7 +93,8 @@ class KafkaStreamsExecutionContextTest {
 
         KafkaStreamsExecutionContext.registerProperties(properties, null);
 
-        assertEquals("kafkaPropValue", KafkaStreamsExecutionContext.getProperties().get("kafkaProp"));
+        assertEquals(
+                "kafkaPropValue", KafkaStreamsExecutionContext.getProperties().get("kafkaProp"));
         assertNull(KafkaStreamsExecutionContext.getProperties().get("kafka.properties.kafkaProp"));
     }
 
@@ -104,6 +105,7 @@ class KafkaStreamsExecutionContextTest {
 
         KafkaStreamsExecutionContext.registerProperties(new Properties(), kafkaProperties);
 
-        assertEquals("propValue", KafkaStreamsExecutionContext.getKafkaProperties().get("kafkaProp"));
+        assertEquals(
+                "propValue", KafkaStreamsExecutionContext.getKafkaProperties().get("kafkaProp"));
     }
 }
