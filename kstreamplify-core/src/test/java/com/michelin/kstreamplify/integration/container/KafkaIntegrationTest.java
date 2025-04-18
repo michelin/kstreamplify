@@ -142,7 +142,7 @@ public abstract class KafkaIntegrationTest {
             Properties convertedAdditionalProperties = new Properties();
             convertedAdditionalProperties.putAll(additionalProperties);
             kafkaProperties.putAll(PropertiesUtils.loadKafkaProperties(convertedAdditionalProperties));
-            KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+            KafkaStreamsExecutionContext.registerProperties(properties, kafkaProperties);
         }
     }
 }
