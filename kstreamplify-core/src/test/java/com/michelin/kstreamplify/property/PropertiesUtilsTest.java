@@ -19,6 +19,7 @@
 package com.michelin.kstreamplify.property;
 
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
@@ -53,6 +54,7 @@ class PropertiesUtilsTest {
 
         assertTrue(resultProperties.containsKey("kafkaProp"));
         assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey("kafka.properties.kafkaProp"));
     }
 
     @Test
@@ -62,6 +64,8 @@ class PropertiesUtilsTest {
         Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
 
         assertTrue(resultProperties.containsKey("another.properties.prop"));
+        assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey("prop"));
     }
 
     @Test
@@ -71,5 +75,7 @@ class PropertiesUtilsTest {
         Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
 
         assertTrue(resultProperties.containsKey("prefix.kafka.properties.kafkaProp"));
+        assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey("prefix.kafkaProp"));
     }
 }

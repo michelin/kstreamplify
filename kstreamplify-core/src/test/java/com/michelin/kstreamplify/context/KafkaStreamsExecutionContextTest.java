@@ -76,35 +76,34 @@ class KafkaStreamsExecutionContextTest {
     }
 
     @Test
-    void shouldRegisterNonKafkaProperties() {
+    void shouldRegisterNonKafkaPropertiesInProperties() {
         Properties properties = new Properties();
-        properties.put("notKafka.properties.prop", "propertyValue");
+        properties.put("notKafka.properties.prop", "propValue");
 
         KafkaStreamsExecutionContext.registerProperties(properties, null);
 
-        assertEquals(KafkaStreamsExecutionContext.getProperties().get("notKafka.properties.prop"), "propertyValue");
+        assertEquals("propValue", KafkaStreamsExecutionContext.getProperties().get("notKafka.properties.prop"));
         assertNull(KafkaStreamsExecutionContext.getKafkaProperties());
     }
 
     @Test
     void shouldRegisterKafkaPropertiesInProperties() {
         Properties properties = new Properties();
-        properties.put("kafka.properties.kafkaProp", "kafkaPropertyValue");
+        properties.put("kafka.properties.kafkaProp", "kafkaPropValue");
 
         KafkaStreamsExecutionContext.registerProperties(properties, null);
 
-        assertEquals(KafkaStreamsExecutionContext.getProperties().get("kafkaProp"), "kafkaPropertyValue");
+        assertEquals("kafkaPropValue", KafkaStreamsExecutionContext.getProperties().get("kafkaProp"));
         assertNull(KafkaStreamsExecutionContext.getProperties().get("kafka.properties.kafkaProp"));
     }
 
     @Test
     void shouldRegisterKafkaPropertiesInKafkaProperties() {
         Properties kafkaProperties = new Properties();
-        kafkaProperties.put("kafkaProp", "PropertyValue");
+        kafkaProperties.put("kafkaProp", "propValue");
 
         KafkaStreamsExecutionContext.registerProperties(new Properties(), kafkaProperties);
 
-        assertEquals(KafkaStreamsExecutionContext.getKafkaProperties().get("kafkaProp"), "PropertyValue");
-        assertNull(KafkaStreamsExecutionContext.getKafkaProperties().get("kafka.properties.kafkaProp"));
+        assertEquals("propValue", KafkaStreamsExecutionContext.getKafkaProperties().get("kafkaProp"));
     }
 }
