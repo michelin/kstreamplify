@@ -30,7 +30,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Getting Started](#getting-started)
   * [Spring Boot](#spring-boot)
   * [Java](#java)
-  * [Unit Test](#test)
+  * [Unit Test](#unit-test)
     * [Override Properties](#override-properties)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
