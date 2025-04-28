@@ -61,6 +61,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [By Key and Value](#by-key-and-value)
   * [By Predicate](#by-predicate)
 * [Open Telemetry](#open-telemetry)
+  * [Custom Tags for Metrics](#custom-tags-for-metrics)
 * [Swagger](#swagger)
 * [Motivation](#motivation)
 * [Contribution](#contribution)
