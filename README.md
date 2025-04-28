@@ -729,6 +729,9 @@ To run your application with the Open Telemetry Java agent, include the followin
 -javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
 ```
 
+Starting with OpenTelemetry Java Agent version 2, the Micrometer metrics bridge has been disabled (see [release notes](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.0.0)).
+You need to manually enable it by adding the following option: `-Dotel.instrumentation.micrometer.enabled=true`.
+
 ### Custom Tags for Metrics
 
 You can also add custom tags to the Open Telemetry metrics to help organize and filter them in your observability tools, like Grafana. 
