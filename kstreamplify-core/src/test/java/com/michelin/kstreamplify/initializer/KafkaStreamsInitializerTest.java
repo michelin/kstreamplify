@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
-import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Properties;
 import org.apache.kafka.streams.StreamsConfig;
@@ -61,9 +60,6 @@ class KafkaStreamsInitializerTest {
             assertNotNull(initializer.getProperties());
             assertEquals(8080, initializer.getServerPort());
             assertTrue(initializer.getKafkaProperties().containsKey(StreamsConfig.APPLICATION_ID_CONFIG));
-            assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
-            assertEquals(
-                    "abc.appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
         }
     }
 

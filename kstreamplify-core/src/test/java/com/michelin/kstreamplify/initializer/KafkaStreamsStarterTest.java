@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
 class KafkaStreamsStarterTest {
     @Test
     void shouldInstantiateKafkaStreamsStarter() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
         KafkaStreamsExecutionContext.setSerdesConfig(
                 Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 
@@ -64,7 +64,7 @@ class KafkaStreamsStarterTest {
 
     @Test
     void shouldStartWithCustomUncaughtExceptionHandler() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
         KafkaStreamsExecutionContext.setSerdesConfig(
                 Map.of(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
 

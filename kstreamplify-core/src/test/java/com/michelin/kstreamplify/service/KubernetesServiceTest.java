@@ -48,7 +48,7 @@ class KubernetesServiceTest {
 
     @Test
     void shouldGetReadinessProbeWhenRunning() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
@@ -60,7 +60,7 @@ class KubernetesServiceTest {
 
     @Test
     void shouldGetReadinessProbeWhenNotRunning() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
@@ -81,7 +81,7 @@ class KubernetesServiceTest {
 
     @Test
     void shouldGetReadinessProbeWhenRebalancingAndAllThreadsCreated() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
@@ -103,7 +103,7 @@ class KubernetesServiceTest {
 
     @Test
     void shouldGetReadinessProbeWhenRebalancingAndAllThreadsNotStartingOrCreated() {
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         when(kafkaStreamsInitializer.getKafkaStreams()).thenReturn(kafkaStreams);
         when(kafkaStreams.state()).thenReturn(KafkaStreams.State.REBALANCING);
