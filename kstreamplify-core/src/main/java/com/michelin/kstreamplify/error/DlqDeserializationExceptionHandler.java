@@ -18,6 +18,8 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Map;
@@ -28,7 +30,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.errors.ErrorHandlerContext;
 
 /** The class managing deserialization exceptions. */
 @Slf4j
@@ -52,14 +54,14 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
     /**
      * Manage deserialization exceptions.
      *
-     * @param processorContext The processor context
+     * @param errorHandlerContext The error handler context
      * @param consumerRecord The record to deserialize
      * @param consumptionException The exception for the deserialization
      * @return FAIL or CONTINUE
      */
     @Override
     public DeserializationHandlerResponse handle(
-            ProcessorContext processorContext,
+            ErrorHandlerContext errorHandlerContext,
             ConsumerRecord<byte[], byte[]> consumerRecord,
             Exception consumptionException) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
@@ -75,7 +77,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setOffset(consumerRecord.offset())
                     .setPartition(consumerRecord.partition())
                     .setTopic(consumerRecord.topic())
-                    .setApplicationId(processorContext.applicationId());
+                    .setApplicationId(
+                            KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG));
 
             boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
             // If the cause of this exception is a KafkaException and if getCause == sourceException
