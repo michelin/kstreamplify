@@ -38,7 +38,7 @@ import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,14 +48,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DlqDeserializationExceptionHandlerTest {
     @Mock
-    private ConsumerRecord<byte[], byte[]> consumerRecord;
+    private ErrorHandlerContext errorHandlerContext;
 
     @Mock
-    private ProcessorContext processorContext;
+    private ConsumerRecord<byte[], byte[]> consumerRecord;
 
     private Producer<byte[], KafkaError> producer;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         Serializer<KafkaError> serializer = (Serializer) new KafkaAvroSerializer();
         serializer.configure(Map.of(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"), false);
@@ -69,7 +70,7 @@ class DlqDeserializationExceptionHandlerTest {
         DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler(producer);
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-                handler.handle(processorContext, consumerRecord, new RuntimeException("Exception..."));
+                handler.handle(errorHandlerContext, consumerRecord, new RuntimeException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
@@ -80,7 +81,7 @@ class DlqDeserializationExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-                handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
+                handler.handle(errorHandlerContext, consumerRecord, new KafkaException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
@@ -95,7 +96,7 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.topic()).thenReturn("topic");
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-                handler.handle(processorContext, consumerRecord, new KafkaException("Exception..."));
+                handler.handle(errorHandlerContext, consumerRecord, new KafkaException("Exception..."));
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
     }
