@@ -18,6 +18,8 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Map;
@@ -26,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
-import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 
 /** The class managing DLQ production exceptions. */
@@ -51,13 +53,16 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     /**
      * Manage production exceptions.
      *
+     * @param errorHandlerContext The error handler context
      * @param producerRecord The record to produce
      * @param productionException The exception on producing
      * @return FAIL or CONTINUE
      */
     @Override
     public ProductionExceptionHandlerResponse handle(
-            ProducerRecord<byte[], byte[]> producerRecord, Exception productionException) {
+            ErrorHandlerContext errorHandlerContext,
+            ProducerRecord<byte[], byte[]> producerRecord,
+            Exception productionException) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
             log.warn("Failed to route production error to the designated DLQ (Dead Letter Queue) topic. "
                     + "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
@@ -74,8 +79,8 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                         .setOffset(-1)
                         .setPartition(producerRecord.partition() == null ? -1 : producerRecord.partition())
                         .setTopic(producerRecord.topic())
-                        .setApplicationId(KafkaStreamsExecutionContext.getProperties()
-                                .getProperty(StreamsConfig.APPLICATION_ID_CONFIG));
+                        .setApplicationId(
+                                KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG));
 
                 producer.send(new ProducerRecord<>(
                                 KafkaStreamsExecutionContext.getDlqTopicName(), producerRecord.key(), builder.build()))
