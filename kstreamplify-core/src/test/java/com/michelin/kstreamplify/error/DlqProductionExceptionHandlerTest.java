@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -29,6 +30,7 @@ import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.kafka.clients.consumer.RetriableCommitFailedException;
 import org.apache.kafka.clients.producer.MockProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -62,6 +64,9 @@ class DlqProductionExceptionHandlerTest {
         producer = new MockProducer<>(true, new ByteArraySerializer(), serializer);
 
         KafkaStreamsExecutionContext.setDlqTopicName(null);
+        Properties properties = new Properties();
+        properties.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        KafkaStreamsExecutionContext.setProperties(properties);
     }
 
     @Test

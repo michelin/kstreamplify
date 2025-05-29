@@ -55,6 +55,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
         initializer = new KafkaStreamInitializerStub(
+                new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(),
                 8081,
                 Map.of(
                         KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
@@ -65,7 +66,8 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                         "custom-liveness",
                         "topology.path",
                         "custom-topology"));
-        initializer.init(new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub());
+
+        initializer.start();
     }
 
     @BeforeEach

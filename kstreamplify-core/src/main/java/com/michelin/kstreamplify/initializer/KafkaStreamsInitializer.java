@@ -73,19 +73,18 @@ public class KafkaStreamsInitializer {
     /** The server port. */
     protected int serverPort;
 
-    /** Constructor. */
-    public KafkaStreamsInitializer() {
-        // Default constructor
+    /**
+     * Constructor.
+     *
+     * @param kafkaStreamsStarter The Kafka Streams starter
+     */
+    public KafkaStreamsInitializer(KafkaStreamsStarter kafkaStreamsStarter) {
+
+        this.kafkaStreamsStarter = kafkaStreamsStarter;
     }
 
-    /**
-     * Init the Kafka Streams.
-     *
-     * @param streamsStarter The Kafka Streams starter
-     */
-    public void init(KafkaStreamsStarter streamsStarter) {
-        kafkaStreamsStarter = streamsStarter;
-
+    /** Start Kstreamplify. */
+    public void start() {
         initProperties();
 
         initSerdeConfig();

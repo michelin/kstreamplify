@@ -23,6 +23,7 @@ import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.net.http.HttpClient;
 import java.util.Arrays;
@@ -116,11 +117,16 @@ public abstract class KafkaIntegrationTest {
         private Integer newServerPort;
         private final Map<String, String> additionalProperties;
 
-        public KafkaStreamInitializerStub(Map<String, String> properties) {
+        public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Map<String, String> properties) {
+            super(kafkaStreamsStarter);
             this.additionalProperties = properties;
         }
 
-        public KafkaStreamInitializerStub(Integer newServerPort, Map<String, String> additionalProperties) {
+        public KafkaStreamInitializerStub(
+                KafkaStreamsStarter kafkaStreamsStarter,
+                Integer newServerPort,
+                Map<String, String> additionalProperties) {
+            super(kafkaStreamsStarter);
             this.newServerPort = newServerPort;
             this.additionalProperties = additionalProperties;
         }

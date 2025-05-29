@@ -56,10 +56,13 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("INPUT_TOPIC", 2),
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
-        initializer = new KafkaStreamInitializerStub(Map.of(
-                KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers()));
+        initializer = new KafkaStreamInitializerStub(
+                new KafkaStreamsStarterStub(),
+                Map.of(
+                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
+                        broker.getBootstrapServers()));
 
-        initializer.init(new KafkaStreamsStarterStub());
+        initializer.start();
     }
 
     @BeforeEach
@@ -68,7 +71,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldInitAndRun() throws InterruptedException, IOException {
+    void shouldStartAndRun() throws InterruptedException, IOException {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
