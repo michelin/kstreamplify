@@ -56,10 +56,13 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Web Services](#web-services-1)
 * [Hooks](#hooks)
   * [On Start](#on-start)
-* [Deduplication](#deduplication)
-  * [By Key](#by-key)
-  * [By Key and Value](#by-key-and-value)
-  * [By Predicate](#by-predicate)
+* [Utils](#utils)
+  * [KafkaStreams Execution Context](#kafkastreams-execution-context)
+  * [Topic](#topic)
+  * [Deduplication](#deduplication)
+    * [By Key](#by-key)
+    * [By Key and Value](#by-key-and-value)
+    * [By Predicate](#by-predicate)
 * [Open Telemetry](#open-telemetry)
   * [Custom Tags for Metrics](#custom-tags-for-metrics)
 * [Swagger](#swagger)
@@ -656,16 +659,38 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-## Deduplication
+## Utils
 
-Kstreamplify provides an easy way to deduplicate streams through the `DeduplicationUtils` class. 
-You can deduplicate based on various criteria and within a specified time frame.
+Here is the list of utils available in Kstreamplify.
 
-All deduplication methods return a `KStream<String, ProcessingResult<V,V2>`, which allows you to handle errors and route them to the `TopologyErrorHandler#catchErrors()`.
+### KafkaStreams Execution Context
 
-**Note**: Only streams with String keys and Avro values are supported.
+The `KafkaStreamsExecutionContext` provides static access to several pieces of information:
 
-### By Key
+- The DLQ topic name
+- The SerDes configuration
+- The Kafka properties
+- The instance's own prefix (used to prefix the `application.id`)
+
+### Topic
+
+The `TopicUtils` class provides a utility method to prefix any topic name with a custom prefix defined in the `application.yml` file.
+
+```java
+TopicUtils.remapAndPrefix("input_topic", "team3");
+```
+
+For more details about prefixes, see the [Prefix](#prefix) section.
+
+### Deduplication
+
+The `DeduplicationUtils` class helps you deduplicate streams based on various criteria and within a specified time window.
+
+All deduplication methods return a `KStream<String, ProcessingResult<V,V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
+
+**Note**: Only streams with `String` keys and Avro values are supported.
+
+#### By Key
 
 ```java
 @Component
@@ -682,7 +707,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### By Key and Value
+#### By Key and Value
 
 ```java
 @Component
@@ -699,7 +724,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### By Predicate
+#### By Predicate
 
 ```java
 @Component
