@@ -170,8 +170,8 @@ From your `main` method, create a `KafkaStreamsInitializer` instance and initial
 public class MainKstreamplify {
 
     public static void main(String[] args) {
-        KafkaStreamsInitializer myKafkaStreamsInitializer = new KafkaStreamsInitializer();
-        myKafkaStreamsInitializer.init(new MyKafkaStreams());
+        KafkaStreamsInitializer myKafkaStreamsInitializer = new KafkaStreamsInitializer(new MyKafkaStreams());
+        myKafkaStreamsInitializer.start();
     }
 }
 ```

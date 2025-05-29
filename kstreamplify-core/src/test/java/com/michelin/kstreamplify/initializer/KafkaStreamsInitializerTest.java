@@ -34,16 +34,19 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class KafkaStreamsInitializerTest {
+    @Mock
+    private KafkaStreamsStarter kafkaStreamsStarter;
 
-    private final KafkaStreamsInitializer initializer = new KafkaStreamsInitializer();
+    private final KafkaStreamsInitializer initializer = new KafkaStreamsInitializer(kafkaStreamsStarter);
 
     @Test
-    void shouldInitProperties() {
+    void shouldStartProperties() {
         try (MockedStatic<PropertiesUtils> propertiesUtilsMockedStatic = mockStatic(PropertiesUtils.class)) {
             Properties properties = new Properties();
             properties.put(SERVER_PORT_PROPERTY_NAME, 8080);

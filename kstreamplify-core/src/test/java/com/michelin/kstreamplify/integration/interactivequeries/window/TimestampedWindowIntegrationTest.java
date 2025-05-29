@@ -123,6 +123,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
         }
 
         initializer = new KafkaStreamInitializerStub(
+                new KafkaStreamsStarterStub(),
                 8084,
                 Map.of(
                         KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
@@ -133,7 +134,8 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
                         "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
                         KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
                         "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window"));
-        initializer.init(new KafkaStreamsStarterStub());
+
+        initializer.start();
     }
 
     @BeforeEach

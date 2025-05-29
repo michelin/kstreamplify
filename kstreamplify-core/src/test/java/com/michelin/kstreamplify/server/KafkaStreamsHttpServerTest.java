@@ -22,12 +22,20 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class KafkaStreamsHttpServerTest {
+    @Mock
+    private KafkaStreamsStarter kafkaStreamsStarter;
+
     @Test
     void shouldCreateServerWithDefaultHostAndPort() {
-        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer());
+        KafkaStreamsHttpServer server = new KafkaStreamsHttpServer(new KafkaStreamsInitializer(kafkaStreamsStarter));
         server.start();
 
         assertNotNull(server.server.getAddress().getHostName());

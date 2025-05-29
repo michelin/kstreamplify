@@ -57,20 +57,20 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
             KafkaStreamsStarter kafkaStreamsStarter,
             KafkaProperties springBootKafkaProperties,
             MeterRegistry registry) {
+        super(kafkaStreamsStarter);
         this.applicationContext = applicationContext;
-        this.kafkaStreamsStarter = kafkaStreamsStarter;
         this.springBootKafkaProperties = springBootKafkaProperties;
         this.registry = registry;
     }
 
     /**
-     * Run method.
+     * Start Kstreamplify.
      *
-     * @param args the program arguments
+     * @param args The program arguments
      */
     @Override
     public void run(ApplicationArguments args) {
-        init(kafkaStreamsStarter);
+        start();
     }
 
     /** {@inheritDoc} */

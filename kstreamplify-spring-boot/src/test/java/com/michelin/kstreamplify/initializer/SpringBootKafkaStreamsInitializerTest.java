@@ -52,7 +52,7 @@ class SpringBootKafkaStreamsInitializerTest {
     private SpringBootKafkaStreamsInitializer initializer;
 
     @Test
-    void shouldInitProperties() {
+    void shouldStartProperties() {
         Properties properties = new Properties();
         properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
         properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");

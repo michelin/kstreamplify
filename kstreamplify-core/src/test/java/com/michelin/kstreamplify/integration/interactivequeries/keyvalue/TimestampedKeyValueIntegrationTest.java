@@ -121,6 +121,7 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         }
 
         initializer = new KafkaStreamInitializerStub(
+                new KafkaStreamsStarterStub(),
                 8083,
                 Map.of(
                         KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
@@ -131,7 +132,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
                         "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
                         KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
                         "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-key-value"));
-        initializer.init(new KafkaStreamsStarterStub());
+
+        initializer.start();
     }
 
     @BeforeEach
