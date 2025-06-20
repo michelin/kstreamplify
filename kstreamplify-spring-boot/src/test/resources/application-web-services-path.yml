@@ -1,16 +1,16 @@
 kafka:
   properties:
-    application.id: 'appWebServicesPathId'
-    auto.offset.reset: 'earliest'
-    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
-    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
-    state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/web-services-path'
+    application.id: "appWebServicesPathId"
+    auto.offset.reset: "earliest"
+    default.key.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    default.value.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    state.dir: "/tmp/kstreamplify/kstreamplify-spring-boot-test/web-services-path"
 kubernetes:
   liveness:
-    path: 'custom-liveness'
+    path: "custom-liveness"
   readiness:
-    path: 'custom-readiness'
+    path: "custom-readiness"
 server:
   port: 8001
 topology:
-  path: 'custom-topology'
+  path: "custom-topology"
