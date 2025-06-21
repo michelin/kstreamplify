@@ -1,9 +1,9 @@
 kafka:
   properties:
-    application.id: 'appId'
-    auto.offset.reset: 'earliest'
-    default.key.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
-    default.value.serde: 'org.apache.kafka.common.serialization.Serdes$StringSerde'
-    state.dir: '/tmp/kstreamplify/kstreamplify-spring-boot-test/initializer'
+    application.id: "appId"
+    auto.offset.reset: "earliest"
+    default.key.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    default.value.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    state.dir: "/tmp/kstreamplify/kstreamplify-spring-boot-test/initializer"
 server:
   port: 8000

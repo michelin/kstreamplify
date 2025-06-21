@@ -298,6 +298,20 @@
                             <endWithNewline />
                         </sortPom>
                     </pom>
+                    <yaml>
+                        <includes>
+                            <include>src/main/resources/*.yml</include>
+                            <include>src/test/resources/*.yml</include>
+                        </includes>
+                        <jackson>
+                            <features>
+                                <ORDER_MAP_ENTRIES_BY_KEYS>true</ORDER_MAP_ENTRIES_BY_KEYS>
+                            </features>
+                            <yamlFeatures>
+                                <WRITE_DOC_START_MARKER>false</WRITE_DOC_START_MARKER>
+                            </yamlFeatures>
+                        </jackson>
+                    </yaml>
                 </configuration>
                 <executions>
                     <execution>
