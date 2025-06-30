@@ -129,7 +129,7 @@
         <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
         <spring-boot.version>3.5.3</spring-boot.version>
         <springdoc.version>2.8.9</springdoc.version>
-        <testcontainers.version>1.21.2</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
 
     <dependencies>
