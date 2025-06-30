@@ -110,7 +110,7 @@
         <gson.version>2.13.1</gson.version>
         <jackson-core.version>2.19.1</jackson-core.version>
         <jacoco.version>0.8.13</jacoco.version>
-        <junit-jupiter.version>5.13.1</junit-jupiter.version>
+        <junit-jupiter.version>5.13.2</junit-jupiter.version>
         <kafka-streams-avro-serde.version>8.0.0</kafka-streams-avro-serde.version>
         <kafka.version>3.9.1</kafka.version>
         <lombok.version>1.18.38</lombok.version>
