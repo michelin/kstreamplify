@@ -55,7 +55,9 @@ jobs:
 
       - name: Deploy
         if: matrix.java == '17' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
-        run: mvn -B deploy -X -e -DskipTests
+        run: |
+          cat ~/.m2/settings.xml
+          mvn -B deploy -X -e -DskipTests
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
