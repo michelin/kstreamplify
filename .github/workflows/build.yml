@@ -57,10 +57,10 @@ jobs:
 
       - name: Deploy
         if: matrix.java == '17' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
-        run: mvn -B deploy -DskipTests -Psign
+        run: mvn -B deploy -X -e -DskipTests -Psign
         env:
-          MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MICHELINBOT_GPG_PASSPHRASE }}
 
       - name: Lint
