@@ -50,6 +50,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Deploy
+        if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
+        run: mvn -B deploy -DskipTests -Psign
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MICHELINBOT_GPG_PASSPHRASE }}
+
       - name: Lint
         run: mvn spotless:check
 
@@ -90,11 +98,3 @@ jobs:
         if: matrix.java == '17' && github.ref == 'refs/heads/main'
         id: metadata
         run: echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
-
-      - name: Deploy
-        if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
-        run: mvn -B deploy -DskipTests -Psign
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MICHELINBOT_GPG_PASSPHRASE }}
