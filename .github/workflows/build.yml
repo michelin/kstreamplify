@@ -31,8 +31,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
           server-id: central
-          server-username: SONATYPE_USERNAME
-          server-password: SONATYPE_TOKEN
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.MICHELINBOT_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
@@ -59,8 +59,8 @@ jobs:
         if: matrix.java == '17' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MICHELINBOT_GPG_PASSPHRASE }}
 
       - name: Lint
