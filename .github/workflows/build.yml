@@ -51,7 +51,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Deploy
-        if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
+        if: matrix.java == '17' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
