@@ -50,6 +50,11 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Metadata
+        if: matrix.java == '17'
+        id: metadata
+        run: echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
+
       - name: Deploy
         if: matrix.java == '17' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
@@ -93,8 +98,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Metadata
-        if: matrix.java == '17' && github.ref == 'refs/heads/main'
-        id: metadata
-        run: echo current_version=$(echo $(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)) >> $GITHUB_OUTPUT
