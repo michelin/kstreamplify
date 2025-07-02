@@ -30,11 +30,11 @@ jobs:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: maven
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+          server-id: central
+          server-username: SONATYPE_USERNAME
+          server-password: SONATYPE_TOKEN
+          gpg-private-key: ${{ secrets.MICHELINBOT_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MICHELINBOT_GPG_PASSPHRASE
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -95,6 +95,6 @@ jobs:
         if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
         run: mvn -B deploy -DskipTests -Psign
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
+          MICHELINBOT_GPG_PASSPHRASE: ${{ secrets.MICHELINBOT_GPG_PASSPHRASE }}
