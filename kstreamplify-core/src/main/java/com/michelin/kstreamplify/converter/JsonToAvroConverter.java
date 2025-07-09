@@ -203,7 +203,7 @@ public class JsonToAvroConverter {
                     }
                 }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         });
     }
@@ -368,7 +368,7 @@ public class JsonToAvroConverter {
                                 Enum.valueOf(clazz, jsonObject.get(fieldName).getAsString());
                         result.put(fieldName, value);
                     } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
+                        throw new IllegalStateException(e);
                     }
                 }
                 default -> result.put(fieldName, jsonObject.get(fieldName).getAsString());
