@@ -116,7 +116,7 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
-        <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>2.45.0</spotless-maven-plugin.version>
         <spring-boot.version>3.5.3</spring-boot.version>
         <springdoc.version>2.8.9</springdoc.version>
         <testcontainers.version>1.21.3</testcontainers.version>
