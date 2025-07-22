@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.michelin</groupId>
         <artifactId>kstreamplify</artifactId>
-        <version>1.3.2-SNAPSHOT</version>
+        <version>1.4.0</version>
     </parent>
 
     <artifactId>kstreamplify-core-test</artifactId>
@@ -13,7 +13,7 @@
         <dependency>
             <groupId>com.michelin</groupId>
             <artifactId>kstreamplify-core</artifactId>
-            <version>1.3.2-SNAPSHOT</version>
+            <version>1.4.0</version>
         </dependency>
     </dependencies>
 </project>
