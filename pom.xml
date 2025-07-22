@@ -4,7 +4,7 @@
 
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.0</version>
     <packaging>pom</packaging>
     <name>kstreamplify</name>
     <description>Swiftly build and enhance your Kafka Streams applications.</description>
