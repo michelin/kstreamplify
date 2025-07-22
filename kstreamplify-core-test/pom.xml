@@ -6,9 +6,9 @@
         <artifactId>kstreamplify</artifactId>
         <version>1.4.1-SNAPSHOT</version>
     </parent>
+    <artifactId>kstreamplify-core-test</artifactId>
 
     <name>kstreamplify-core-test</name>
-    <artifactId>kstreamplify-core-test</artifactId>
 
     <dependencies>
         <dependency>

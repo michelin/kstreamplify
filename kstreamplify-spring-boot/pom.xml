@@ -6,9 +6,9 @@
         <artifactId>kstreamplify</artifactId>
         <version>1.4.1-SNAPSHOT</version>
     </parent>
+    <artifactId>kstreamplify-spring-boot</artifactId>
 
     <name>kstreamplify-spring-boot</name>
-    <artifactId>kstreamplify-spring-boot</artifactId>
 
     <dependencyManagement>
         <dependencies>
