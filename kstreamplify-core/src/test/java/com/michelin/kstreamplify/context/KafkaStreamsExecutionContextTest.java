@@ -35,8 +35,9 @@ class KafkaStreamsExecutionContextTest {
 
     @Test
     void shouldNotRegisterPropertiesWhenNull() {
-        KafkaStreamsExecutionContext.registerProperties(null);
+        KafkaStreamsExecutionContext.registerProperties(null, null);
         assertNull(KafkaStreamsExecutionContext.getProperties());
+        assertNull(KafkaStreamsExecutionContext.getKafkaProperties());
     }
 
     @Test
@@ -45,7 +46,7 @@ class KafkaStreamsExecutionContextTest {
         properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
         properties.put("prefix.self", "abc.");
 
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
         assertEquals(
@@ -57,7 +58,7 @@ class KafkaStreamsExecutionContextTest {
         Properties properties = new Properties();
         properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
 
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         assertEquals("", KafkaStreamsExecutionContext.getPrefix());
         assertEquals("appId", KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
@@ -68,9 +69,43 @@ class KafkaStreamsExecutionContextTest {
         Properties properties = new Properties();
         properties.put("prefix.self", "abc.");
 
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
         assertNull(KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
+    }
+
+    @Test
+    void shouldRegisterNonKafkaPropertiesInProperties() {
+        Properties properties = new Properties();
+        properties.put("notKafka.properties.prop", "propValue");
+
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
+
+        assertEquals("propValue", KafkaStreamsExecutionContext.getProperties().get("notKafka.properties.prop"));
+        assertNull(KafkaStreamsExecutionContext.getKafkaProperties());
+    }
+
+    @Test
+    void shouldRegisterKafkaPropertiesInProperties() {
+        Properties properties = new Properties();
+        properties.put("kafka.properties.kafkaProp", "kafkaPropValue");
+
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
+
+        assertEquals(
+                "kafkaPropValue", KafkaStreamsExecutionContext.getProperties().get("kafkaProp"));
+        assertNull(KafkaStreamsExecutionContext.getProperties().get("kafka.properties.kafkaProp"));
+    }
+
+    @Test
+    void shouldRegisterKafkaPropertiesInKafkaProperties() {
+        Properties kafkaProperties = new Properties();
+        kafkaProperties.put("kafkaProp", "propValue");
+
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), kafkaProperties);
+
+        assertEquals(
+                "propValue", KafkaStreamsExecutionContext.getKafkaProperties().get("kafkaProp"));
     }
 }

@@ -50,7 +50,7 @@ class RocksDbConfigTest {
     void testSetConfigWithDefaultValues() {
         Map<String, Object> configs = new HashMap<>();
         RocksDbConfig rocksDbConfig = new RocksDbConfig();
-        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.registerProperties(new Properties(), null);
 
         rocksDbConfig.setConfig("storeName", options, configs);
 
@@ -79,7 +79,7 @@ class RocksDbConfigTest {
         configs.put(RocksDbConfig.ROCKSDB_COMPRESSION_TYPE_CONFIG, compressionType);
         Properties properties = new Properties();
         properties.putAll(configs);
-        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.registerProperties(properties, null);
 
         RocksDbConfig rocksDbConfig = new RocksDbConfig();
 

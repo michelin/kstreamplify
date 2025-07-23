@@ -18,7 +18,10 @@
  */
 package com.michelin.kstreamplify.property;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
+import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
@@ -33,7 +36,7 @@ class PropertiesUtilsTest {
         assertTrue(properties.containsKey("server.port"));
         assertTrue(properties.containsValue(8080));
 
-        assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
     }
 
@@ -43,5 +46,39 @@ class PropertiesUtilsTest {
 
         assertTrue(properties.containsKey(APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
+    }
+
+    @Test
+    void shouldRemoveKafkaPrefix() {
+        Properties prop = new Properties();
+        prop.put(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "kafkaProp", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(resultProperties.containsKey("kafkaProp"));
+        assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey(KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "kafkaProp"));
+    }
+
+    @Test
+    void shouldNotRemoveKafkaPrefix() {
+        Properties prop = new Properties();
+        prop.put("another.properties.prop", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(resultProperties.containsKey("another.properties.prop"));
+        assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey("prop"));
+    }
+
+    @Test
+    void shouldNotRemoveKafkaPropertiesStringWhenNotPrefix() {
+        Properties prop = new Properties();
+        prop.put("prefix." + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "kafkaProp", "propValue");
+        Properties resultProperties = PropertiesUtils.removeKafkaPrefix(prop);
+
+        assertTrue(
+                resultProperties.containsKey("prefix." + KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + "kafkaProp"));
+        assertTrue(resultProperties.containsValue("propValue"));
+        assertFalse(resultProperties.containsKey("prefix.kafkaProp"));
     }
 }
