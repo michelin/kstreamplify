@@ -33,6 +33,16 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
 
+      - name: Validate release version format
+        run: |
+          if [[ ! "${{ github.event.inputs.release_version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release version must follow SemVer format (X.Y.Z) and start with a digit"
+            echo "Current value: ${{ github.event.inputs.release_version }}"
+            echo "Expected format: 1.2.3, 2.0.0, etc."
+            echo "Note: The 'v' prefix will be added automatically to the tag. Do not include it manually"
+            exit 1
+          fi
+
       - name: Create tag
         run: |
           mvn versions:set -DnewVersion=${{ github.event.inputs.release_version }}
