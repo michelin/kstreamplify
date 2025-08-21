@@ -91,7 +91,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             // or the cause is a RestClientException from Schema Registry and the feature flag is enabled,
             // use to handle poison pill => sent message into dlq and continue our life.
             if (isCausedByKafka
-                    || consumptionException instanceof org.apache.kafka.common.errors.SerializationException
+                    || consumptionException.getCause() == null
                     || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
                 producer.send(new ProducerRecord<>(
                                 KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build()))
