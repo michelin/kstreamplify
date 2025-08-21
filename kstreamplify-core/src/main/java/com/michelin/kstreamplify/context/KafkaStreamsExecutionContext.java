@@ -18,10 +18,12 @@
  */
 package com.michelin.kstreamplify.context;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.DLQ_PROPERTIES_PREFIX;
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
 
+import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Map;
 import java.util.Properties;
 import lombok.Getter;
@@ -46,6 +48,10 @@ public class KafkaStreamsExecutionContext {
     private static Properties properties;
 
     @Getter
+    @Setter
+    private static Properties dlqProperties = new Properties();
+
+    @Getter
     private static String prefix;
 
     private KafkaStreamsExecutionContext() {}
@@ -68,5 +74,19 @@ public class KafkaStreamsExecutionContext {
         }
 
         KafkaStreamsExecutionContext.properties = properties;
+
+        // Extract all Dead Letter Queue (DLQ) properties from the main properties using the DLQ prefix
+        dlqProperties =
+                PropertiesUtils.extractPropertiesByPrefix(properties, DLQ_PROPERTIES_PREFIX + PROPERTY_SEPARATOR);
+    }
+
+    /**
+     * Checks if a DLQ (Dead Letter Queue) feature flag is enabled based on the given key.
+     *
+     * @param key The DLQ feature property key to check.
+     * @return {@code true} if the feature is enabled; {@code false} otherwise.
+     */
+    public static boolean isDlqFeatureEnabled(String key) {
+        return PropertiesUtils.isFeatureEnabled(dlqProperties, key, false);
     }
 }

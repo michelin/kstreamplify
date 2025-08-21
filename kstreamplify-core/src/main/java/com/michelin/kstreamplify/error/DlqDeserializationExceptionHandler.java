@@ -36,6 +36,9 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 @Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
+    private boolean handleSchemaRegistryRestException = false;
+    private static final String DLQ_DESERIALIZATION_HANDLER_REST_CLIENT_EXCEPTION_ENABLED =
+            "dlq.deserialization.handler.rest.client.exception.enabled";
 
     /** Constructor. */
     public DlqDeserializationExceptionHandler() {
@@ -81,10 +84,15 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG));
 
             boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
+            boolean isRestClientSchemaRegistryException = consumptionException.getCause()
+                    instanceof io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
             // If the cause of this exception is a KafkaException and if getCause == sourceException
-            // (see Throwable.getCause - including SerializationException)
+            // (see Throwable.getCause - including SerializationException),
+            // or the cause is a RestClientException from Schema Registry and the feature flag is enabled,
             // use to handle poison pill => sent message into dlq and continue our life.
-            if (isCausedByKafka || consumptionException.getCause() == null) {
+            if (isCausedByKafka
+                    || consumptionException instanceof org.apache.kafka.common.errors.SerializationException
+                    || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
                 producer.send(new ProducerRecord<>(
                                 KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build()))
                         .get();
@@ -124,6 +132,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             if (producer == null) {
                 instantiateProducer(DlqDeserializationExceptionHandler.class.getName(), configs);
             }
+            // Enable handling of Schema Registry RestClient exceptions in DLQ if the feature flag is set
+            handleSchemaRegistryRestException = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
+                    DLQ_DESERIALIZATION_HANDLER_REST_CLIENT_EXCEPTION_ENABLED);
         }
     }
 }

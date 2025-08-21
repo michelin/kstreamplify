@@ -100,10 +100,98 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
 
+        // Wrap the KafkaException so that getCause() instanceof KafkaException
+        Exception wrapped = new Exception("Wrapper", new KafkaException("Exception..."));
+
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
-                handler.handle(errorHandlerContext, consumerRecord, new KafkaException("Exception..."));
+                handler.handle(errorHandlerContext, consumerRecord, wrapped);
 
         assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
+    }
+
+    @Test
+    void shouldContinueOnRestClientExceptionWhenFeatureFlagEnabled() {
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler(producer);
+
+        // Enable the feature flag
+        Properties props = new Properties();
+        props.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        props.setProperty("dlq.deserialization.handler.rest.client.exception.enabled", "true");
+        KafkaStreamsExecutionContext.registerProperties(props);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        handler.configure(Map.of());
+
+        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.topic()).thenReturn("topic");
+
+        // Wrap the RestClientException so getCause() is an instance of RestClientException
+        Exception wrapped = new Exception(
+                "Wrapper",
+                new io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException(
+                        "schema error", 500, 500));
+
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+                handler.handle(errorHandlerContext, consumerRecord, wrapped);
+
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.CONTINUE, response);
+    }
+
+    @Test
+    void shouldFailOnRestClientExceptionWhenFeatureFlagDisabled() {
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler(producer);
+
+        // Disable the feature flag
+        Properties props = new Properties();
+        props.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        props.setProperty("dlq.deserialization.handler.rest.client.exception.enabled", "false");
+        KafkaStreamsExecutionContext.registerProperties(props);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        handler.configure(Map.of());
+
+        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.topic()).thenReturn("topic");
+
+        Exception wrapped = new Exception(
+                "Wrapper",
+                new io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException(
+                        "schema error", 500, 500));
+
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+                handler.handle(errorHandlerContext, consumerRecord, wrapped);
+
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
+    }
+
+    @Test
+    void shouldFailOnRestClientExceptionWhenFeatureFlagNotProvided() {
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler(producer);
+
+        // Do NOT set the property (default should be false)
+        Properties props = new Properties();
+        props.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        KafkaStreamsExecutionContext.registerProperties(props);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        handler.configure(Map.of());
+
+        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.topic()).thenReturn("topic");
+
+        Exception wrapped = new Exception(
+                "Wrapper",
+                new io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException(
+                        "schema error", 500, 500));
+
+        DeserializationExceptionHandler.DeserializationHandlerResponse response =
+                handler.handle(errorHandlerContext, consumerRecord, wrapped);
+
+        // Default behavior without property should be FAIL
+        assertEquals(DeserializationExceptionHandler.DeserializationHandlerResponse.FAIL, response);
     }
 
     @Test
