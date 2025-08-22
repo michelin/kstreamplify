@@ -86,10 +86,6 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
             boolean isRestClientSchemaRegistryException = consumptionException.getCause()
                     instanceof io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-            // If the cause of this exception is a KafkaException and if getCause == sourceException
-            // (see Throwable.getCause - including SerializationException),
-            // or the cause is a RestClientException from Schema Registry and the feature flag is enabled,
-            // use to handle poison pill => sent message into dlq and continue our life.
             if (isCausedByKafka
                     || consumptionException.getCause() == null
                     || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
