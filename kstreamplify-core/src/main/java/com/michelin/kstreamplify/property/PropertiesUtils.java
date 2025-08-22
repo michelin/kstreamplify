@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.yaml.snakeyaml.Yaml;
 
 /** Properties utils. */
@@ -65,9 +66,9 @@ public final class PropertiesUtils {
     public static Properties loadKafkaProperties(Properties props) {
         Properties resultProperties = new Properties();
         for (var prop : props.entrySet()) {
-            if (StringUtils.contains(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX)) {
+            if (prop.getKey().toString().contains(KAFKA_PROPERTIES_PREFIX)) {
                 resultProperties.put(
-                        StringUtils.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR),
+                        Strings.CS.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR),
                         prop.getValue());
             }
         }
@@ -109,6 +110,7 @@ public final class PropertiesUtils {
         } else {
             properties.put(key, map);
         }
+
         return properties;
     }
 }
