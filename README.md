@@ -790,8 +790,6 @@ By offering easy-to-use utilities, error handling mechanisms, testing support, a
 
 ## Contribution
 
-We welcome contributions from the community to help make Kstreamplify even better!
-If you'd like to contribute, please take a moment to review our [contribution guide](https://github.com/michelin/kstreamplify/blob/master/CONTRIBUTING.md).
-There, you'll find our guidelines and best practices for contributing code, reporting issues, or suggesting new features.
-
-We appreciate your support in making Kstreamplify a powerful and user-friendly tool for everyone working with Kafka Streams.
+We welcome contributions from the community! Before you get started, please take a look at
+our [contribution guide](https://github.com/michelin/kstreamplify/blob/main/CONTRIBUTING.md) to learn about our guidelines
+and best practices. We appreciate your help in making Kstreamplify a better tool for everyone.
