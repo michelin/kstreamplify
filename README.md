@@ -437,6 +437,19 @@ kafka:
     default.production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
 ```
 
+### Handling Schema Registry Exceptions
+
+In addition, you can forward Schema Registry deserialization errors (e.g., malformed or incompatible schemas) to the DLQ by enabling the feature flag:
+
+Add the following properties to your `application.yml`
+
+```yml
+kafka:
+  properties:
+    dlq:
+    deserialization.handler.rest.client.exception.enabled: true
+```
+
 ### Avro Schema
 
 The DLQ topic must have an associated Avro schema registered in the Schema Registry.
