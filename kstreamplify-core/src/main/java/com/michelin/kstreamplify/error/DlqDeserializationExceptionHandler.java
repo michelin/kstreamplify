@@ -65,7 +65,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             ConsumerRecord<byte[], byte[]> consumerRecord,
             Exception consumptionException) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
-            log.warn("Failed to route deserialization error to the designated DLQ (Dead Letter Queue) topic. "
+            log.warn("Failed to route deserialization error to the designated DLQ topic. "
                     + "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
             return DeserializationHandlerResponse.FAIL;
         }

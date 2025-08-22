@@ -64,7 +64,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
             ProducerRecord<byte[], byte[]> producerRecord,
             Exception productionException) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
-            log.warn("Failed to route production error to the designated DLQ (Dead Letter Queue) topic. "
+            log.warn("Failed to route production error to the designated DLQ topic. "
                     + "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
             return ProductionExceptionHandlerResponse.FAIL;
         }
