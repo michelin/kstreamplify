@@ -18,7 +18,7 @@
  */
 package com.michelin.kstreamplify.context;
 
-import static com.michelin.kstreamplify.property.PropertiesUtils.DLQ_PROPERTIES_PREFIX;
+import static com.michelin.kstreamplify.constants.KstreamplifyConfig.DLQ_PROPERTIES_PREFIX;
 import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
@@ -49,7 +49,7 @@ public class KafkaStreamsExecutionContext {
 
     @Getter
     @Setter
-    private static Properties dlqProperties = new Properties();
+    private static Properties dlqProperties;
 
     @Getter
     private static String prefix;

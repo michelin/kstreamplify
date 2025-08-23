@@ -18,10 +18,10 @@
  */
 package com.michelin.kstreamplify.property;
 
+import static com.michelin.kstreamplify.constants.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +36,10 @@ class PropertiesUtilsTest {
 
         assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
+
+        assertTrue(properties.containsKey(
+                "kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
+        assertTrue(properties.containsValue(true));
     }
 
     @Test
@@ -83,21 +87,5 @@ class PropertiesUtilsTest {
 
         assertTrue(PropertiesUtils.isFeatureEnabled(props, "missing.feature", true));
         assertFalse(PropertiesUtils.isFeatureEnabled(props, "missing.feature", false));
-    }
-
-    @Test
-    void shouldExtractDlqPropertiesFromFlattenedYamlConfig() {
-        Properties properties = new Properties();
-        // Simulate Spring Boot flattened YAML -> Properties
-        properties.put("dlq.deserialization.handler.rest.client.exception.enabled", "true");
-        properties.put("dlq.some.other.flag", "false");
-
-        KafkaStreamsExecutionContext.registerProperties(properties);
-
-        Properties dlqProps = KafkaStreamsExecutionContext.getDlqProperties();
-
-        // Keys are stored with the dlq. prefix intact
-        assertEquals("true", dlqProps.getProperty("dlq.deserialization.handler.rest.client.exception.enabled"));
-        assertEquals("false", dlqProps.getProperty("dlq.some.other.flag"));
     }
 }

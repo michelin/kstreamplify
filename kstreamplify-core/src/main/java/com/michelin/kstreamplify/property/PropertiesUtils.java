@@ -37,9 +37,6 @@ public final class PropertiesUtils {
     /** The property separator. */
     public static final String PROPERTY_SEPARATOR = ".";
 
-    /** The Dlq properties prefix. */
-    public static final String DLQ_PROPERTIES_PREFIX = "dlq";
-
     private PropertiesUtils() {}
 
     /**

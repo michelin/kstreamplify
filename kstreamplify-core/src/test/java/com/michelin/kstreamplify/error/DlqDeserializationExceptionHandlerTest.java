@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static com.michelin.kstreamplify.constants.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import java.nio.charset.StandardCharsets;
@@ -116,7 +118,7 @@ class DlqDeserializationExceptionHandlerTest {
         // Enable the feature flag
         Properties props = new Properties();
         props.setProperty(APPLICATION_ID_CONFIG, "test-app");
-        props.setProperty("dlq.deserialization.handler.rest.client.exception.enabled", "true");
+        props.setProperty(DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION, "true");
         KafkaStreamsExecutionContext.registerProperties(props);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
@@ -127,10 +129,7 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.topic()).thenReturn("topic");
 
         // Wrap the RestClientException so getCause() is an instance of RestClientException
-        Exception wrapped = new Exception(
-                "Wrapper",
-                new io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException(
-                        "schema error", 500, 500));
+        Exception wrapped = new Exception("Wrapper", new RestClientException("schema error", 500, 500));
 
         DeserializationExceptionHandler.DeserializationHandlerResponse response =
                 handler.handle(errorHandlerContext, consumerRecord, wrapped);
@@ -145,7 +144,7 @@ class DlqDeserializationExceptionHandlerTest {
         // Disable the feature flag
         Properties props = new Properties();
         props.setProperty(APPLICATION_ID_CONFIG, "test-app");
-        props.setProperty("dlq.deserialization.handler.rest.client.exception.enabled", "false");
+        props.setProperty(DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION, "false");
         KafkaStreamsExecutionContext.registerProperties(props);
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
