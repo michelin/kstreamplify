@@ -38,6 +38,7 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 @Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
+    private boolean handleSchemaRegistryRestException = false;
 
     /** Constructor. */
     public DlqDeserializationExceptionHandler() {
@@ -58,14 +59,14 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
      *
      * @param errorHandlerContext The error handler context
      * @param consumerRecord The record to deserialize
-     * @param consumptionException The exception for the deserialization
+     * @param exception The exception for the deserialization
      * @return FAIL or CONTINUE
      */
     @Override
     public DeserializationHandlerResponse handle(
             ErrorHandlerContext errorHandlerContext,
             ConsumerRecord<byte[], byte[]> consumerRecord,
-            Exception consumptionException) {
+            Exception exception) {
         if (StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName())) {
             log.warn("Failed to route deserialization error to the designated DLQ topic. "
                     + "Please make sure to define a DLQ topic in your KafkaStreamsStarter bean configuration.");
@@ -74,7 +75,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
 
         try {
             var builder = KafkaError.newBuilder();
-            enrichWithException(builder, consumptionException, consumerRecord.key(), consumerRecord.value())
+            enrichWithException(builder, exception, consumerRecord.key(), consumerRecord.value())
                     .setContextMessage("An exception occurred during the stream internal deserialization")
                     .setOffset(consumerRecord.offset())
                     .setPartition(consumerRecord.partition())
@@ -82,11 +83,11 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setApplicationId(
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG));
 
-            boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
-            boolean isRestClientSchemaRegistryException =
-                    consumptionException.getCause() instanceof RestClientException;
+            boolean isCausedByKafka = exception.getCause() instanceof KafkaException;
+            boolean isRestClientSchemaRegistryException = exception.getCause() instanceof RestClientException;
+
             if (isCausedByKafka
-                    || consumptionException.getCause() == null
+                    || exception.getCause() == null
                     || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
                 producer.send(new ProducerRecord<>(
                                 KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build()))
@@ -97,7 +98,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             log.error(
                     "Interruption while sending the deserialization exception {} for key {}, "
                             + "value {} and topic {} to DLQ topic {}",
-                    consumptionException,
+                    exception,
                     consumerRecord.key(),
                     consumerRecord.value(),
                     consumerRecord.topic(),
@@ -107,7 +108,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         } catch (Exception e) {
             log.error(
                     "Cannot send the deserialization exception {} for key {}, value {} and topic {} to DLQ topic {}",
-                    consumptionException,
+                    exception,
                     consumerRecord.key(),
                     consumerRecord.value(),
                     consumerRecord.topic(),
@@ -127,7 +128,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             if (producer == null) {
                 instantiateProducer(DlqDeserializationExceptionHandler.class.getName(), configs);
             }
-            // Enable handling of Schema Registry RestClient exceptions in DLQ if the feature flag is set
+
             handleSchemaRegistryRestException = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
                     DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
         }
