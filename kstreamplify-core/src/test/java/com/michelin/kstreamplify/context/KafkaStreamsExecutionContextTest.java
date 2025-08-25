@@ -18,8 +18,7 @@
  */
 package com.michelin.kstreamplify.context;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Properties;
 import org.apache.kafka.streams.StreamsConfig;
@@ -31,6 +30,7 @@ class KafkaStreamsExecutionContextTest {
     @BeforeEach
     void setUp() {
         KafkaStreamsExecutionContext.setProperties(null);
+        KafkaStreamsExecutionContext.setDlqProperties(new Properties());
     }
 
     @Test
@@ -72,5 +72,53 @@ class KafkaStreamsExecutionContextTest {
 
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
         assertNull(KafkaStreamsExecutionContext.getProperties().get(StreamsConfig.APPLICATION_ID_CONFIG));
+    }
+
+    @Test
+    void shouldExtractDlqProperties() {
+        Properties properties = new Properties();
+        properties.put("dlq.some.feature", "true");
+        properties.put("dlq.other.feature", "false");
+
+        KafkaStreamsExecutionContext.registerProperties(properties);
+
+        Properties dlqProps = KafkaStreamsExecutionContext.getDlqProperties();
+        assertEquals("true", dlqProps.getProperty("dlq.some.feature"));
+        assertEquals("false", dlqProps.getProperty("dlq.other.feature"));
+    }
+
+    @Test
+    void shouldReturnTrueWhenDlqFeatureEnabled() {
+        Properties properties = new Properties();
+        properties.put("dlq.test.feature", "true");
+
+        KafkaStreamsExecutionContext.registerProperties(properties);
+
+        assertTrue(KafkaStreamsExecutionContext.isDlqFeatureEnabled("dlq.test.feature"));
+    }
+
+    @Test
+    void shouldReturnFalseWhenDlqFeatureDisabled() {
+        Properties properties = new Properties();
+        properties.put("dlq.test.feature", "false");
+
+        KafkaStreamsExecutionContext.registerProperties(properties);
+
+        assertFalse(KafkaStreamsExecutionContext.isDlqFeatureEnabled("dlq.test.feature"));
+    }
+
+    @Test
+    void shouldReturnFalseWhenDlqFeatureNotPresent() {
+        Properties properties = new Properties();
+
+        KafkaStreamsExecutionContext.registerProperties(properties);
+
+        assertFalse(KafkaStreamsExecutionContext.isDlqFeatureEnabled("dlq.missing.feature"));
+    }
+
+    @Test
+    void shouldUseDefaultFalseWhenDlqFeatureMissing() {
+        KafkaStreamsExecutionContext.setDlqProperties(new Properties());
+        assertFalse(KafkaStreamsExecutionContext.isDlqFeatureEnabled("dlq.non.existing"));
     }
 }

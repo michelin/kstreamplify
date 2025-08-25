@@ -18,10 +18,12 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static com.michelin.kstreamplify.property.KstreamplifyConfig.*;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -81,10 +83,11 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG));
 
             boolean isCausedByKafka = consumptionException.getCause() instanceof KafkaException;
-            // If the cause of this exception is a KafkaException and if getCause == sourceException
-            // (see Throwable.getCause - including SerializationException)
-            // use to handle poison pill => sent message into dlq and continue our life.
-            if (isCausedByKafka || consumptionException.getCause() == null) {
+            boolean isRestClientSchemaRegistryException =
+                    consumptionException.getCause() instanceof RestClientException;
+            if (isCausedByKafka
+                    || consumptionException.getCause() == null
+                    || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
                 producer.send(new ProducerRecord<>(
                                 KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), builder.build()))
                         .get();
@@ -124,6 +127,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             if (producer == null) {
                 instantiateProducer(DlqDeserializationExceptionHandler.class.getName(), configs);
             }
+            // Enable handling of Schema Registry RestClient exceptions in DLQ if the feature flag is set
+            handleSchemaRegistryRestException = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
+                    DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
         }
     }
 }

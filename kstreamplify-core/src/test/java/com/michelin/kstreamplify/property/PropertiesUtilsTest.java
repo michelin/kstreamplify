@@ -18,8 +18,9 @@
  */
 package com.michelin.kstreamplify.property;
 
+import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,15 @@ class PropertiesUtilsTest {
         Properties properties = PropertiesUtils.loadProperties();
 
         assertTrue(properties.containsKey("server.port"));
-        assertTrue(properties.containsValue(8080));
+        assertEquals(8080, properties.get("server.port"));
 
         assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
-        assertTrue(properties.containsValue("appId"));
+        assertEquals("appId", properties.get("kafka.properties." + APPLICATION_ID_CONFIG));
+
+        assertTrue(properties.containsKey(
+                "kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
+        assertEquals(
+                true, properties.get("kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
     }
 
     @Test
@@ -43,5 +49,44 @@ class PropertiesUtilsTest {
 
         assertTrue(properties.containsKey(APPLICATION_ID_CONFIG));
         assertTrue(properties.containsValue("appId"));
+    }
+
+    @Test
+    void shouldExtractPropertiesByPrefix() {
+        Properties props = new Properties();
+        props.put("dlq.feature1", "true");
+        props.put("dlq.feature2", "false");
+        props.put("other.feature", "ignored");
+
+        Properties extracted = PropertiesUtils.extractPropertiesByPrefix(props, "dlq.");
+
+        assertEquals(2, extracted.size());
+        assertEquals("true", extracted.getProperty("dlq.feature1"));
+        assertEquals("false", extracted.getProperty("dlq.feature2"));
+        assertNull(extracted.getProperty("other.feature"));
+    }
+
+    @Test
+    void shouldReturnTrueWhenFeatureEnabled() {
+        Properties props = new Properties();
+        props.put("my.feature", "true");
+
+        assertTrue(PropertiesUtils.isFeatureEnabled(props, "my.feature", false));
+    }
+
+    @Test
+    void shouldReturnFalseWhenFeatureDisabled() {
+        Properties props = new Properties();
+        props.put("my.feature", "false");
+
+        assertFalse(PropertiesUtils.isFeatureEnabled(props, "my.feature", true));
+    }
+
+    @Test
+    void shouldReturnDefaultWhenFeatureMissing() {
+        Properties props = new Properties();
+
+        assertTrue(PropertiesUtils.isFeatureEnabled(props, "missing.feature", true));
+        assertFalse(PropertiesUtils.isFeatureEnabled(props, "missing.feature", false));
     }
 }

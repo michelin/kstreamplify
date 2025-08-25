@@ -113,4 +113,33 @@ public final class PropertiesUtils {
 
         return properties;
     }
+
+    /**
+     * Extract properties by prefix.
+     *
+     * @param properties The properties
+     * @param prefix The prefix to filter by
+     * @return The filtered properties
+     */
+    public static Properties extractPropertiesByPrefix(Properties properties, String prefix) {
+        Properties result = new Properties();
+        for (String key : properties.stringPropertyNames()) {
+            if (key.startsWith(prefix)) {
+                result.setProperty(key, properties.getProperty(key));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Check if a feature is enabled based on properties.
+     *
+     * @param properties The properties
+     * @param key The property key
+     * @param defaultValue The default value if the property is not set
+     * @return true if the feature is enabled, false otherwise
+     */
+    public static boolean isFeatureEnabled(Properties properties, String key, boolean defaultValue) {
+        return Boolean.parseBoolean(properties.getProperty(key, Boolean.toString(defaultValue)));
+    }
 }

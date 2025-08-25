@@ -435,7 +435,11 @@ kafka:
   properties:
     default.deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
     default.production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
+    dlq:
+      deserialization-handler:
+        forward-restclient-exception: true
 ```
+
 
 ### Avro Schema
 
