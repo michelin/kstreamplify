@@ -426,20 +426,30 @@ Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to th
 
 ### Production and Deserialization Errors
 
-Kstreamplify also provides handlers to manage production and deserialization errors by forwarding them to the DLQ.
+Kstreamplify provides handlers implementations to forward production and deserialization errors to the DLQ.
 
-Add the following properties to your `application.yml`
+Add the following properties to your `application.yml`:
 
 ```yml
 kafka:
   properties:
     default.deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
     default.production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
+```
+
+Additionally, some exceptions can optionally be forwarded to the DLQ by enabling the following properties:
+
+```yml
+kafka:
+  properties:
     dlq:
       deserialization-handler:
         forward-restclient-exception: true
 ```
 
+| Property                                                   | Handler                           | Description                                                                                |
+|------------------------------------------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
+| `dlq.deserialization-handler.forward-restclient-exception` | Deserialization Exception Handler | Forwards `RestClientException` from the Schema Registry (e.g., when a schema is not found) |
 
 ### Avro Schema
 
