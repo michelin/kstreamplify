@@ -18,7 +18,7 @@
  */
 package com.michelin.kstreamplify.property;
 
-import static com.michelin.kstreamplify.constants.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
+import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,14 +32,15 @@ class PropertiesUtilsTest {
         Properties properties = PropertiesUtils.loadProperties();
 
         assertTrue(properties.containsKey("server.port"));
-        assertTrue(properties.containsValue(8080));
+        assertEquals(8080, properties.get("server.port"));
 
         assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
-        assertTrue(properties.containsValue("appId"));
+        assertEquals("appId", properties.get("kafka.properties." + APPLICATION_ID_CONFIG));
 
         assertTrue(properties.containsKey(
                 "kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
-        assertTrue(properties.containsValue(true));
+        assertEquals(
+                true, properties.get("kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
     }
 
     @Test

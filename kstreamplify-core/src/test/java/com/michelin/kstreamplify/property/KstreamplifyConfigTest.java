@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.michelin.kstreamplify.constants;
+package com.michelin.kstreamplify.property;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,16 +34,5 @@ class KstreamplifyConfigTest {
         assertEquals(
                 "dlq.deserialization-handler.forward-restclient-exception",
                 KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
-    }
-
-    @Test
-    void shouldHandleSchemaRegistryRestExceptionDefaultFalse() {
-        assertFalse(KstreamplifyConfig.handleSchemaRegistryRestException);
-    }
-
-    @Test
-    void shouldAllowChangingHandleSchemaRegistryRestExceptionFlag() {
-        assertTrue(true);
-        KstreamplifyConfig.handleSchemaRegistryRestException = false;
     }
 }

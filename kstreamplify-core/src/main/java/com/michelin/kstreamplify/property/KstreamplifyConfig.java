@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.michelin.kstreamplify.constants;
+package com.michelin.kstreamplify.property;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

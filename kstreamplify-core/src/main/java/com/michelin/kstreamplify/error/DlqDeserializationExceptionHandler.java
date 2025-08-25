@@ -18,7 +18,7 @@
  */
 package com.michelin.kstreamplify.error;
 
-import static com.michelin.kstreamplify.constants.KstreamplifyConfig.*;
+import static com.michelin.kstreamplify.property.KstreamplifyConfig.*;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 
 import com.michelin.kstreamplify.avro.KafkaError;
