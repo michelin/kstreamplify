@@ -62,6 +62,13 @@ jobs:
         with:
           report_paths: '**/target/surefire-reports/TEST-*.xml'
 
+      - name: Sonar
+        if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
+        run: mvn verify sonar:sonar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: Grype source code
         if: matrix.java == '17'
         id: grype_source_code
@@ -78,13 +85,6 @@ jobs:
         with:
           sarif_file: ${{ steps.grype_source_code.outputs.sarif }}
           category: 'source-code'
-
-      - name: Sonar
-        if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
-        run: mvn verify sonar:sonar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Metadata
         if: matrix.java == '17' && github.ref == 'refs/heads/main'
