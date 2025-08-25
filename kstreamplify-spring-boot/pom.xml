@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.michelin</groupId>
         <artifactId>kstreamplify</artifactId>
-        <version>1.4.1-SNAPSHOT</version>
+        <version>1.5.0</version>
     </parent>
     <artifactId>kstreamplify-spring-boot</artifactId>
 
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.michelin</groupId>
             <artifactId>kstreamplify-core</artifactId>
-            <version>1.4.1-SNAPSHOT</version>
+            <version>1.5.0</version>
         </dependency>
 
         <dependency>
