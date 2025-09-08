@@ -103,7 +103,7 @@
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
         <kafka-streams-avro-serde.version>8.0.0</kafka-streams-avro-serde.version>
         <kafka.version>3.9.1</kafka.version>
-        <lombok.version>1.18.38</lombok.version>
+        <lombok.version>1.18.40</lombok.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
