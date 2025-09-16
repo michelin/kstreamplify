@@ -99,7 +99,7 @@
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <gson.version>2.13.2</gson.version>
         <jackson-core.version>2.20.0</jackson-core.version>
-        <jacoco.version>0.8.13</jacoco.version>
+        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
         <kafka-streams-avro-serde.version>8.0.0</kafka-streams-avro-serde.version>
         <kafka.version>3.9.1</kafka.version>
@@ -365,7 +365,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
+                <version>${jacoco-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>jacoco-initialize</id>
@@ -373,25 +373,13 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
                     <execution>
                         <id>report</id>
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <phase>prepare-package</phase>
-                    </execution>
-                    <execution>
-                        <id>post-unit-test</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
                         <phase>test</phase>
-                        <configuration>
-                            <!-- Sets the path to the file which contains the execution data. -->
-                            <dataFile>target/jacoco.exec</dataFile>
-                            <!-- Sets the output directory for the code coverage report. -->
-                            <outputDirectory>target/jacoco-ut</outputDirectory>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
