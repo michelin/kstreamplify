@@ -72,7 +72,7 @@ jobs:
       - name: Grype source code
         if: matrix.java == '17'
         id: grype_source_code
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           path: .
           fail-build: true
