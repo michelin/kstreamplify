@@ -101,7 +101,7 @@
         <jackson-core.version>2.20.0</jackson-core.version>
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <junit-jupiter.version>5.13.4</junit-jupiter.version>
-        <kafka-streams-avro-serde.version>8.0.0</kafka-streams-avro-serde.version>
+        <kafka-streams-avro-serde.version>8.0.1</kafka-streams-avro-serde.version>
         <kafka.version>3.9.1</kafka.version>
         <lombok.version>1.18.42</lombok.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
