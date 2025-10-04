@@ -89,13 +89,9 @@ Wondering what makes Kstreamplify stand out? Here are some of the key features t
 
 ## Getting Started
 
-Kstreamplify simplifies bootstrapping Kafka Streams applications by handling startup, configuration, and initialization for you.
-
 ### Spring Boot
 
-[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-spring-boot/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-spring-boot)
-
-For Spring Boot applications, add the following dependency:
+For Spring applications using the Spring Boot starter parent:
 
 ```xml
 <dependency>
@@ -105,7 +101,7 @@ For Spring Boot applications, add the following dependency:
 </dependency>
 ```
 
-Then, create a `KafkaStreamsStarter` bean and override the `KafkaStreamsStarter#topology()` method:
+Create a `KafkaStreamsStarter` bean and override the `KafkaStreamsStarter#topology()` method:
 
 ```java
 @Component
@@ -122,7 +118,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-Define all your Kafka Streams properties directly from the `application.yml` file, under the `kafka.properties` key:
+Define Kafka Streams properties in `application.yml` under the `kafka.properties` key:
 
 ```yml
 kafka:
@@ -136,9 +132,7 @@ You're now ready to start your Kstreamplify Spring Boot application.
 
 ### Java
 
-[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core/javadoc.svg?style=for-the-badge)](https://javadoc.io/doc/com.michelin/kstreamplify-core)
-
-For simple Java applications, add the following dependency:
+For framework-independent Java applications:
 
 ```xml
 <dependency>
@@ -148,7 +142,7 @@ For simple Java applications, add the following dependency:
 </dependency>
 ```
 
-Then, create a class that extends `KafkaStreamsStarter` and override the `KafkaStreamsStarter#topology()` method:
+Create a class that extends `KafkaStreamsStarter` and override the `KafkaStreamsStarter#topology()` method:
 
 ```java
 public class MyKafkaStreams extends KafkaStreamsStarter {
@@ -164,7 +158,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-From your `main` method, create a `KafkaStreamsInitializer` instance and initialize it with your `KafkaStreamsStarter` child class:
+From your `main` method, initialize `KafkaStreamsInitializer` with your `KafkaStreamsStarter` implementation:
 
 ```java
 public class MainKstreamplify {
@@ -176,7 +170,7 @@ public class MainKstreamplify {
 }
 ```
 
-Define all your Kafka Streams properties in an `application.yml` file, under the `kafka.properties` key:
+Define Kafka Streams properties in `src/main/resources/application.yml` under the `kafka.properties` key:
 
 ```yml
 kafka:
@@ -190,17 +184,15 @@ server:
 
 You're now ready to start your Kstreamplify Java application.
 
-A few important notes:
-- A `server.port` is required to enable the [web services](#web-services).
-- The core dependency does not include a logger—be sure to add one to your project.
+**Notes**:
+- `server.port` is required to enable the [web services](#web-services).
+- The core dependency does not include a logger. Add one to your project.
 
-## Unit Test
+### Unit Test
 
-[![javadoc](https://javadoc.io/badge2/com.michelin/kstreamplify-core-test/javadoc.svg?style=for-the-badge&)](https://javadoc.io/doc/com.michelin/kstreamplify-core-test)
+Kstreamplify simplifies testing Kafka Streams applications using the **Topology Test Driver**.
 
-Kstreamplify simplifies the use of the **Topology Test Driver** for testing Kafka Streams applications.
-
-For both Java and Spring Boot applications, add the following dependency:
+Add the test dependency for both Java and Spring Boot applications:
 
 ```xml
 <dependency>
@@ -211,8 +203,7 @@ For both Java and Spring Boot applications, add the following dependency:
 </dependency>
 ```
 
-Create a test class that extends `KafkaStreamsStarterTest`.
-Override the `getKafkaStreamsStarter()` method to provide your custom to provide your `KafkaStreamsStarter` implementation.
+Create a test class extending `KafkaStreamsStarterTest` and override `getKafkaStreamsStarter()`:
 
 ```java
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
@@ -252,10 +243,9 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
 }
 ```
 
-### Override Properties
+#### Override Properties
 
-Kstreamplify uses default properties for the tests. 
-You can provide additional properties or override the default ones by overriding the `getSpecificProperties()` method:
+Kstreamplify uses default properties in tests. Override or add properties by overriding `getSpecificProperties()`:
 
 ```java
 public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
@@ -282,7 +272,7 @@ or
 SerdesUtils.<MyAvroValue>getKeySerdes()
 ```
 
-Here’s an example of how to use these methods in your topology:
+Here's an example of using these methods in your topology:
 
 ```java
 @Component
