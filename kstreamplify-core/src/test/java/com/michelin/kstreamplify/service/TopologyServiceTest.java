@@ -48,8 +48,7 @@ class TopologyServiceTest {
 
         String response = topologyService.getTopology();
 
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -57,8 +56,7 @@ class TopologyServiceTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """,
-                response);
+            """, response);
     }
 
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {

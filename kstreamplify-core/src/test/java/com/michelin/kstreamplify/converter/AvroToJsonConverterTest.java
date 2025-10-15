@@ -47,20 +47,17 @@ class AvroToJsonConverterTest {
     @Test
     void shouldConvertObject() {
         String json = AvroToJsonConverter.convertObject(new UserStub("John", "Doe"));
-        assertEquals(
-                """
+        assertEquals("""
             {
               "firstName": "John",
               "lastName": "Doe"
-            }""",
-                json);
+            }""", json);
     }
 
     @Test
     void shouldConvertGenericRecord() {
         String json = AvroToJsonConverter.convertRecord(buildKafkaRecordStub());
-        assertEquals(
-                """
+        assertEquals("""
             {
               "localTimestampMillisField": "2024-03-27T20:51:01.815832",
               "membersString": {
@@ -100,20 +97,17 @@ class AvroToJsonConverterTest {
               "timeMicrosField": "20:51:01.815832",
               "stringField": "test",
               "enumField": "b"
-            }""",
-                json);
+            }""", json);
     }
 
     @Test
     void shouldConvertListObject() {
         String json = AvroToJsonConverter.convertObject(List.of(new UserStub("John", "Doe")));
-        assertEquals(
-                """
+        assertEquals("""
             [{
               "firstName": "John",
               "lastName": "Doe"
-            }]""",
-                json);
+            }]""", json);
     }
 
     private KafkaRecordStub buildKafkaRecordStub() {
