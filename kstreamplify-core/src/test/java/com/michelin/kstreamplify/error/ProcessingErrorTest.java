@@ -69,8 +69,7 @@ class ProcessingErrorTest {
 
         assertEquals(exception, processingError.getException());
         assertEquals(contextMessage, processingError.getContextMessage());
-        assertEquals(
-                """
+        assertEquals("""
             {
               "partition": 1,
               "offset": 1,
@@ -78,7 +77,6 @@ class ProcessingErrorTest {
               "topic": "Topic",
               "applicationId": "ApplicationId",
               "value": "Value"
-            }""",
-                processingError.getKafkaRecord());
+            }""", processingError.getKafkaRecord());
     }
 }

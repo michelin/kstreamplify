@@ -125,8 +125,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         HttpResponse<String> responseTopology = httpClient.send(requestTopology, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, responseTopology.statusCode());
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -134,8 +133,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """,
-                responseTopology.body());
+            """, responseTopology.body());
     }
 
     @Slf4j

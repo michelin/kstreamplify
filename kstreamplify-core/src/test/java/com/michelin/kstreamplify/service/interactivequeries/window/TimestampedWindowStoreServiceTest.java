@@ -268,9 +268,7 @@ class TimestampedWindowStoreServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
                 .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body())
-                .thenReturn(
-                        """
+        when(httpResponse.body()).thenReturn("""
             [
               {
                 "key": "key",
@@ -438,9 +436,7 @@ class TimestampedWindowStoreServiceTest {
         when(httpClient.sendAsync(any(), eq(HttpResponse.BodyHandlers.ofString())))
                 .thenReturn(CompletableFuture.completedFuture(httpResponse));
 
-        when(httpResponse.body())
-                .thenReturn(
-                        """
+        when(httpResponse.body()).thenReturn("""
               [
                 {
                   "key": "key",

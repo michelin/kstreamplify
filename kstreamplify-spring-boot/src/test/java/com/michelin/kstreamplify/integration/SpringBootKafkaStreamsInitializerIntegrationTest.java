@@ -106,8 +106,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
                 restTemplate.getForEntity("http://localhost:8000/topology", String.class);
 
         assertEquals(200, responseTopology.getStatusCode().value());
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -115,8 +114,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """,
-                responseTopology.getBody());
+            """, responseTopology.getBody());
     }
 
     @Test

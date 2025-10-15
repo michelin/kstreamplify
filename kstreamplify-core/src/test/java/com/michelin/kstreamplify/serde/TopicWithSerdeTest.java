@@ -63,15 +63,13 @@ class TopicWithSerdeTest {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.stream(streamsBuilder);
 
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
                   --> none
 
-            """,
-                streamsBuilder.build().describe().toString());
+            """, streamsBuilder.build().describe().toString());
     }
 
     @Test
@@ -84,8 +82,7 @@ class TopicWithSerdeTest {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.table(streamsBuilder, "myStore");
 
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -94,8 +91,7 @@ class TopicWithSerdeTest {
                   --> none
                   <-- KSTREAM-SOURCE-0000000000
 
-            """,
-                streamsBuilder.build().describe().toString());
+            """, streamsBuilder.build().describe().toString());
     }
 
     @Test
@@ -108,8 +104,7 @@ class TopicWithSerdeTest {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.globalTable(streamsBuilder, "myStore");
 
-        assertEquals(
-                """
+        assertEquals("""
             Topologies:
                Sub-topology: 0 for global store (will not generate tasks)
                 Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
@@ -117,7 +112,6 @@ class TopicWithSerdeTest {
                 Processor: KTABLE-SOURCE-0000000001 (stores: [myStore])
                   --> none
                   <-- KSTREAM-SOURCE-0000000000
-            """,
-                streamsBuilder.build().describe().toString());
+            """, streamsBuilder.build().describe().toString());
     }
 }
