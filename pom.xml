@@ -117,7 +117,7 @@
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
-        <spring-boot.version>3.5.6</spring-boot.version>
+        <spring-boot.version>3.5.7</spring-boot.version>
         <springdoc.version>2.8.13</springdoc.version>
         <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
