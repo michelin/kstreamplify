@@ -1,0 +1,35 @@
+name: Security
+
+on:
+  schedule:
+    - cron: '0 5 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  scan-code:
+    name: Scan code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Trivy source code
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          format: sarif
+          output: trivy-results.sarif
+          ignore-unfixed: true
+          limit-severities-for-sarif: true
+
+      - name: Upload Trivy source code report
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
+          category: source-code
