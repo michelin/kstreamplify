@@ -19,6 +19,9 @@
 package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 /** Kafka Streams topology service. */
@@ -48,5 +51,25 @@ public class TopologyService {
      */
     public String getTopology() {
         return kafkaStreamsInitializer.getTopology().describe().toString();
+    }
+
+    /**
+     * Get the Kafka Streams metrics.
+     *
+     * @return The Kafka Streams metrics
+     */
+    public List<Map<String, Map<String, Object>>> metrics() {
+        return kafkaStreamsInitializer.getKafkaStreams().metrics().entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> values = new HashMap<>();
+                    values.put("name", entry.getKey().name());
+                    values.put("description", entry.getKey().description());
+                    values.put("tags", entry.getKey().tags().toString());
+                    if (entry.getValue().metricValue() != null) {
+                        values.put("value", entry.getValue().metricValue());
+                    }
+                    return Map.of(entry.getKey().name(), values);
+                })
+                .toList();
     }
 }

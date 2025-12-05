@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -80,6 +81,7 @@ public class InteractiveQueriesController {
      *
      * @return The stores
      */
+    @Tool(name = "get_state_stores", description = "Get the state stores.")
     @Operation(summary = "Get the state stores.")
     @ApiResponses(
             value = {
@@ -141,6 +143,7 @@ public class InteractiveQueriesController {
      * @param store The store
      * @return The values
      */
+    @Tool(name = "get_all_in_key_value_store", description = "Get all records from a key-value store.")
     @Operation(summary = "Get all records from a key-value store.")
     @ApiResponses(
             value = {

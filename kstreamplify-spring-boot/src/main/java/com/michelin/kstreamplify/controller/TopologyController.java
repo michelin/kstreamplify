@@ -24,6 +24,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,10 +54,16 @@ public class TopologyController {
      *
      * @return The Kafka Streams topology
      */
+    @Tool(name = "get_topology", description = "Get the Kafka Streams topology.")
     @Operation(summary = "Get the Kafka Streams topology")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK")})
     @GetMapping("/${topology.path:topology}")
     public ResponseEntity<String> topology() {
         return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(topologyService.getTopology());
+    }
+
+    @Tool(name = "get_metrics", description = "Get the Kafka Streams metrics.")
+    public ResponseEntity<List<Map<String, Map<String, Object>>>> metrics() {
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(topologyService.metrics());
     }
 }

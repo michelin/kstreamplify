@@ -6,3 +6,4 @@ com.michelin.kstreamplify.controller.ControllerExceptionHandler
 com.michelin.kstreamplify.property.KafkaProperties
 com.michelin.kstreamplify.opentelemetry.OpenTelemetryConfig
 com.michelin.kstreamplify.config.BeanConfig
+com.michelin.kstreamplify.config.McpConfig
