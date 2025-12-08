@@ -113,7 +113,7 @@
         <mockito.version>5.20.0</mockito.version>
         <palantir.version>2.80.0</palantir.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar-maven-plugin.version>5.3.0.6276</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
