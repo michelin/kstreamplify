@@ -22,6 +22,7 @@ import com.michelin.kstreamplify.exception.PropertiesFileException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -104,8 +105,8 @@ public final class PropertiesUtils {
         }
 
         if (map instanceof LinkedHashMap<?, ?> hashMap) {
-            for (Object mapKey : hashMap.keySet()) {
-                parseKey(key + separator + mapKey, hashMap.get(mapKey), properties);
+            for (Map.Entry<?, ?> entry : hashMap.entrySet()) {
+                parseKey(key + separator + entry.getKey(), entry.getValue(), properties);
             }
         } else {
             properties.put(key, map);
