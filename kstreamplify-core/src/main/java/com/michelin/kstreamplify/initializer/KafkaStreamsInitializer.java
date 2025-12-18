@@ -150,7 +150,7 @@ public class KafkaStreamsInitializer {
                 hostInfo.port());
 
         KafkaStreamsExecutionContext.getProperties()
-                .put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", hostInfo.host(), hostInfo.port()));
+                .put(StreamsConfig.APPLICATION_SERVER_CONFIG, "%s:%s".formatted(hostInfo.host(), hostInfo.port()));
     }
 
     /** Init the HTTP server. */
