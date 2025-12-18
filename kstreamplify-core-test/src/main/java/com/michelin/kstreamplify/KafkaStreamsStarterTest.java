@@ -29,7 +29,7 @@ import com.michelin.kstreamplify.serde.TopicWithSerde;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -140,7 +140,7 @@ public abstract class KafkaStreamsStarterTest {
     void generalTearDown() throws IOException {
         testDriver.close();
         Files.deleteIfExists(
-                Paths.get(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
+                Path.of(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
         MockSchemaRegistry.dropScope("mock://" + getClass().getSimpleName());
     }
 

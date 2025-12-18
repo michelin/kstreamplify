@@ -103,9 +103,9 @@ public final class PropertiesUtils {
             separator = "";
         }
 
-        if (map instanceof LinkedHashMap) {
-            for (Object mapKey : ((LinkedHashMap<?, ?>) map).keySet()) {
-                parseKey(key + separator + mapKey, ((LinkedHashMap<?, ?>) map).get(mapKey), properties);
+        if (map instanceof LinkedHashMap<?, ?> hashMap) {
+            for (Object mapKey : hashMap.keySet()) {
+                parseKey(key + separator + mapKey, hashMap.get(mapKey), properties);
             }
         } else {
             properties.put(key, map);

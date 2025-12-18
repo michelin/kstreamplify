@@ -28,6 +28,6 @@ public class UnknownKeyException extends RuntimeException {
      * @param key The key that was not found
      */
     public UnknownKeyException(String key) {
-        super(String.format(UNKNOWN_KEY, key));
+        super(UNKNOWN_KEY.formatted(key));
     }
 }

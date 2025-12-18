@@ -63,7 +63,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
-            throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
+            throw new UnknownStateStoreException(UNKNOWN_STATE_STORE.formatted(store));
         }
 
         List<StateStoreRecord> results = new ArrayList<>();
@@ -93,7 +93,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
         KeyQueryMetadata keyQueryMetadata = getKeyQueryMetadata(store, key, new StringSerializer());
 
         if (keyQueryMetadata == null) {
-            throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
+            throw new UnknownStateStoreException(UNKNOWN_STATE_STORE.formatted(store));
         }
 
         HostInfo host = keyQueryMetadata.activeHost();
@@ -118,7 +118,7 @@ abstract class CommonKeyValueStoreService extends CommonStoreService {
         final Collection<StreamsMetadata> streamsMetadata = getStreamsMetadataForStore(store);
 
         if (streamsMetadata == null || streamsMetadata.isEmpty()) {
-            throw new UnknownStateStoreException(String.format(UNKNOWN_STATE_STORE, store));
+            throw new UnknownStateStoreException(UNKNOWN_STATE_STORE.formatted(store));
         }
 
         return executeRangeQuery(store);

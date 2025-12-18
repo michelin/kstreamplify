@@ -167,7 +167,7 @@ public abstract class CommonStoreService {
             throws URISyntaxException, ExecutionException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .header("Accept", "application/json")
-                .uri(new URI(String.format("http://%s:%d/%s", host.host(), host.port(), endpointPath)))
+                .uri(new URI("http://%s:%d/%s".formatted(host.host(), host.port(), endpointPath)))
                 .GET()
                 .build();
 
@@ -192,7 +192,7 @@ public abstract class CommonStoreService {
     private void checkStreamsRunning() {
         if (kafkaStreamsInitializer.isNotRunning()) {
             KafkaStreams.State state = kafkaStreamsInitializer.getKafkaStreams().state();
-            throw new StreamsNotStartedException(String.format(STREAMS_NOT_STARTED, state));
+            throw new StreamsNotStartedException(STREAMS_NOT_STARTED.formatted(state));
         }
     }
 
