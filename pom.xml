@@ -98,7 +98,7 @@
         <commons-io.version>2.21.0</commons-io.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <gson.version>2.13.2</gson.version>
-        <jackson-core.version>2.20.1</jackson-core.version>
+        <jackson-core.version>2.21.0</jackson-core.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <junit-jupiter.version>6.0.2</junit-jupiter.version>
         <kafka-streams-avro-serde.version>8.1.1</kafka-streams-avro-serde.version>
