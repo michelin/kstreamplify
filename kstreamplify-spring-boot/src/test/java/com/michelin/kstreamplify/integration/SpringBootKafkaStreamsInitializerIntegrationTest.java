@@ -42,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
@@ -94,18 +93,30 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
                 "localhost:8000", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        ResponseEntity<Void> responseReady = restTemplate.getForEntity("http://localhost:8000/ready", Void.class);
+        restTemplate
+                .get()
+                .uri("http://localhost:8000/ready")
+                .exchange()
+                .expectStatus()
+                .isOk();
 
-        assertEquals(200, responseReady.getStatusCode().value());
+        restTemplate
+                .get()
+                .uri("http://localhost:8000/liveness")
+                .exchange()
+                .expectStatus()
+                .isOk();
 
-        ResponseEntity<Void> responseLiveness = restTemplate.getForEntity("http://localhost:8000/liveness", Void.class);
+        String responseTopology = restTemplate
+                .get()
+                .uri("http://localhost:8000/topology")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
 
-        assertEquals(200, responseLiveness.getStatusCode().value());
-
-        ResponseEntity<String> responseTopology =
-                restTemplate.getForEntity("http://localhost:8000/topology", String.class);
-
-        assertEquals(200, responseTopology.getStatusCode().value());
         assertEquals("""
             Topologies:
                Sub-topology: 0
@@ -114,7 +125,7 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """, responseTopology.getBody());
+            """, responseTopology);
     }
 
     @Test

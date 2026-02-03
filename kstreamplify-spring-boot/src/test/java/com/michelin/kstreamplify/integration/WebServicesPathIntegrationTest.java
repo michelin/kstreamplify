@@ -39,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -91,20 +90,30 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 "localhost:8001", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        ResponseEntity<Void> responseReady =
-                restTemplate.getForEntity("http://localhost:8001/custom-readiness", Void.class);
+        restTemplate
+                .get()
+                .uri("http://localhost:8001/custom-readiness")
+                .exchange()
+                .expectStatus()
+                .isOk();
 
-        assertEquals(200, responseReady.getStatusCode().value());
+        restTemplate
+                .get()
+                .uri("http://localhost:8001/custom-liveness")
+                .exchange()
+                .expectStatus()
+                .isOk();
 
-        ResponseEntity<Void> responseLiveness =
-                restTemplate.getForEntity("http://localhost:8001/custom-liveness", Void.class);
+        String responseTopology = restTemplate
+                .get()
+                .uri("http://localhost:8001/custom-topology")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
 
-        assertEquals(200, responseLiveness.getStatusCode().value());
-
-        ResponseEntity<String> responseTopology =
-                restTemplate.getForEntity("http://localhost:8001/custom-topology", String.class);
-
-        assertEquals(200, responseTopology.getStatusCode().value());
         assertEquals("""
             Topologies:
                Sub-topology: 0
@@ -113,7 +122,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """, responseTopology.getBody());
+            """, responseTopology);
     }
 
     /**
