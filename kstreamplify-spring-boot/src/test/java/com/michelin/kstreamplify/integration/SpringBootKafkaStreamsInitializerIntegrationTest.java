@@ -26,6 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.RestClientTestConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +43,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
+@Import(RestClientTestConfig.class)
 class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @Autowired
     private MeterRegistry registry;
