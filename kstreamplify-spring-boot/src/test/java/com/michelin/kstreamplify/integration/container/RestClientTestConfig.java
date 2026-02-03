@@ -27,6 +27,6 @@ public class RestClientTestConfig {
     @Bean
     public RestClient restClient() {
         // Le port peut être adapté selon le test (8000, 8001, etc.)
-        return RestClient.builder().baseUrl("http://localhost:8000").build();
+        return RestClient.builder().baseUrl("http://localhost:8002").build();
     }
 }
