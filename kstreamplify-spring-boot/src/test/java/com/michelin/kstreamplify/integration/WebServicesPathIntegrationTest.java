@@ -93,30 +93,29 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 "localhost:8001", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        restTemplate
+        int readinessStatus = restTemplate
                 .get()
                 .uri("http://localhost:8001/custom-readiness")
-                .exchange()
-                .expectStatus()
-                .isOk();
+                .retrieve()
+                .toBodilessEntity()
+                .getStatusCode()
+                .value();
+        assertEquals(200, readinessStatus);
 
-        restTemplate
+        int livenessStatus = restTemplate
                 .get()
                 .uri("http://localhost:8001/custom-liveness")
-                .exchange()
-                .expectStatus()
-                .isOk();
+                .retrieve()
+                .toBodilessEntity()
+                .getStatusCode()
+                .value();
+        assertEquals(200, livenessStatus);
 
         String responseTopology = restTemplate
                 .get()
                 .uri("http://localhost:8001/custom-topology")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
-
+                .retrieve()
+                .body(String.class);
         assertEquals("""
             Topologies:
                Sub-topology: 0

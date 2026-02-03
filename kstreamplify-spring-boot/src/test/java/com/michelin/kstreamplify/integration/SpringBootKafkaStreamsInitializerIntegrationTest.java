@@ -96,30 +96,25 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
                 "localhost:8000", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        restTemplate
+        int readyStatus = restTemplate
                 .get()
-                .uri("http://localhost:8000/ready")
-                .exchange()
-                .expectStatus()
-                .isOk();
+                .uri("/ready")
+                .retrieve()
+                .toBodilessEntity()
+                .getStatusCode()
+                .value();
+        assertEquals(200, readyStatus);
 
-        restTemplate
+        int livenessStatus = restTemplate
                 .get()
-                .uri("http://localhost:8000/liveness")
-                .exchange()
-                .expectStatus()
-                .isOk();
+                .uri("/liveness")
+                .retrieve()
+                .toBodilessEntity()
+                .getStatusCode()
+                .value();
+        assertEquals(200, livenessStatus);
 
-        String responseTopology = restTemplate
-                .get()
-                .uri("http://localhost:8000/topology")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
-
+        String responseTopology = restTemplate.get().uri("/topology").retrieve().body(String.class);
         assertEquals("""
             Topologies:
                Sub-topology: 0

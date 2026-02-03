@@ -136,15 +136,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
-        List<String> stores = restTemplate
-                .get()
-                .uri("http://localhost:8004/store")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<String>>() {})
-                .returnResult()
-                .getResponseBody();
+        List<String> stores =
+                restTemplate.get().uri("/store").retrieve().body(new ParameterizedTypeReference<List<String>>() {});
 
         assertNotNull(stores);
         assertTrue(stores.containsAll(
@@ -153,13 +146,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         // Get hosts
         List<StreamsMetadata> streamsMetadata = restTemplate
                 .get()
-                .uri("http://localhost:8004/store/metadata/STRING_STRING_WINDOW_STORE")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StreamsMetadata>>() {})
-                .returnResult()
-                .getResponseBody();
+                .uri("/store/metadata/STRING_STRING_WINDOW_STORE")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<StreamsMetadata>>() {});
 
         assertNotNull(streamsMetadata);
         assertEquals(
@@ -180,14 +169,15 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         String response = restTemplate
-                .get()
-                .uri(url)
-                .exchange()
-                .expectStatus()
-                .isNotFound()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri(url)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 404
+                ? restTemplate.get().uri(url).retrieve().body(String.class)
+                : null;
 
         assertEquals(message, response);
     }
@@ -195,14 +185,19 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
         String response = restTemplate
-                .get()
-                .uri("http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isBadRequest()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri("/store/window/STRING_AVRO_KV_STORE/user")
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 400
+                ? restTemplate
+                        .get()
+                        .uri("/store/window/STRING_AVRO_KV_STORE/user")
+                        .retrieve()
+                        .body(String.class)
+                : null;
 
         assertNotNull(response);
     }
@@ -211,13 +206,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringStringStore() {
         List<StateStoreRecord> response = restTemplate
                 .get()
-                .uri("http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+                .uri("/store/window/STRING_STRING_WINDOW_STORE/user")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());
@@ -229,13 +220,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringAvroStore() {
         List<StateStoreRecord> response = restTemplate
                 .get()
-                .uri("http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+                .uri("/store/window/STRING_AVRO_WINDOW_STORE/user")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());
@@ -254,14 +241,19 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldNotFoundWhenStartTimeIsTooLate(String url) {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
         String response = restTemplate
-                .get()
-                .uri(url + "?startTime=" + tooLate)
-                .exchange()
-                .expectStatus()
-                .isNotFound()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri(url + "?startTime=" + tooLate)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 404
+                ? restTemplate
+                        .get()
+                        .uri(url + "?startTime=" + tooLate)
+                        .retrieve()
+                        .body(String.class)
+                : null;
 
         assertEquals("Key user not found", response);
     }
@@ -274,14 +266,19 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
         String response = restTemplate
-                .get()
-                .uri(url + "?endTime=" + tooEarly)
-                .exchange()
-                .expectStatus()
-                .isNotFound()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri(url + "?endTime=" + tooEarly)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 404
+                ? restTemplate
+                        .get()
+                        .uri(url + "?endTime=" + tooEarly)
+                        .retrieve()
+                        .body(String.class)
+                : null;
 
         assertEquals("Key user not found", response);
     }
@@ -295,12 +292,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> response = restTemplate
                 .get()
                 .uri(url)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());
@@ -317,12 +310,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         List<StateStoreRecord> response = restTemplate
                 .get()
                 .uri(url)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());

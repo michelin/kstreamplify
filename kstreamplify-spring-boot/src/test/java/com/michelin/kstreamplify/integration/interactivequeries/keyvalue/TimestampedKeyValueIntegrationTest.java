@@ -139,15 +139,7 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
-        List<String> stores = restTemplate
-                .get()
-                .uri("http://localhost:8003/store")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<String>>() {})
-                .returnResult()
-                .getResponseBody();
+        List<String> stores = restTemplate.get().uri("/store").retrieve().body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(stores);
         assertTrue(stores.containsAll(List.of(
@@ -157,12 +149,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         List<StreamsMetadata> streamsMetadata = restTemplate
                 .get()
                 .uri("http://localhost:8003/store/metadata/STRING_STRING_TIMESTAMPED_STORE")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StreamsMetadata>>() {})
-                .returnResult()
-                .getResponseBody();
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(streamsMetadata);
         assertEquals(
@@ -183,14 +171,15 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         String response = restTemplate
-                .get()
-                .uri(url)
-                .exchange()
-                .expectStatus()
-                .isNotFound()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri(url)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 404
+                ? restTemplate.get().uri(url).retrieve().body(String.class)
+                : null;
 
         assertEquals(message, response);
     }
@@ -198,14 +187,19 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
         String response = restTemplate
-                .get()
-                .uri("http://localhost:8003/store/key-value/timestamped/STRING_AVRO_WINDOW_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isBadRequest()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                                .get()
+                                .uri("/store/key-value/STRING_AVRO_KV_STORE/user")
+                                .retrieve()
+                                .toBodilessEntity()
+                                .getStatusCode()
+                                .value()
+                        == 400
+                ? restTemplate
+                        .get()
+                        .uri("/store/key-value/STRING_AVRO_KV_STORE/user")
+                        .retrieve()
+                        .body(String.class)
+                : null;
 
         assertNotNull(response);
     }
@@ -214,13 +208,9 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringStringStore() {
         StateStoreRecord response = restTemplate
                 .get()
-                .uri("http://localhost:8003/store/key-value/timestamped/STRING_STRING_TIMESTAMPED_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(StateStoreRecord.class)
-                .returnResult()
-                .getResponseBody();
+                .uri("/store/timestamped-key-value/STRING_STRING_TIMESTAMPED_KV_STORE/user")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(response);
         assertEquals("user", response.getKey());
@@ -232,13 +222,9 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     void shouldGetByKeyInStringAvroStore() {
         StateStoreRecord response = restTemplate
                 .get()
-                .uri("http://localhost:8003/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE/user")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(StateStoreRecord.class)
-                .returnResult()
-                .getResponseBody();
+                .uri("/store/timestamped-key-value/STRING_AVRO_TIMESTAMPED_KV_STORE/user")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(response);
         assertEquals("user", response.getKey());
@@ -255,15 +241,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8003/store/key-value/timestamped/local/STRING_STRING_TIMESTAMPED_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri(url)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+        List<StateStoreRecord> response =
+                restTemplate.get().uri(url).retrieve().body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());
@@ -277,15 +256,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8003/store/key-value/timestamped/local/STRING_AVRO_TIMESTAMPED_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri(url)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(new ParameterizedTypeReference<List<StateStoreRecord>>() {})
-                .returnResult()
-                .getResponseBody();
+        List<StateStoreRecord> response =
+                restTemplate.get().uri(url).retrieve().body(new ParameterizedTypeReference<>() {});
 
         assertNotNull(response);
         assertEquals("user", response.get(0).getKey());
