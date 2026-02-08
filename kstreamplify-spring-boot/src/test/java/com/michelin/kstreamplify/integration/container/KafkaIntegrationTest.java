@@ -31,6 +31,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestClient;
@@ -51,7 +52,7 @@ public abstract class KafkaIntegrationTest {
     protected KafkaStreamsInitializer initializer;
 
     @Autowired
-    protected RestClient restTemplate;
+    protected TestRestTemplate restTemplate;
 
     @Container
     protected static ConfluentKafkaContainer broker = new ConfluentKafkaContainer(

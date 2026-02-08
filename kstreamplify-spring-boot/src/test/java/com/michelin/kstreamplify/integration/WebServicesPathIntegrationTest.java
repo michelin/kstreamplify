@@ -39,6 +39,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,6 +48,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 @ActiveProfiles("web-services-path")
+@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @Import(RestClientTestConfig.class)
 class WebServicesPathIntegrationTest extends KafkaIntegrationTest {

@@ -25,7 +25,7 @@ import static com.michelin.kstreamplify.service.KubernetesService.READINESS_PATH
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_DEFAULT_PATH;
 import static com.michelin.kstreamplify.service.TopologyService.TOPOLOGY_PATH_PROPERTY_NAME;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import com.michelin.kstreamplify.exception.HttpServerException;

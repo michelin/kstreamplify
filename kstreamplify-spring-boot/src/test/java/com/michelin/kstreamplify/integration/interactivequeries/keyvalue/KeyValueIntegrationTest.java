@@ -69,6 +69,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
@@ -78,6 +79,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 @ActiveProfiles("interactive-queries-key-value")
+@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @Import(RestClientTestConfig.class)
 class KeyValueIntegrationTest extends KafkaIntegrationTest {
