@@ -29,7 +29,7 @@ import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import tools.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;

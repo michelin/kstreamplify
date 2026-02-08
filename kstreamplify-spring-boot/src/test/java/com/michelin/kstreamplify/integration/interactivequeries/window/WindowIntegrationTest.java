@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.http.HttpMethod.GET;
 
 import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
@@ -68,16 +69,15 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
 @Testcontainers
 @ActiveProfiles("interactive-queries-window")
-@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 class WindowIntegrationTest extends KafkaIntegrationTest {
     @Autowired
@@ -138,29 +138,32 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
-        List<String> stores =
-                restTemplate.get().uri("/store").retrieve().body(new ParameterizedTypeReference<List<String>>() {});
+        ResponseEntity<List<String>> stores =
+                restTemplate.exchange("http://localhost:8004/store", GET, null, new ParameterizedTypeReference<>() {});
 
-        assertNotNull(stores);
-        assertTrue(stores.containsAll(
-                List.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE")));
+        assertEquals(200, stores.getStatusCode().value());
+        assertNotNull(stores.getBody());
+        assertTrue(stores.getBody()
+                .containsAll(
+                        List.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE")));
 
         // Get hosts
-        List<StreamsMetadata> streamsMetadata = restTemplate
-                .get()
-                .uri("/store/metadata/STRING_STRING_WINDOW_STORE")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StreamsMetadata>>() {});
+        ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate.exchange(
+                "http://localhost:8004/store/metadata/STRING_STRING_WINDOW_STORE",
+                GET,
+                null,
+                new ParameterizedTypeReference<>() {});
 
-        assertNotNull(streamsMetadata);
+        assertEquals(200, streamsMetadata.getStatusCode().value());
+        assertNotNull(streamsMetadata.getBody());
         assertEquals(
                 Set.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE"),
-                streamsMetadata.get(0).getStateStoreNames());
-        assertEquals("localhost", streamsMetadata.get(0).getHostInfo().host());
-        assertEquals(8004, streamsMetadata.get(0).getHostInfo().port());
+                streamsMetadata.getBody().get(0).getStateStoreNames());
+        assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
+        assertEquals(8004, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(
                 Set.of("AVRO_TOPIC-0", "AVRO_TOPIC-1", "STRING_TOPIC-0", "STRING_TOPIC-1", "STRING_TOPIC-2"),
-                streamsMetadata.get(0).getTopicPartitions());
+                streamsMetadata.getBody().get(0).getTopicPartitions());
     }
 
     @ParameterizedTest
@@ -170,69 +173,54 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8004/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
-        String response = restTemplate
-                                .get()
-                                .uri(url)
-                                .retrieve()
-                                .toBodilessEntity()
-                                .getStatusCode()
-                                .value()
-                        == 404
-                ? restTemplate.get().uri(url).retrieve().body(String.class)
-                : null;
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
-        assertEquals(message, response);
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals(message, response.getBody());
     }
 
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
-        String response = restTemplate
-                                .get()
-                                .uri("/store/window/STRING_AVRO_KV_STORE/user")
-                                .retrieve()
-                                .toBodilessEntity()
-                                .getStatusCode()
-                                .value()
-                        == 400
-                ? restTemplate
-                        .get()
-                        .uri("/store/window/STRING_AVRO_KV_STORE/user")
-                        .retrieve()
-                        .body(String.class)
-                : null;
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user", String.class);
 
-        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     @Test
     void shouldGetByKeyInStringStringStore() {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri("/store/window/STRING_STRING_WINDOW_STORE/user")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
+                "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
+                GET,
+                null,
+                new ParameterizedTypeReference<>() {});
 
-        assertNotNull(response);
-        assertEquals("user", response.get(0).getKey());
-        assertEquals("Doe", response.get(0).getValue());
-        assertNull(response.get(0).getTimestamp());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test
     void shouldGetByKeyInStringAvroStore() {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri("/store/window/STRING_AVRO_WINDOW_STORE/user")
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
+                "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user",
+                GET,
+                null,
+                new ParameterizedTypeReference<>() {});
 
-        assertNotNull(response);
-        assertEquals("user", response.get(0).getKey());
-        assertEquals(1, ((HashMap<?, ?>) response.get(0).getValue()).get("id"));
-        assertEquals("John", ((HashMap<?, ?>) response.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) response.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.get(0).getValue()).get("birthDate"));
-        assertNull(response.get(0).getTimestamp());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals(1, ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals(
+                "2000-01-01T01:00:00Z",
+                ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @ParameterizedTest
@@ -242,22 +230,10 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
-        String response = restTemplate
-                                .get()
-                                .uri(url + "?startTime=" + tooLate)
-                                .retrieve()
-                                .toBodilessEntity()
-                                .getStatusCode()
-                                .value()
-                        == 404
-                ? restTemplate
-                        .get()
-                        .uri(url + "?startTime=" + tooLate)
-                        .retrieve()
-                        .body(String.class)
-                : null;
+        ResponseEntity<String> response = restTemplate.getForEntity(url + "?startTime=" + tooLate, String.class);
 
-        assertEquals("Key user not found", response);
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("Key user not found", response.getBody());
     }
 
     @ParameterizedTest
@@ -267,22 +243,10 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
-        String response = restTemplate
-                                .get()
-                                .uri(url + "?endTime=" + tooEarly)
-                                .retrieve()
-                                .toBodilessEntity()
-                                .getStatusCode()
-                                .value()
-                        == 404
-                ? restTemplate
-                        .get()
-                        .uri(url + "?endTime=" + tooEarly)
-                        .retrieve()
-                        .body(String.class)
-                : null;
+        ResponseEntity<String> response = restTemplate.getForEntity(url + "?endTime=" + tooEarly, String.class);
 
-        assertEquals("Key user not found", response);
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("Key user not found", response.getBody());
     }
 
     @ParameterizedTest
@@ -291,16 +255,14 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8004/store/window/local/STRING_STRING_WINDOW_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri(url)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
+        ResponseEntity<List<StateStoreRecord>> response =
+                restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<>() {});
 
-        assertNotNull(response);
-        assertEquals("user", response.get(0).getKey());
-        assertEquals("Doe", response.get(0).getValue());
-        assertNull(response.get(0).getTimestamp());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @ParameterizedTest
@@ -309,19 +271,18 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         "http://localhost:8004/store/window/local/STRING_AVRO_WINDOW_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
-        List<StateStoreRecord> response = restTemplate
-                .get()
-                .uri(url)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<StateStoreRecord>>() {});
+        ResponseEntity<List<StateStoreRecord>> response =
+                restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<>() {});
 
-        assertNotNull(response);
-        assertEquals("user", response.get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.get(0).getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) response.get(0).getValue()).get("birthDate"));
-        assertNull(response.get(0).getTimestamp());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals(
+                "2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test

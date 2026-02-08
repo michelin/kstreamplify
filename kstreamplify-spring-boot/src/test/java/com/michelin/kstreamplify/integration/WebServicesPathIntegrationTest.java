@@ -25,7 +25,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
-import com.michelin.kstreamplify.integration.container.RestClientTestConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,18 +38,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Slf4j
 @Testcontainers
 @ActiveProfiles("web-services-path")
-@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-@Import(RestClientTestConfig.class)
 class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
     @BeforeAll
@@ -95,29 +91,20 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 "localhost:8001", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        int readinessStatus = restTemplate
-                .get()
-                .uri("http://localhost:8001/custom-readiness")
-                .retrieve()
-                .toBodilessEntity()
-                .getStatusCode()
-                .value();
-        assertEquals(200, readinessStatus);
+        ResponseEntity<Void> responseReady =
+                restTemplate.getForEntity("http://localhost:8001/custom-readiness", Void.class);
 
-        int livenessStatus = restTemplate
-                .get()
-                .uri("http://localhost:8001/custom-liveness")
-                .retrieve()
-                .toBodilessEntity()
-                .getStatusCode()
-                .value();
-        assertEquals(200, livenessStatus);
+        assertEquals(200, responseReady.getStatusCode().value());
 
-        String responseTopology = restTemplate
-                .get()
-                .uri("http://localhost:8001/custom-topology")
-                .retrieve()
-                .body(String.class);
+        ResponseEntity<Void> responseLiveness =
+                restTemplate.getForEntity("http://localhost:8001/custom-liveness", Void.class);
+
+        assertEquals(200, responseLiveness.getStatusCode().value());
+
+        ResponseEntity<String> responseTopology =
+                restTemplate.getForEntity("http://localhost:8001/custom-topology", String.class);
+
+        assertEquals(200, responseTopology.getStatusCode().value());
         assertEquals("""
             Topologies:
                Sub-topology: 0
@@ -126,7 +113,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 Sink: KSTREAM-SINK-0000000001 (topic: OUTPUT_TOPIC)
                   <-- KSTREAM-SOURCE-0000000000
 
-            """, responseTopology);
+            """, responseTopology.getBody());
     }
 
     /**

@@ -18,8 +18,8 @@
  */
 package com.michelin.kstreamplify.service.interactivequeries;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.michelin.kstreamplify.exception.OtherInstanceResponseException;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import com.michelin.kstreamplify.store.StateStoreRecord;
