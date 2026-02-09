@@ -423,8 +423,8 @@ Add the following properties to your `application.yml`:
 ```yml
 kafka:
   properties:
-    default.deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
-    default.production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
+    deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
+    production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
 ```
 
 Additionally, some exceptions can optionally be forwarded to the DLQ by enabling the following properties:
