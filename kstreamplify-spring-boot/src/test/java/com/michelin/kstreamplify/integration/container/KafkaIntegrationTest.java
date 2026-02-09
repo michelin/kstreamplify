@@ -31,7 +31,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;

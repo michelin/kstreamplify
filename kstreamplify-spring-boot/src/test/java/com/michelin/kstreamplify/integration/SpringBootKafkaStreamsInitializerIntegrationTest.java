@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -48,6 +49,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
+@AutoConfigureTestRestTemplate
 class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
     @Autowired
     private MeterRegistry registry;

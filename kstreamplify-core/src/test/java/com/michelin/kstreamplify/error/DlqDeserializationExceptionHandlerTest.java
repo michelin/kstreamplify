@@ -64,7 +64,7 @@ class DlqDeserializationExceptionHandlerTest {
     void setUp() {
         Serializer<KafkaError> serializer = (Serializer) new KafkaAvroSerializer();
         serializer.configure(Map.of(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"), false);
-        producer = new MockProducer<>(true, new ByteArraySerializer(), serializer);
+        producer = new MockProducer<>(true, null, new ByteArraySerializer(), serializer);
 
         KafkaStreamsExecutionContext.setDlqTopicName(null);
         Properties properties = new Properties();
