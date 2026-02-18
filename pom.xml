@@ -4,7 +4,7 @@
 
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.6.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>kstreamplify</name>
     <description>Swiftly build and enhance your Kafka Streams applications.</description>
@@ -94,10 +94,14 @@
 
     <properties>
         <avro-maven-plugin.version>1.12.1</avro-maven-plugin.version>
+        <awaitility.version>4.3.0</awaitility.version>
+        <cactoos.version>0.57.0</cactoos.version>
         <central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
         <commons-io.version>2.21.0</commons-io.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
+        <config.version>1.4.4</config.version>
         <gson.version>2.13.2</gson.version>
+        <hamcrest.version>3.0</hamcrest.version>
         <jackson-core.version>3.0.4</jackson-core.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <junit-jupiter.version>6.0.2</junit-jupiter.version>
@@ -110,9 +114,12 @@
         <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
+        <maybeslow.version>0.0.4</maybeslow.version>
+        <mktmp.version>0.0.5</mktmp.version>
         <mockito.version>5.21.0</mockito.version>
         <palantir.version>2.80.0</palantir.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <slf4j-api.version>2.0.12</slf4j-api.version>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
@@ -120,15 +127,8 @@
         <spotless-maven-plugin.version>3.2.1</spotless-maven-plugin.version>
         <spring-boot.version>4.0.2</spring-boot.version>
         <springdoc.version>3.0.1</springdoc.version>
-        <testcontainers.version>2.0.3</testcontainers.version>
-        <cactoos.version>0.57.0</cactoos.version>
-        <mktmp.version>0.0.5</mktmp.version>
-        <config.version>1.4.4</config.version>
-        <hamcrest.version>3.0</hamcrest.version>
-        <awaitility.version>4.3.0</awaitility.version>
-        <maybeslow.version>0.0.4</maybeslow.version>
         <system-stubs-jupiter.version>2.1.8</system-stubs-jupiter.version>
-        <slf4j-api.version>2.0.12</slf4j-api.version>
+        <testcontainers.version>2.0.3</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -172,6 +172,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit-jupiter.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.cactoos</groupId>
+            <artifactId>cactoos</artifactId>
+            <version>${cactoos.version}</version>
         </dependency>
 
         <dependency>

@@ -4,12 +4,31 @@
     <parent>
         <groupId>com.michelin</groupId>
         <artifactId>kstreamplify</artifactId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>1.6.1-SNAPSHOT</version>
     </parent>
     <artifactId>kstreamplify-core</artifactId>
 
     <name>kstreamplify-core</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>${config.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.org.webcompere</groupId>
+            <artifactId>system-stubs-jupiter</artifactId>
+            <version>${system-stubs-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
