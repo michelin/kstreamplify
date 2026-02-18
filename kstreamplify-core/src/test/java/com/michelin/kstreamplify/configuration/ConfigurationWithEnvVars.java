@@ -18,49 +18,46 @@
  */
 package com.michelin.kstreamplify.configuration;
 
+import java.util.Map;
+import java.util.Properties;
 import org.cactoos.map.MapOf;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
-import java.util.Map;
-import java.util.Properties;
-
-/**
- * A {@link Configuration} that sets environment variables before returning the properties.
- */
+/** A {@link Configuration} that sets environment variables before returning the properties. */
 public class ConfigurationWithEnvVars extends Configuration.Envelope {
 
-    /**
-     * The environment variables to set.
-     */
+    /** The environment variables to set. */
     private final EnvironmentVariables envvars;
 
-    /**
-     * The map of environment variables to set.
-     */
+    /** The map of environment variables to set. */
     private final Map<String, String> map;
 
     /**
-     * Constructs a ConfigurationWithEnvVars with the given wrapped configuration, environment variables, and map of environment variables to set.
+     * Constructs a ConfigurationWithEnvVars with the given wrapped configuration, environment variables, and map of
+     * environment variables to set.
      *
      * @param wrapped The wrapped configuration
      * @param envvars The environment variables to set
-     * @param map     The map of environment variables to set
+     * @param map The map of environment variables to set
      */
-    public ConfigurationWithEnvVars(final Configuration wrapped, final EnvironmentVariables envvars, final Map<String, String> map) {
+    public ConfigurationWithEnvVars(
+            final Configuration wrapped, final EnvironmentVariables envvars, final Map<String, String> map) {
         super(wrapped);
         this.envvars = envvars;
         this.map = map;
     }
 
     /**
-     * Constructs a ConfigurationWithEnvVars with the given wrapped configuration, environment variables, and map of environment variables to set.
+     * Constructs a ConfigurationWithEnvVars with the given wrapped configuration, environment variables, and map of
+     * environment variables to set.
      *
      * @param wrapped The wrapped configuration
      * @param envvars The environment variables to set
-     * @param map     The map of environment variables to set
+     * @param map The map of environment variables to set
      */
     @SafeVarargs
-    public ConfigurationWithEnvVars(final Configuration wrapped, final EnvironmentVariables envvars, final Map.Entry<String, String>... map) {
+    public ConfigurationWithEnvVars(
+            final Configuration wrapped, final EnvironmentVariables envvars, final Map.Entry<String, String>... map) {
         this(wrapped, envvars, new MapOf<>(map));
     }
 

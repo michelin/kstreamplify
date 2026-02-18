@@ -21,18 +21,15 @@ package com.michelin.kstreamplify.configuration;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
-import org.cactoos.list.ListOf;
-import org.cactoos.map.MapOf;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.cactoos.list.ListOf;
+import org.cactoos.map.MapOf;
 
-/**
- * A configuration source, providing properties as a {@link Properties} object.
- */
+/** A configuration source, providing properties as a {@link Properties} object. */
 @FunctionalInterface
 public interface Configuration {
     /**
@@ -42,13 +39,9 @@ public interface Configuration {
      */
     Properties properties();
 
-    /**
-     * An envelope for a configuration, allowing to override or extend the properties of the wrapped configuration.
-     */
+    /** An envelope for a configuration, allowing to override or extend the properties of the wrapped configuration. */
     abstract class Envelope implements Configuration {
-        /**
-         * The wrapped configuration.
-         */
+        /** The wrapped configuration. */
         private final Configuration wrapped;
 
         /**
@@ -66,14 +59,10 @@ public interface Configuration {
         }
     }
 
-    /**
-     * A simple configuration source, providing properties from a given {@link Properties} object.
-     */
+    /** A simple configuration source, providing properties from a given {@link Properties} object. */
     final class Simple implements Configuration {
 
-        /**
-         * The properties provided by this configuration.
-         */
+        /** The properties provided by this configuration. */
         private final Properties props;
 
         /**
@@ -94,7 +83,8 @@ public interface Configuration {
     /**
      * A configuration source that loads properties from a file in the classpath.
      *
-     * <p><b>Example:</b></p>
+     * <p><b>Example:</b>
+     *
      * <pre>{@code
      * // Load configuration from a properties file in the classpath
      * Configuration config = new Configuration.FromFile("application-test.properties");
@@ -105,9 +95,7 @@ public interface Configuration {
      * }</pre>
      */
     final class FromFile implements Configuration {
-        /**
-         * The name of the file to load, relative to the classpath.
-         */
+        /** The name of the file to load, relative to the classpath. */
         private final String fileName;
 
         /**
@@ -121,9 +109,8 @@ public interface Configuration {
 
         @Override
         public Properties properties() {
-            try (InputStream input = Thread.currentThread()
-                    .getContextClassLoader()
-                    .getResourceAsStream(this.fileName)) {
+            try (InputStream input =
+                    Thread.currentThread().getContextClassLoader().getResourceAsStream(this.fileName)) {
                 if (input == null) {
                     throw new IllegalArgumentException(String.format("Resource not found: %s", this.fileName));
                 }
@@ -131,10 +118,7 @@ public interface Configuration {
                 properties.load(input);
                 return properties;
             } catch (final IOException exception) {
-                throw new IllegalStateException(
-                        String.format("Failed to load resource: %s", this.fileName),
-                        exception
-                );
+                throw new IllegalStateException(String.format("Failed to load resource: %s", this.fileName), exception);
             }
         }
     }
@@ -142,7 +126,8 @@ public interface Configuration {
     /**
      * A configuration source that loads properties from a given map of string keys and values.
      *
-     * <p><b>Example:</b></p>
+     * <p><b>Example:</b>
+     *
      * <pre>{@code
      * // Load configuration from map entries
      * Configuration config = new Configuration.FromMap(
@@ -184,15 +169,12 @@ public interface Configuration {
          * @param map The map of string keys and values to load.
          */
         public FromMap(final Map<String, String> map) {
-            this(
-                    map.entrySet()
-                            .stream()
-                            .collect(
-                                    Properties::new,
-                                    (final Properties props, final Map.Entry<String, String> entry) -> props.setProperty(entry.getKey(), entry.getValue()),
-                                    Properties::putAll
-                            )
-            );
+            this(map.entrySet().stream()
+                    .collect(
+                            Properties::new,
+                            (final Properties props, final Map.Entry<String, String> entry) ->
+                                    props.setProperty(entry.getKey(), entry.getValue()),
+                            Properties::putAll));
         }
 
         /**
@@ -209,7 +191,8 @@ public interface Configuration {
     /**
      * A configuration source that loads properties from a HOCON configuration string or object.
      *
-     * <p><b>Example:</b></p>
+     * <p><b>Example:</b>
+     *
      * <pre>{@code
      * // Load configuration from a HOCON string
      * Configuration config = new Configuration.FromHocon("app.name = MyApp\napp.version = 1.0");
@@ -248,18 +231,13 @@ public interface Configuration {
          * @param config The HOCON configuration to load.
          */
         public FromHocon(final Config config) {
-            this(
-                    config.entrySet()
-                            .stream()
-                            .collect(
-                                    Properties::new,
-                                    (final Properties props, final Map.Entry<String, ConfigValue> entry) -> props.setProperty(
-                                            entry.getKey(),
-                                            String.valueOf(entry.getValue().unwrapped())
-                                    ),
-                                    Properties::putAll
-                            )
-            );
+            this(config.entrySet().stream()
+                    .collect(
+                            Properties::new,
+                            (final Properties props, final Map.Entry<String, ConfigValue> entry) -> props.setProperty(
+                                    entry.getKey(),
+                                    String.valueOf(entry.getValue().unwrapped())),
+                            Properties::putAll));
         }
 
         /**
@@ -273,9 +251,11 @@ public interface Configuration {
     }
 
     /**
-     * A configuration source that overrides the properties of a wrapped configuration with the properties of another configuration or map.
+     * A configuration source that overrides the properties of a wrapped configuration with the properties of another
+     * configuration or map.
      *
-     * <p><b>Example:</b></p>
+     * <p><b>Example:</b>
+     *
      * <pre>{@code
      * // Create a base configuration and override specific values
      * Configuration baseConfig = new Configuration.FromMap(
@@ -295,15 +275,13 @@ public interface Configuration {
      */
     final class Overridden extends Envelope {
 
-        /**
-         * The configuration providing the properties to override the wrapped configuration.
-         */
+        /** The configuration providing the properties to override the wrapped configuration. */
         private final Configuration override;
 
         /**
          * Primary ctor.
          *
-         * @param base     The configuration to wrap.
+         * @param base The configuration to wrap.
          * @param override The configuration providing the properties to override the wrapped configuration.
          */
         public Overridden(final Configuration base, final Configuration override) {
@@ -315,7 +293,7 @@ public interface Configuration {
          * Secondary ctor.
          *
          * @param base The configuration to wrap.
-         * @param map  The map of string keys and values providing the properties to override the wrapped configuration.
+         * @param map The map of string keys and values providing the properties to override the wrapped configuration.
          */
         public Overridden(final Configuration base, final Map<String, String> map) {
             this(base, new FromMap(map));
@@ -324,8 +302,9 @@ public interface Configuration {
         /**
          * Secondary ctor.
          *
-         * @param base    The configuration to wrap.
-         * @param entries The entries of the map of string keys and values providing the properties to override the wrapped configuration.
+         * @param base The configuration to wrap.
+         * @param entries The entries of the map of string keys and values providing the properties to override the
+         *     wrapped configuration.
          */
         @SafeVarargs
         public Overridden(final Configuration base, final Map.Entry<String, String>... entries) {
@@ -340,14 +319,10 @@ public interface Configuration {
         }
     }
 
-    /**
-     * A configuration source that loads properties from the environment variables, filtered by a list of keys.
-     */
+    /** A configuration source that loads properties from the environment variables, filtered by a list of keys. */
     final class FromEnvironment implements Configuration {
 
-        /**
-         * The list of keys to filter the environment variables.
-         */
+        /** The list of keys to filter the environment variables. */
         private final List<String> keys;
 
         /**
@@ -376,8 +351,7 @@ public interface Configuration {
                     .collect(
                             Properties::new,
                             (final Properties props, final String key) -> props.setProperty(key, env.get(key)),
-                            Properties::putAll
-                    );
+                            Properties::putAll);
         }
     }
 }

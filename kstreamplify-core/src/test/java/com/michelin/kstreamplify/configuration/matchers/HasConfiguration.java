@@ -19,16 +19,16 @@
 package com.michelin.kstreamplify.configuration.matchers;
 
 import com.michelin.kstreamplify.configuration.Configuration;
+import java.util.Properties;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-import java.util.Properties;
-
 /**
  * A matcher for {@link Configuration} objects that checks if their properties match a given matcher.
  *
- * <p><b>Example:</b></p>
+ * <p><b>Example:</b>
+ *
  * <pre>{@code
  * // Assert that a configuration contains specific properties
  * Configuration config = new Configuration.FromMap(
@@ -57,9 +57,7 @@ import java.util.Properties;
  */
 public final class HasConfiguration extends TypeSafeMatcher<Configuration> {
 
-    /**
-     * The matcher for the properties of the configuration.
-     */
+    /** The matcher for the properties of the configuration. */
     private final Matcher<Properties> properties;
 
     /**
@@ -84,7 +82,6 @@ public final class HasConfiguration extends TypeSafeMatcher<Configuration> {
 
     @Override
     protected void describeMismatchSafely(final Configuration configuration, final Description description) {
-        description.appendText("was ")
-                .appendValue(configuration.properties());
+        description.appendText("was ").appendValue(configuration.properties());
     }
 }

@@ -18,17 +18,17 @@
  */
 package com.michelin.kstreamplify.configuration.matchers;
 
+import java.util.Properties;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.text.IsEqualIgnoringCase;
 
-import java.util.Properties;
-
 /**
  * A Hamcrest matcher that checks if a {@link Properties} object has a property with a specific key and value.
  *
- * <p><b>Example:</b></p>
+ * <p><b>Example:</b>
+ *
  * <pre>{@code
  * // Assert that properties contain specific key-value pairs
  * Properties props = new Properties();
@@ -59,20 +59,16 @@ import java.util.Properties;
  */
 public final class HasProperty extends TypeSafeMatcher<Properties> {
 
-    /**
-     * The key of the property to check.
-     */
+    /** The key of the property to check. */
     private final String key;
 
-    /**
-     * The matcher for the value of the property.
-     */
+    /** The matcher for the value of the property. */
     private final Matcher<String> expected;
 
     /**
      * Constructs a HasProperty matcher with the given key and expected value matcher.
      *
-     * @param key      The key of the property to check
+     * @param key The key of the property to check
      * @param expected The matcher for the value of the property
      */
     public HasProperty(final String key, final Matcher<String> expected) {
@@ -83,7 +79,7 @@ public final class HasProperty extends TypeSafeMatcher<Properties> {
     /**
      * Constructs a HasProperty matcher with the given key and expected value.
      *
-     * @param key      The key of the property to check
+     * @param key The key of the property to check
      * @param expected The expected value of the property
      */
     public HasProperty(final String key, final String expected) {
@@ -99,13 +95,11 @@ public final class HasProperty extends TypeSafeMatcher<Properties> {
     public void describeTo(final Description description) {
         description.appendText("a Properties matching ");
         this.expected.describeTo(description);
-        description.appendText(" for key ")
-                .appendValue(this.key);
+        description.appendText(" for key ").appendValue(this.key);
     }
 
     @Override
     protected void describeMismatchSafely(final Properties properties, final Description description) {
-        description.appendText("was ")
-                .appendValue(properties.getProperty(this.key));
+        description.appendText("was ").appendValue(properties.getProperty(this.key));
     }
 }

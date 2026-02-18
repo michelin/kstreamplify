@@ -42,16 +42,9 @@ final class ConfigurationTest {
     void isFromFileOk() {
         MatcherAssert.assertThat(
                 "A Configuration from file contains value for key",
-                new Configuration.FromFile(
-                        "application-test.properties"
-                ),
+                new Configuration.FromFile("application-test.properties"),
                 new HasConfiguration(
-                        new AllOf<>(
-                                new HasProperty("app.name", "TestApp"),
-                                new HasProperty("app.version", "2.0.0")
-                        )
-                )
-        );
+                        new AllOf<>(new HasProperty("app.name", "TestApp"), new HasProperty("app.version", "2.0.0"))));
     }
 
     @Test
@@ -59,52 +52,35 @@ final class ConfigurationTest {
         MatcherAssert.assertThat(
                 "A Configuration from file throws exception if file not found",
                 Assertions.assertThrows(
-                        IllegalArgumentException.class,
-                        () -> new Configuration.FromFile(
-                                "non-existing-file.properties"
-                        ).properties()
-                ).getMessage(),
-                new IsEqualIgnoringCase("Resource not found: non-existing-file.properties")
-        );
+                                IllegalArgumentException.class,
+                                () -> new Configuration.FromFile("non-existing-file.properties").properties())
+                        .getMessage(),
+                new IsEqualIgnoringCase("Resource not found: non-existing-file.properties"));
     }
 
     @Test
     void isFromMapOk() {
         MatcherAssert.assertThat(
                 "A Configuration from Map contains value for key",
-                new Configuration.FromMap(
-                        new MapEntry<>("key.test", "value.test")
-                ),
-                new HasConfiguration(
-                        new HasProperty("key.test", "value.test")
-                )
-        );
+                new Configuration.FromMap(new MapEntry<>("key.test", "value.test")),
+                new HasConfiguration(new HasProperty("key.test", "value.test")));
     }
 
     @Test
     void isFromHoconFromStringOk() {
         MatcherAssert.assertThat(
                 "A Configuration from Hocon string contains value for key",
-                new Configuration.FromHocon(
-                        "key.test = value.test"
-                ),
-                new HasConfiguration(
-                        new HasProperty("key.test", "value.test")
-                )
-        );
+                new Configuration.FromHocon("key.test = value.test"),
+                new HasConfiguration(new HasProperty("key.test", "value.test")));
     }
 
     @Test
     void isFromHoconFromFileOk() {
         MatcherAssert.assertThat(
                 "A Configuration from Hocon file contains value for key",
-                new Configuration.FromHocon(
-                        ConfigFactory.parseResources("config/application-test.conf").resolve()
-                ),
-                new HasConfiguration(
-                        new HasProperty("app.kafka.application-id", "test-app")
-                )
-        );
+                new Configuration.FromHocon(ConfigFactory.parseResources("config/application-test.conf")
+                        .resolve()),
+                new HasConfiguration(new HasProperty("app.kafka.application-id", "test-app")));
     }
 
     @Test
@@ -112,15 +88,9 @@ final class ConfigurationTest {
         MatcherAssert.assertThat(
                 "A Configuration overridden contains new value for key",
                 new Configuration.Overridden(
-                        new Configuration.FromMap(
-                                new MapEntry<>("key.test", "value.test1")
-                        ),
-                        new MapEntry<>("key.test", "value.test2")
-                ),
-                new HasConfiguration(
-                        new HasProperty("key.test", "value.test2")
-                )
-        );
+                        new Configuration.FromMap(new MapEntry<>("key.test", "value.test1")),
+                        new MapEntry<>("key.test", "value.test2")),
+                new HasConfiguration(new HasProperty("key.test", "value.test2")));
     }
 
     @Test
@@ -128,15 +98,9 @@ final class ConfigurationTest {
         MatcherAssert.assertThat(
                 "A Configuration from environment contains new value for key",
                 new ConfigurationWithEnvVars(
-                        new Configuration.FromEnvironment(
-                                "ENV_VAR"
-                        ),
+                        new Configuration.FromEnvironment("ENV_VAR"),
                         this.envvars,
-                        new MapEntry<>("ENV_VAR", "env.value")
-                ),
-                new HasConfiguration(
-                        new HasProperty("ENV_VAR", "env.value")
-                )
-        );
+                        new MapEntry<>("ENV_VAR", "env.value")),
+                new HasConfiguration(new HasProperty("ENV_VAR", "env.value")));
     }
 }
