@@ -63,7 +63,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
     * [By Key](#by-key)
     * [By Key and Value](#by-key-and-value)
     * [By Predicate](#by-predicate)
-* [Open Telemetry](#open-telemetry)
+* [OpenTelemetry](#opentelemetry)
   * [Custom Tags for Metrics](#custom-tags-for-metrics)
 * [Swagger](#swagger)
 * [Motivation](#motivation)
@@ -748,30 +748,30 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 In the predicate approach, the provided predicate is used as the key in the window store. The stream will be deduplicated based on the values derived from the predicate.
 
-## Open Telemetry
+## OpenTelemetry
 
-Kstreamplify simplifies the integration of [Open Telemetry](https://opentelemetry.io/) with Kafka Streams applications in Spring Boot.
-It binds all Kafka Streams metrics to the Spring Boot registry, making monitoring and observability easier.
+Kstreamplify simplifies the integration between [OpenTelemetry](https://opentelemetry.io/) and Kafka Streams.
+It binds all Kafka Streams metrics to the Spring Boot registry.
 
-To run your application with the Open Telemetry Java agent, include the following JVM options:
+To run your application with the OpenTelemetry Java agent, include the following JVM options:
 
 ```console
 -javaagent:/opentelemetry-javaagent.jar -Dotel.traces.exporter=otlp -Dotel.logs.exporter=otlp -Dotel.metrics.exporter=otlp
 ```
 
-Starting with OpenTelemetry Java Agent version 2, the Micrometer metrics bridge has been disabled (see [release notes](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.0.0)).
-You need to manually enable it by adding the following option: `-Dotel.instrumentation.micrometer.enabled=true`.
+Starting with OpenTelemetry Java agent version 2, the Micrometer metrics bridge is disabled (see [release notes](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.0.0)).
+You need to enable it manually by adding the following option: `-Dotel.instrumentation.micrometer.enabled=true`.
+
+It also works when using the [OpenTelemetry BOM and Spring Boot starter dependency](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/getting-started).
 
 ### Custom Tags for Metrics
 
-You can also add custom tags to the Open Telemetry metrics to help organize and filter them in your observability tools, like Grafana. 
+You can also add custom tags to the OpenTelemetry metrics. 
 Use the following JVM options to specify custom tags:
 
 ```console
 -Dotel.resource.attributes=environment=production,service.namespace=myNamespace,service.name=myKafkaStreams,category=orders
 ```
-
-These tags will be included in the metrics, and you'll be able to see them in your logs during application startup, helping to track and filter metrics based on attributes like environment, service name, and category.
 
 ## Swagger
 
