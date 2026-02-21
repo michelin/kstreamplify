@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify;
 
+import com.michelin.kstreamplify.configuration.Configuration;
 import com.michelin.kstreamplify.configuration.ItConsumerConfiguration;
 import com.michelin.kstreamplify.configuration.ItProducerConfiguration;
 import com.michelin.kstreamplify.configuration.ItStreamsConfiguration;
@@ -30,11 +31,14 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsConfig;
 import org.cactoos.map.MapEntry;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
@@ -66,15 +70,24 @@ final class WordCountIntegrationTest {
     @ExtendWith(MayBeSlow.class)
     void shouldProduceFinalWordCounts(@Mktmp final Path tmp) throws Exception {
         try (KafkaStreams streams = new KafkaStreams(
-                new WordCountTopology().value(), new ItStreamsConfiguration(this.kafka, tmp).properties())) {
+                new WordCountTopology().value(),
+                new Configuration.Overridden(
+                                new ItStreamsConfiguration(),
+                                new MapEntry<>(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()),
+                                new MapEntry<>(StreamsConfig.STATE_DIR_CONFIG, tmp.toString()))
+                        .properties())) {
             streams.start();
-            try (Producer<String, String> producer =
-                    new KafkaProducer<>(new ItProducerConfiguration(this.kafka).properties())) {
+            try (Producer<String, String> producer = new KafkaProducer<>(new Configuration.Overridden(
+                            new ItProducerConfiguration(),
+                            new MapEntry<>(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))
+                    .properties())) {
                 producer.send(new ProducerRecord<>("input-topic", "key1", "Hello Kafka Kafka Streams"))
                         .get();
             }
-            try (Consumer<String, Long> consumer =
-                    new KafkaConsumer<>(new ItConsumerConfiguration(this.kafka).properties())) {
+            try (Consumer<String, Long> consumer = new KafkaConsumer<>(new Configuration.Overridden(
+                            new ItConsumerConfiguration(),
+                            new MapEntry<>(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))
+                    .properties())) {
                 MatcherAssert.assertThat(
                         "Output topic should contain the expected word counts in order",
                         consumer,

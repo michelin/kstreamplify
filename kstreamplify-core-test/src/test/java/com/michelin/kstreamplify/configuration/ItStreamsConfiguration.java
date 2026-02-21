@@ -18,31 +18,22 @@
  */
 package com.michelin.kstreamplify.configuration;
 
-import java.nio.file.Path;
 import java.util.UUID;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.cactoos.map.MapEntry;
-import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 /** A {@link Configuration} for Kafka Streams in integration tests. */
 public final class ItStreamsConfiguration extends Configuration.Envelope {
-    /**
-     * Constructs an ItStreamsConfiguration with the given Kafka container and temporary directory.
-     *
-     * @param kafka The Kafka container
-     * @param tmp The temporary directory for Kafka Streams state
-     */
-    public ItStreamsConfiguration(final ConfluentKafkaContainer kafka, final Path tmp) {
+    /** Constructs an ItStreamsConfiguration with the given Kafka container and temporary directory. */
+    public ItStreamsConfiguration() {
         super(new Configuration.FromMap(
                 new MapEntry<>(StreamsConfig.APPLICATION_ID_CONFIG, "wordcount-it-" + UUID.randomUUID()),
-                new MapEntry<>(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()),
                 new MapEntry<>(
                         StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG,
                         Serdes.String().getClass().getName()),
                 new MapEntry<>(
                         StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,
-                        Serdes.String().getClass().getName()),
-                new MapEntry<>(StreamsConfig.STATE_DIR_CONFIG, tmp.toString())));
+                        Serdes.String().getClass().getName())));
     }
 }

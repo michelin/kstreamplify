@@ -23,18 +23,12 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.cactoos.map.MapEntry;
-import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 /** A {@link Configuration} for an integration test Kafka consumer. */
 public final class ItConsumerConfiguration extends Configuration.Envelope {
-    /**
-     * Constructs an ItConsumerConfiguration with the given Kafka container.
-     *
-     * @param kafka The Kafka container
-     */
-    public ItConsumerConfiguration(final ConfluentKafkaContainer kafka) {
+    /** Constructs an ItConsumerConfiguration with the given Kafka container. */
+    public ItConsumerConfiguration() {
         super(new FromMap(
-                new MapEntry<>(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()),
                 new MapEntry<>(ConsumerConfig.GROUP_ID_CONFIG, "it-consumer-" + UUID.randomUUID()),
                 new MapEntry<>(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"),
                 new MapEntry<>(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName()),

@@ -21,18 +21,12 @@ package com.michelin.kstreamplify.configuration;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.cactoos.map.MapEntry;
-import org.testcontainers.kafka.ConfluentKafkaContainer;
 
 /** A configuration for Kafka producers in integration tests. */
 public final class ItProducerConfiguration extends Configuration.Envelope {
-    /**
-     * Constructs an ItProducerConfiguration with the given Kafka container.
-     *
-     * @param kafka The Kafka container
-     */
-    public ItProducerConfiguration(final ConfluentKafkaContainer kafka) {
+    /** Constructs an ItProducerConfiguration with the given Kafka container. */
+    public ItProducerConfiguration() {
         super(new Configuration.FromMap(
-                new MapEntry<>(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()),
                 new MapEntry<>(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName()),
                 new MapEntry<>(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName())));
     }

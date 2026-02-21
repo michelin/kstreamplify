@@ -18,23 +18,17 @@
  */
 package com.michelin.kstreamplify.configuration;
 
-import java.nio.file.Path;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.cactoos.map.MapEntry;
 
 /** A configuration for the WordCount topology in tests. */
 public final class WordCountConfiguration extends Configuration.Envelope {
-    /**
-     * Constructs a WordCountConfiguration with the given state directory.
-     *
-     * @param stateDir The state directory for Kafka Streams
-     */
-    public WordCountConfiguration(final Path stateDir) {
+    /** Constructs a WordCountConfiguration with the given state directory. */
+    public WordCountConfiguration() {
         super(new Configuration.FromMap(
                 new MapEntry<>(StreamsConfig.APPLICATION_ID_CONFIG, "wordcount-test"),
                 new MapEntry<>(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234"),
-                new MapEntry<>(StreamsConfig.STATE_DIR_CONFIG, stateDir.toString()),
                 new MapEntry<>(
                         StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG,
                         Serdes.String().getClass().getName()),

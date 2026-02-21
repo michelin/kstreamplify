@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify;
 
+import com.michelin.kstreamplify.configuration.Configuration;
 import com.michelin.kstreamplify.configuration.WordCountConfiguration;
 import com.michelin.kstreamplify.matchers.OutputTopicContains;
 import com.michelin.kstreamplify.topics.PipedOutputTopic;
@@ -28,7 +29,9 @@ import com.yegor256.Mktmp;
 import com.yegor256.MktmpResolver;
 import java.nio.file.Path;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TopologyTestDriver;
+import org.cactoos.map.MapEntry;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,8 +45,12 @@ final class WordCountTopologyTest {
 
     @BeforeEach
     void setUp(@Mktmp final Path tmp) {
-        this.driver =
-                new TopologyTestDriver(new WordCountTopology().value(), new WordCountConfiguration(tmp).properties());
+        this.driver = new TopologyTestDriver(
+                new WordCountTopology().value(),
+                new Configuration.Overridden(
+                                new WordCountConfiguration(),
+                                new MapEntry<>(StreamsConfig.STATE_DIR_CONFIG, tmp.toString()))
+                        .properties());
     }
 
     @AfterEach
