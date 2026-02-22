@@ -26,16 +26,14 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
-import java.util.Properties;
-
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -66,8 +64,7 @@ class SpringBootKafkaStreamsInitializerTest {
         when(kafkaProperties.asProperties()).thenReturn(properties);
 
         initializer = new SpringBootKafkaStreamsInitializer(
-                kafkaStreamsStarter, 8080, kafkaProperties, applicationContext, meterRegistry
-        );
+                kafkaStreamsStarter, 8080, kafkaProperties, applicationContext, meterRegistry);
     }
 
     @Test
