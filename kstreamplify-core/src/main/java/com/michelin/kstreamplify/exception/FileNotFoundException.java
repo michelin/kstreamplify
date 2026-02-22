@@ -16,23 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.michelin.kstreamplify.property;
+package com.michelin.kstreamplify.exception;
 
-import static org.junit.jupiter.api.Assertions.*;
+/** Exception thrown when a file cannot be found. */
+public class FileNotFoundException extends RuntimeException {
+    private static final String FILE_NOT_FOUND_EXCEPTION = "File %s cannot be found";
 
-import org.junit.jupiter.api.Test;
-
-class KstreamplifyConfigTest {
-
-    @Test
-    void shouldHaveCorrectDlqPropertiesPrefix() {
-        assertEquals("dlq", KstreamplifyConfig.DLQ_PROPERTIES_PREFIX);
+    /**
+     * Constructor.
+     *
+     * @param filename The name of the file that cannot be found
+     */
+    public FileNotFoundException(String filename) {
+        super(FILE_NOT_FOUND_EXCEPTION.formatted(filename));
     }
 
-    @Test
-    void shouldHaveCorrectDeserializationHandlerRestClientExceptionEnabledKey() {
-        assertEquals(
-                "dlq.deserialization-handler.forward-restclient-exception",
-                KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
+    /**
+     * Constructor.
+     *
+     * @param filename The name of the file that cannot be found
+     * @param cause The cause of the exception
+     */
+    public FileNotFoundException(String filename, Throwable cause) {
+        super(FILE_NOT_FOUND_EXCEPTION.formatted(filename), cause);
     }
 }

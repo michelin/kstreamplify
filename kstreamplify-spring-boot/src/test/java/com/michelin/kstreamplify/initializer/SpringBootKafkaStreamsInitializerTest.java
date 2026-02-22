@@ -80,7 +80,7 @@ class SpringBootKafkaStreamsInitializerTest {
 
         initializer.initProperties();
         StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
-                initializer.onStreamsUncaughtException(new RuntimeException("Unexpected test exception"));
+                initializer.uncaughtExceptionHandler(new RuntimeException("Unexpected test exception"));
 
         assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         verify(applicationContext).close();
@@ -88,13 +88,13 @@ class SpringBootKafkaStreamsInitializerTest {
 
     @Test
     void shouldCloseSpringBootContextOnChangeState() {
-        initializer.onStateChange(KafkaStreams.State.ERROR, KafkaStreams.State.RUNNING);
+        initializer.stateListener(KafkaStreams.State.ERROR, KafkaStreams.State.RUNNING);
         verify(applicationContext).close();
     }
 
     @Test
     void shouldNotCloseSpringBootContextOnChangeStateNotError() {
-        initializer.onStateChange(KafkaStreams.State.REBALANCING, KafkaStreams.State.RUNNING);
+        initializer.stateListener(KafkaStreams.State.REBALANCING, KafkaStreams.State.RUNNING);
         verify(applicationContext, never()).close();
     }
 }

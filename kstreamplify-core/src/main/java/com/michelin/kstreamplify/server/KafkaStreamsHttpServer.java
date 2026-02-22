@@ -61,6 +61,7 @@ public class KafkaStreamsHttpServer {
     private static final String DEFAULT_WINDOW_STORE_PATH = "window";
     private static final String START_TIME_REQUEST_PARAM = "startTime";
     private static final String END_TIME_REQUEST_PARAM = "endTime";
+
     private final KafkaStreamsInitializer kafkaStreamsInitializer;
     private final ObjectMapper objectMapper;
     private final KubernetesService kubernetesService;
@@ -107,7 +108,6 @@ public class KafkaStreamsHttpServer {
             createTopologyEndpoint();
             createStoreEndpoints();
 
-            addEndpoint(kafkaStreamsInitializer);
             server.start();
         } catch (Exception e) {
             throw new HttpServerException(e);
@@ -350,14 +350,5 @@ public class KafkaStreamsHttpServer {
                 .collect(Collectors.toMap(param -> param[0], param -> param[1]));
 
         return Optional.ofNullable(keyValue.get(key));
-    }
-
-    /**
-     * Callback to override in case of adding endpoints.
-     *
-     * @param kafkaStreamsInitializer The Kafka Streams initializer
-     */
-    protected void addEndpoint(KafkaStreamsInitializer kafkaStreamsInitializer) {
-        // Nothing to do here
     }
 }

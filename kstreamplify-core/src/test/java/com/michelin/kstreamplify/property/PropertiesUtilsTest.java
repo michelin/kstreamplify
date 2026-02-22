@@ -19,7 +19,9 @@
 package com.michelin.kstreamplify.property;
 
 import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
-import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Properties;
@@ -34,36 +36,60 @@ class PropertiesUtilsTest {
         assertTrue(properties.containsKey("server.port"));
         assertEquals(8080, properties.get("server.port"));
 
-        assertTrue(properties.containsKey("kafka.properties." + APPLICATION_ID_CONFIG));
-        assertEquals("appId", properties.get("kafka.properties." + APPLICATION_ID_CONFIG));
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG));
+        assertEquals("appId", properties.get(KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG));
+
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + AUTO_OFFSET_RESET_CONFIG));
+        assertEquals("earliest", properties.get(KAFKA_PROPERTIES_PREFIX + AUTO_OFFSET_RESET_CONFIG));
+
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + DEFAULT_KEY_SERDE_CLASS_CONFIG));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                properties.get(KAFKA_PROPERTIES_PREFIX + DEFAULT_KEY_SERDE_CLASS_CONFIG));
+
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + DEFAULT_VALUE_SERDE_CLASS_CONFIG));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                properties.get(KAFKA_PROPERTIES_PREFIX + DEFAULT_VALUE_SERDE_CLASS_CONFIG));
+
+        assertTrue(properties.containsKey(KAFKA_PROPERTIES_PREFIX + STATE_DIR_CONFIG));
+        assertEquals(
+                "/tmp/kstreamplify/kstreamplify-core-test/initializer",
+                properties.get(KAFKA_PROPERTIES_PREFIX + STATE_DIR_CONFIG));
 
         assertTrue(properties.containsKey(
-                "kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
+                KAFKA_PROPERTIES_PREFIX + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
         assertEquals(
-                true, properties.get("kafka.properties." + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
+                true,
+                properties.get(KAFKA_PROPERTIES_PREFIX + DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
     }
 
     @Test
-    void shouldLoadKafkaProperties() {
-        Properties properties = PropertiesUtils.loadKafkaProperties(PropertiesUtils.loadProperties());
+    void shouldExtractSubProperties() {
+        Properties properties =
+                PropertiesUtils.extractSubProperties(PropertiesUtils.loadProperties(), KAFKA_PROPERTIES_PREFIX, true);
 
         assertTrue(properties.containsKey(APPLICATION_ID_CONFIG));
-        assertTrue(properties.containsValue("appId"));
-    }
+        assertEquals("appId", properties.get(APPLICATION_ID_CONFIG));
 
-    @Test
-    void shouldExtractPropertiesByPrefix() {
-        Properties props = new Properties();
-        props.put("dlq.feature1", "true");
-        props.put("dlq.feature2", "false");
-        props.put("other.feature", "ignored");
+        assertTrue(properties.containsKey(AUTO_OFFSET_RESET_CONFIG));
+        assertEquals("earliest", properties.get(AUTO_OFFSET_RESET_CONFIG));
 
-        Properties extracted = PropertiesUtils.extractPropertiesByPrefix(props, "dlq.");
+        assertTrue(properties.containsKey(DEFAULT_KEY_SERDE_CLASS_CONFIG));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                properties.get(DEFAULT_KEY_SERDE_CLASS_CONFIG));
 
-        assertEquals(2, extracted.size());
-        assertEquals("true", extracted.getProperty("dlq.feature1"));
-        assertEquals("false", extracted.getProperty("dlq.feature2"));
-        assertNull(extracted.getProperty("other.feature"));
+        assertTrue(properties.containsKey(DEFAULT_VALUE_SERDE_CLASS_CONFIG));
+        assertEquals(
+                "org.apache.kafka.common.serialization.Serdes$StringSerde",
+                properties.get(DEFAULT_VALUE_SERDE_CLASS_CONFIG));
+
+        assertTrue(properties.containsKey(STATE_DIR_CONFIG));
+        assertEquals("/tmp/kstreamplify/kstreamplify-core-test/initializer", properties.get(STATE_DIR_CONFIG));
+
+        assertFalse(properties.containsKey(DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION));
+        assertFalse(properties.containsKey("server.port"));
     }
 
     @Test
