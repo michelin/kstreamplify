@@ -55,7 +55,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         Properties properties = new Properties();
         properties.put(KAFKA_PROPERTIES_PREFIX + BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
 
-        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8080, properties);
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8086, properties);
 
         initializer.start();
     }
@@ -74,7 +74,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
-        assertEquals(8080, streamsMetadata.get(0).hostInfo().port());
+        assertEquals(8086, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
@@ -91,11 +91,11 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
                 KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
         assertEquals(
-                "localhost:8080", KafkaStreamsExecutionContext.getProperties().get("application.server"));
+                "localhost:8086", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
         HttpRequest requestReady = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/ready"))
+                .uri(URI.create("http://localhost:8086/ready"))
                 .GET()
                 .build();
 
@@ -104,7 +104,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseReady.statusCode());
 
         HttpRequest requestLiveness = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/liveness"))
+                .uri(URI.create("http://localhost:8086/liveness"))
                 .GET()
                 .build();
 
@@ -113,7 +113,7 @@ class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, responseLiveness.statusCode());
 
         HttpRequest requestTopology = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/topology"))
+                .uri(URI.create("http://localhost:8086/topology"))
                 .GET()
                 .build();
 
