@@ -18,7 +18,7 @@
  */
 package com.michelin.kstreamplify.property;
 
-import com.michelin.kstreamplify.exception.FileNotFoundException;
+import com.michelin.kstreamplify.exception.ConfigFileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -46,7 +46,7 @@ public final class PropertiesUtils {
 
         try (InputStream inputStream = PropertiesUtils.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             if (inputStream == null) {
-                throw new FileNotFoundException(CONFIG_FILE);
+                throw new ConfigFileNotFoundException(CONFIG_FILE);
             }
 
             Map<String, Object> yamlProperties = yaml.load(inputStream);
@@ -57,7 +57,7 @@ public final class PropertiesUtils {
 
             return properties;
         } catch (IOException e) {
-            throw new FileNotFoundException(CONFIG_FILE, e);
+            throw new ConfigFileNotFoundException(CONFIG_FILE, e);
         }
     }
 

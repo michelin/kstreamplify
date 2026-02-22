@@ -18,17 +18,17 @@
  */
 package com.michelin.kstreamplify.exception;
 
-/** Exception thrown when a file cannot be found. */
-public class FileNotFoundException extends RuntimeException {
-    private static final String FILE_NOT_FOUND_EXCEPTION = "File %s cannot be found";
+/** Exception thrown when a config file cannot be found. */
+public class ConfigFileNotFoundException extends RuntimeException {
+    private static final String CONFIG_FILE_NOT_FOUND_EXCEPTION = "Configuration file %s cannot be found";
 
     /**
      * Constructor.
      *
      * @param filename The name of the file that cannot be found
      */
-    public FileNotFoundException(String filename) {
-        super(FILE_NOT_FOUND_EXCEPTION.formatted(filename));
+    public ConfigFileNotFoundException(String filename) {
+        super(CONFIG_FILE_NOT_FOUND_EXCEPTION.formatted(filename));
     }
 
     /**
@@ -37,7 +37,7 @@ public class FileNotFoundException extends RuntimeException {
      * @param filename The name of the file that cannot be found
      * @param cause The cause of the exception
      */
-    public FileNotFoundException(String filename, Throwable cause) {
-        super(FILE_NOT_FOUND_EXCEPTION.formatted(filename), cause);
+    public ConfigFileNotFoundException(String filename, Throwable cause) {
+        super(CONFIG_FILE_NOT_FOUND_EXCEPTION.formatted(filename), cause);
     }
 }
