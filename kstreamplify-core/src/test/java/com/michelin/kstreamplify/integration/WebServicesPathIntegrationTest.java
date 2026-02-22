@@ -19,7 +19,6 @@
 package com.michelin.kstreamplify.integration;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
-import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,10 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
@@ -54,18 +50,19 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("INPUT_TOPIC", 2),
                 new TopicPartition("OUTPUT_TOPIC", 2));
 
+        Properties properties = new Properties();
+        properties.putAll(Map.of(
+                KAFKA_PROPERTIES_PREFIX + BOOTSTRAP_SERVERS_CONFIG,
+                broker.getBootstrapServers(),
+                "kubernetes.readiness.path",
+                "custom-readiness",
+                "kubernetes.liveness.path",
+                "custom-liveness",
+                "topology.path",
+                "custom-topology"));
+
         initializer = new KafkaStreamInitializerStub(
-                new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(),
-                8081,
-                Map.of(
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
-                        broker.getBootstrapServers(),
-                        "kubernetes.readiness.path",
-                        "custom-readiness",
-                        "kubernetes.liveness.path",
-                        "custom-liveness",
-                        "topology.path",
-                        "custom-topology"));
+                new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(), 8081, properties);
 
         initializer.start();
     }

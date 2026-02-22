@@ -19,9 +19,9 @@
 package com.michelin.kstreamplify.context;
 
 import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_PROPERTIES_PREFIX;
-import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 import static com.michelin.kstreamplify.topic.TopicUtils.PREFIX_PROPERTY_NAME;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Map;
@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.streams.StreamsConfig;
 
 /** The class to represent the context of the KStream. */
 @Slf4j
@@ -54,34 +53,31 @@ public class KafkaStreamsExecutionContext {
     @Getter
     private static String prefix;
 
+    /** Constructor. */
     private KafkaStreamsExecutionContext() {}
 
     /**
-     * Register Kafka properties.
+     * Register Kafka kafkaProperties.
      *
-     * @param properties The Kafka properties
+     * @param kafkaProperties The Kafka kafkaProperties
      */
-    public static void registerProperties(Properties properties) {
-        if (properties == null) {
+    public static void registerProperties(Properties kafkaProperties) {
+        if (kafkaProperties == null) {
             return;
         }
 
-        prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + SELF, "");
-        if (StringUtils.isNotBlank(prefix) && properties.containsKey(StreamsConfig.APPLICATION_ID_CONFIG)) {
-            properties.setProperty(
-                    StreamsConfig.APPLICATION_ID_CONFIG,
-                    prefix.concat(properties.getProperty(StreamsConfig.APPLICATION_ID_CONFIG)));
+        prefix = kafkaProperties.getProperty(PREFIX_PROPERTY_NAME + "." + SELF, "");
+        if (StringUtils.isNotBlank(prefix) && kafkaProperties.containsKey(APPLICATION_ID_CONFIG)) {
+            kafkaProperties.setProperty(
+                    APPLICATION_ID_CONFIG, prefix.concat(kafkaProperties.getProperty(APPLICATION_ID_CONFIG)));
         }
 
-        KafkaStreamsExecutionContext.properties = properties;
-
-        // Extract all Dead Letter Queue (DLQ) properties from the main properties using the DLQ prefix
-        dlqProperties =
-                PropertiesUtils.extractPropertiesByPrefix(properties, DLQ_PROPERTIES_PREFIX + PROPERTY_SEPARATOR);
+        properties = kafkaProperties;
+        dlqProperties = PropertiesUtils.extractSubProperties(kafkaProperties, DLQ_PROPERTIES_PREFIX, false);
     }
 
     /**
-     * Checks if a DLQ (Dead Letter Queue) feature flag is enabled based on the given key.
+     * Checks if a DLQ feature flag is enabled based on the given key.
      *
      * @param key The DLQ feature property key to check.
      * @return {@code true} if the feature is enabled; {@code false} otherwise.

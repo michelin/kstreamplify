@@ -44,7 +44,7 @@ import org.testcontainers.utility.DockerImageName;
 /** Base class for Kafka integration tests. */
 @Slf4j
 public abstract class KafkaIntegrationTest {
-    protected static final String CONFLUENT_PLATFORM_VERSION = "7.7.0";
+    protected static final String CONFLUENT_PLATFORM_VERSION = "8.0.3";
     protected static final Network NETWORK = Network.newNetwork();
 
     @Autowired

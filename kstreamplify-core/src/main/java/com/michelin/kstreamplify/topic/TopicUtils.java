@@ -18,8 +18,6 @@
  */
 package com.michelin.kstreamplify.topic;
 
-import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
-
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.util.Properties;
 
@@ -64,12 +62,11 @@ public final class TopicUtils {
         Properties properties = KafkaStreamsExecutionContext.getProperties();
 
         // Check for dynamic remap in properties
-        String remappedTopic = properties.getProperty(
-                TOPIC_PROPERTY_NAME + PROPERTY_SEPARATOR + REMAP_PROPERTY_NAME + PROPERTY_SEPARATOR + topicName,
-                topicName);
+        String remappedTopic =
+                properties.getProperty(TOPIC_PROPERTY_NAME + "." + REMAP_PROPERTY_NAME + "." + topicName, topicName);
 
         // Check if topic prefix property exists
-        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + PROPERTY_SEPARATOR + prefixKey, "");
+        String prefix = properties.getProperty(PREFIX_PROPERTY_NAME + "." + prefixKey, "");
         return prefix.concat(remappedTopic);
     }
 }

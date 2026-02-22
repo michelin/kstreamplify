@@ -18,12 +18,15 @@
  */
 package com.michelin.kstreamplify.initializer;
 
+import static java.util.Optional.ofNullable;
+
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -39,32 +42,29 @@ import org.springframework.stereotype.Component;
 public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
     private final ConfigurableApplicationContext applicationContext;
     private final MeterRegistry registry;
-    private final KafkaProperties springBootKafkaProperties;
-
-    @Value("${server.port:8080}")
-    private int springBootServerPort;
 
     /**
      * Constructor.
      *
-     * @param applicationContext The application context
      * @param kafkaStreamsStarter The Kafka Streams starter
-     * @param springBootKafkaProperties The Spring Boot Kafka properties
+     * @param serverPort The server port
+     * @param kafkaProperties The Spring Boot Kafka properties
+     * @param applicationContext The application context
      * @param registry The Micrometer registry
      */
     public SpringBootKafkaStreamsInitializer(
-            ConfigurableApplicationContext applicationContext,
             KafkaStreamsStarter kafkaStreamsStarter,
-            KafkaProperties springBootKafkaProperties,
+            @Value("${server.port:8080}") int serverPort,
+            KafkaProperties kafkaProperties,
+            ConfigurableApplicationContext applicationContext,
             MeterRegistry registry) {
-        super(kafkaStreamsStarter);
+        super(kafkaStreamsStarter, serverPort, kafkaProperties.asProperties());
         this.applicationContext = applicationContext;
-        this.springBootKafkaProperties = springBootKafkaProperties;
         this.registry = registry;
     }
 
     /**
-     * Start Kstreamplify.
+     * Automatically start Kstreamplify when the Spring Boot application is ready.
      *
      * @param args The program arguments
      */
@@ -73,51 +73,67 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
         start();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Start Kstreamplify.
+     *
+     * <ol>
+     *   <li>Build the topology.
+     *   <li>Create the Kafka Streams instance.
+     *   <li>Register Kafka Streams metrics to the Spring Boot registry for OpenTelemetry.
+     *   <li>Start the HTTP server.
+     * </ol>
+     */
     @Override
-    protected void startHttpServer() {
-        // Nothing to do here as the server is already started by Spring Boot
-    }
+    public void start() {
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+        kafkaStreamsStarter.topology(streamsBuilder);
 
-    /** {@inheritDoc} */
-    @Override
-    protected void initProperties() {
-        serverPort = springBootServerPort;
-        kafkaProperties = springBootKafkaProperties.asProperties();
-        KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
-    }
+        topology = streamsBuilder.build(KafkaStreamsExecutionContext.getProperties());
+        log.info("Topology description:\n {}", topology.describe());
 
-    /** {@inheritDoc} */
-    @Override
-    protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse onStreamsUncaughtException(
-            Throwable exception) {
-        closeApplicationContext();
-        return super.onStreamsUncaughtException(exception);
-    }
+        kafkaStreams = new KafkaStreams(topology, KafkaStreamsExecutionContext.getProperties());
 
-    /** {@inheritDoc} */
-    @Override
-    protected void onStateChange(KafkaStreams.State newState, KafkaStreams.State oldState) {
-        if (newState.equals(KafkaStreams.State.ERROR)) {
-            closeApplicationContext();
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected void registerMetrics(KafkaStreams kafkaStreams) {
-        // As the Kafka Streams metrics are not picked up by the OpenTelemetry Java agent automatically,
-        // register them manually to the Spring Boot registry as the agent will pick metrics up from there
         KafkaStreamsMetrics kafkaStreamsMetrics = new KafkaStreamsMetrics(kafkaStreams);
         kafkaStreamsMetrics.bindTo(registry);
+
+        kafkaStreamsStarter.onStart(kafkaStreams);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
+
+        kafkaStreams.setUncaughtExceptionHandler(
+                ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::uncaughtExceptionHandler));
+
+        kafkaStreams.setStateListener(this::stateListener);
+
+        kafkaStreams.start();
     }
 
-    /** Close the application context. */
-    private void closeApplicationContext() {
+    /**
+     * Default uncaught exception handler.
+     *
+     * @param exception The exception
+     * @return The uncaught exception response
+     */
+    @Override
+    protected StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse uncaughtExceptionHandler(
+            Throwable exception) {
         if (applicationContext != null) {
             applicationContext.close();
-        } else {
-            log.warn("Spring Boot context is not set, cannot close it");
+        }
+
+        return super.uncaughtExceptionHandler(exception);
+    }
+
+    /**
+     * Default state listener.
+     *
+     * @param newState The new state
+     * @param oldState The old state
+     */
+    @Override
+    protected void stateListener(KafkaStreams.State newState, KafkaStreams.State oldState) {
+        if (newState.equals(KafkaStreams.State.ERROR) && applicationContext != null) {
+            applicationContext.close();
         }
     }
 }

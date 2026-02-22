@@ -18,42 +18,42 @@
  */
 package com.michelin.kstreamplify.initializer;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 
 /** The Kafka Streams starter interface. */
+@Slf4j
 public abstract class KafkaStreamsStarter {
-
     /** Constructor. */
     protected KafkaStreamsStarter() {}
 
     /**
-     * Define the topology of the Kafka Streams.
+     * The Kafka Streams topology definition.
      *
      * @param streamsBuilder The streams builder
      */
     public abstract void topology(StreamsBuilder streamsBuilder);
 
     /**
-     * Define the dead letter queue (DLQ) topic. If you don't want to use the DLQ topic, you can return
-     * {@link org.apache.commons.lang3.StringUtils#EMPTY}.
+     * The Kafka Streams DLQ topic name.
      *
-     * @return The dead letter queue (DLQ) topic
+     * @return The DLQ topic name
      */
     public abstract String dlqTopic();
 
     /**
-     * Define runnable code after the Kafka Streams startup.
+     * Runnable code after the Kafka Streams startup.
      *
      * @param kafkaStreams The Kafka Streams instance
      */
     public void onStart(KafkaStreams kafkaStreams) {}
 
     /**
-     * Register a custom uncaught exception handler.
+     * Default uncaught exception handler that shuts down the Kafka Streams client when an uncaught exception occurs.
      *
-     * @return StreamsUncaughtExceptionHandler The custom uncaught exception handler
+     * @return The default uncaught exception handler
      */
     public StreamsUncaughtExceptionHandler uncaughtExceptionHandler() {
         return null;

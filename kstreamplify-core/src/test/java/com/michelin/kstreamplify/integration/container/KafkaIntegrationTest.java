@@ -18,6 +18,8 @@
  */
 package com.michelin.kstreamplify.integration.container;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_SERVER_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,14 +29,17 @@ import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.net.http.HttpClient;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
+import org.apache.kafka.streams.state.HostInfo;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -45,7 +50,7 @@ import org.testcontainers.utility.DockerImageName;
 /** Base class for Kafka integration tests. */
 @Slf4j
 public abstract class KafkaIntegrationTest {
-    protected static final String CONFLUENT_PLATFORM_VERSION = "7.7.0";
+    protected static final String CONFLUENT_PLATFORM_VERSION = "8.0.3";
     protected static final Network NETWORK = Network.newNetwork();
     protected final HttpClient httpClient = HttpClient.newBuilder().build();
     protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -110,45 +115,33 @@ public abstract class KafkaIntegrationTest {
     }
 
     /**
-     * Define a KafkaStreamsInitializer stub for testing. This stub allows to override some properties of the
-     * application.properties file or to set some properties dynamically from Testcontainers.
+     * Define a KafkaStreamsInitializer stub for testing.
+     *
+     * <p>This stub allows to override some properties of the application.properties file or to set some properties
+     * dynamically from Testcontainers.
      */
     public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
-        private Integer newServerPort;
-        private final Map<String, String> additionalProperties;
-
-        public KafkaStreamInitializerStub(KafkaStreamsStarter kafkaStreamsStarter, Map<String, String> properties) {
-            super(kafkaStreamsStarter);
-            this.additionalProperties = properties;
-        }
-
         public KafkaStreamInitializerStub(
-                KafkaStreamsStarter kafkaStreamsStarter,
-                Integer newServerPort,
-                Map<String, String> additionalProperties) {
+                KafkaStreamsStarter kafkaStreamsStarter, Integer serverPort, Properties additionalProperties) {
             super(kafkaStreamsStarter);
-            this.newServerPort = newServerPort;
-            this.additionalProperties = additionalProperties;
-        }
-
-        /**
-         * Override properties of the application.properties file. Some properties are dynamically set from
-         * Testcontainers.
-         */
-        @Override
-        protected void initProperties() {
-            super.initProperties();
-
-            if (newServerPort != null) {
-                serverPort = newServerPort;
-            }
-
-            properties.putAll(additionalProperties);
+            this.serverPort = serverPort;
+            this.properties.putAll(additionalProperties);
 
             Properties convertedAdditionalProperties = new Properties();
             convertedAdditionalProperties.putAll(additionalProperties);
-            kafkaProperties.putAll(PropertiesUtils.loadKafkaProperties(convertedAdditionalProperties));
+            kafkaProperties.putAll(
+                    PropertiesUtils.extractSubProperties(convertedAdditionalProperties, KAFKA_PROPERTIES_PREFIX, true));
             KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+            KafkaStreamsExecutionContext.setSerdesConfig(kafkaProperties.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> String.valueOf(e.getKey()),
+                            e -> String.valueOf(e.getValue()),
+                            (prev, next) -> next,
+                            HashMap::new)));
+
+            this.hostInfo = new HostInfo(hostInfo.host(), serverPort);
+            KafkaStreamsExecutionContext.getProperties()
+                    .put(APPLICATION_SERVER_CONFIG, "%s:%s".formatted(hostInfo.host(), hostInfo.port()));
         }
     }
 }

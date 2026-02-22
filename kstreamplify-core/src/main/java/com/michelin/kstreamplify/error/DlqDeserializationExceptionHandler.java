@@ -38,7 +38,7 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 @Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
     private static final Object GUARD = new Object();
-    private boolean handleSchemaRegistryRestException = false;
+    private boolean handleSchemaRegistryRestException;
 
     /** Constructor. */
     public DlqDeserializationExceptionHandler() {
