@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /** The class to represent the context of the KStream. */
 @Slf4j
-@Getter
 public class KafkaStreamsExecutionContext {
     @Getter
     @Setter
