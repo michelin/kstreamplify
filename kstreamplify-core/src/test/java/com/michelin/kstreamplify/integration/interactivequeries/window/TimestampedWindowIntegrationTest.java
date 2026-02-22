@@ -19,7 +19,6 @@
 package com.michelin.kstreamplify.integration.interactivequeries.window;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
-import static com.michelin.kstreamplify.property.PropertiesUtils.PROPERTY_SEPARATOR;
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
@@ -47,6 +46,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
@@ -122,18 +122,18 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
             avroKafkaProducer.send(message).get();
         }
 
-        initializer = new KafkaStreamInitializerStub(
-                new KafkaStreamsStarterStub(),
-                8084,
-                Map.of(
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + BOOTSTRAP_SERVERS_CONFIG,
-                        broker.getBootstrapServers(),
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + APPLICATION_ID_CONFIG,
-                        "appTimestampedWindowInteractiveQueriesId",
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + SCHEMA_REGISTRY_URL_CONFIG,
-                        "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
-                        KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR + STATE_DIR_CONFIG,
-                        "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window"));
+        Properties properties = new Properties();
+        properties.putAll(Map.of(
+                KAFKA_PROPERTIES_PREFIX + BOOTSTRAP_SERVERS_CONFIG,
+                broker.getBootstrapServers(),
+                KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG,
+                "appTimestampedWindowInteractiveQueriesId",
+                KAFKA_PROPERTIES_PREFIX + SCHEMA_REGISTRY_URL_CONFIG,
+                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
+                KAFKA_PROPERTIES_PREFIX + STATE_DIR_CONFIG,
+                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/timestamped-window"));
+
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8084, properties);
 
         initializer.start();
     }

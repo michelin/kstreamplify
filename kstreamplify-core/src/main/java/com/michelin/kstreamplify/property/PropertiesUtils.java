@@ -18,118 +18,87 @@
  */
 package com.michelin.kstreamplify.property;
 
-import com.michelin.kstreamplify.exception.PropertiesFileException;
+import com.michelin.kstreamplify.exception.ConfigFileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.yaml.snakeyaml.Yaml;
 
 /** Properties utils. */
 public final class PropertiesUtils {
     /** The Kafka properties prefix. */
-    public static final String KAFKA_PROPERTIES_PREFIX = "kafka.properties";
+    public static final String KAFKA_PROPERTIES_PREFIX = "kafka.properties.";
 
-    /** The default property file. */
-    public static final String DEFAULT_PROPERTY_FILE = "application.yml";
+    /** The default config file. */
+    public static final String CONFIG_FILE = "application.yml";
 
-    /** The property separator. */
-    public static final String PROPERTY_SEPARATOR = ".";
-
+    /** Constructor. */
     private PropertiesUtils() {}
 
     /**
-     * Load the properties from the default properties file.
+     * Load the properties from the config file.
      *
      * @return The properties
      */
     public static Properties loadProperties() {
         Yaml yaml = new Yaml();
 
-        try (InputStream inputStream =
-                PropertiesUtils.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTY_FILE)) {
-            LinkedHashMap<String, Object> propsMap = yaml.load(inputStream);
-            return parsePropertiesMap(propsMap);
+        try (InputStream inputStream = PropertiesUtils.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
+            if (inputStream == null) {
+                throw new ConfigFileNotFoundException(CONFIG_FILE);
+            }
+
+            Map<String, Object> yamlProperties = yaml.load(inputStream);
+            Properties properties = new Properties();
+            if (yamlProperties != null) {
+                flattenMap(yamlProperties, "", properties);
+            }
+
+            return properties;
         } catch (IOException e) {
-            throw new PropertiesFileException(e);
+            throw new ConfigFileNotFoundException(CONFIG_FILE, e);
         }
     }
 
     /**
-     * Get the Kafka properties only from the given properties.
-     *
-     * @param props The properties
-     * @return The Kafka properties
-     */
-    public static Properties loadKafkaProperties(Properties props) {
-        Properties resultProperties = new Properties();
-        for (var prop : props.entrySet()) {
-            if (prop.getKey().toString().contains(KAFKA_PROPERTIES_PREFIX)) {
-                resultProperties.put(
-                        Strings.CS.remove(prop.getKey().toString(), KAFKA_PROPERTIES_PREFIX + PROPERTY_SEPARATOR),
-                        prop.getValue());
-            }
-        }
-        return resultProperties;
-    }
-
-    /**
-     * Parse a map into Properties.
-     *
-     * @param map The map
-     * @return The properties
-     */
-    private static Properties parsePropertiesMap(LinkedHashMap<String, Object> map) {
-        return parseKey("", map, null);
-    }
-
-    /**
-     * Parse a given key.
-     *
-     * @param key The key
-     * @param map The underlying map
-     * @param properties The properties
-     * @return The properties
-     */
-    private static Properties parseKey(String key, Object map, Properties properties) {
-        if (properties == null) {
-            properties = new Properties();
-        }
-
-        String separator = PROPERTY_SEPARATOR;
-        if (StringUtils.isBlank(key)) {
-            separator = "";
-        }
-
-        if (map instanceof LinkedHashMap<?, ?> hashMap) {
-            for (Map.Entry<?, ?> entry : hashMap.entrySet()) {
-                parseKey(key + separator + entry.getKey(), entry.getValue(), properties);
-            }
-        } else {
-            properties.put(key, map);
-        }
-
-        return properties;
-    }
-
-    /**
-     * Extract properties by prefix.
+     * Extract sub-properties by key prefix.
      *
      * @param properties The properties
-     * @param prefix The prefix to filter by
-     * @return The filtered properties
+     * @param keyPrefix The key prefix to filter by
+     * @param removeKeyPrefix Whether to remove the key prefix from the extracted properties
+     * @return The extracted sub-properties
      */
-    public static Properties extractPropertiesByPrefix(Properties properties, String prefix) {
-        Properties result = new Properties();
-        for (String key : properties.stringPropertyNames()) {
-            if (key.startsWith(prefix)) {
-                result.setProperty(key, properties.getProperty(key));
+    public static Properties extractSubProperties(Properties properties, String keyPrefix, boolean removeKeyPrefix) {
+        Properties kafkaProperties = new Properties();
+
+        properties.stringPropertyNames().stream()
+                .filter(key -> key.startsWith(keyPrefix))
+                .forEach(key -> kafkaProperties.setProperty(
+                        removeKeyPrefix ? key.substring(keyPrefix.length()) : key, properties.getProperty(key)));
+
+        return kafkaProperties;
+    }
+
+    /**
+     * Flatten a nested map into a flat properties object.
+     *
+     * @param map The map to flatten
+     * @param prefix The prefix to use for the keys
+     * @param out The output properties
+     */
+    @SuppressWarnings("unchecked")
+    private static void flattenMap(Map<String, Object> map, String prefix, Properties out) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = prefix.isEmpty() ? entry.getKey() : prefix + entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof Map) {
+                flattenMap((Map<String, Object>) value, key + ".", out);
+            } else if (value != null) {
+                out.put(key, value);
             }
         }
-        return result;
     }
 
     /**

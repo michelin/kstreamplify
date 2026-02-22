@@ -18,16 +18,15 @@
  */
 package com.michelin.kstreamplify.property;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
 /** Kstreamplify configuration constants. */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class KstreamplifyConfig {
     /** The DLQ properties prefix. */
-    public static final String DLQ_PROPERTIES_PREFIX = "dlq";
+    public static final String DLQ_PROPERTIES_PREFIX = "dlq.";
 
     /** Property key to configure handling of Schema Registry RestClient exceptions in DLQ deserialization. */
     public static final String DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION =
             "dlq.deserialization-handler.forward-restclient-exception";
+
+    /** Constructor. */
+    private KstreamplifyConfig() {}
 }

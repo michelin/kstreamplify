@@ -26,13 +26,14 @@ import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Properties;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -46,13 +47,15 @@ class SpringBootKafkaStreamsInitializerTest {
     private KafkaStreamsStarter kafkaStreamsStarter;
 
     @Mock
+    private MeterRegistry meterRegistry;
+
+    @Mock
     private KafkaProperties kafkaProperties;
 
-    @InjectMocks
     private SpringBootKafkaStreamsInitializer initializer;
 
-    @Test
-    void shouldStartProperties() {
+    @BeforeEach
+    void setUp() {
         Properties properties = new Properties();
         properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
         properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -60,8 +63,12 @@ class SpringBootKafkaStreamsInitializerTest {
 
         when(kafkaProperties.asProperties()).thenReturn(properties);
 
-        initializer.initProperties();
+        initializer = new SpringBootKafkaStreamsInitializer(
+                kafkaStreamsStarter, 8080, kafkaProperties, applicationContext, meterRegistry);
+    }
 
+    @Test
+    void shouldInitProperties() {
         assertEquals(kafkaStreamsStarter, initializer.getKafkaStreamsStarter());
         assertNotNull(initializer.getKafkaProperties());
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
@@ -71,16 +78,8 @@ class SpringBootKafkaStreamsInitializerTest {
 
     @Test
     void shouldCloseSpringBootContextOnUncaughtException() {
-        Properties properties = new Properties();
-        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
-        properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        properties.put("prefix.self", "abc.");
-
-        when(kafkaProperties.asProperties()).thenReturn(properties);
-
-        initializer.initProperties();
         StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
-                initializer.onStreamsUncaughtException(new RuntimeException("Unexpected test exception"));
+                initializer.uncaughtExceptionHandler(new RuntimeException("Unexpected test exception"));
 
         assertEquals(StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse.SHUTDOWN_CLIENT, response);
         verify(applicationContext).close();
@@ -88,13 +87,13 @@ class SpringBootKafkaStreamsInitializerTest {
 
     @Test
     void shouldCloseSpringBootContextOnChangeState() {
-        initializer.onStateChange(KafkaStreams.State.ERROR, KafkaStreams.State.RUNNING);
+        initializer.stateListener(KafkaStreams.State.ERROR, KafkaStreams.State.RUNNING);
         verify(applicationContext).close();
     }
 
     @Test
     void shouldNotCloseSpringBootContextOnChangeStateNotError() {
-        initializer.onStateChange(KafkaStreams.State.REBALANCING, KafkaStreams.State.RUNNING);
+        initializer.stateListener(KafkaStreams.State.REBALANCING, KafkaStreams.State.RUNNING);
         verify(applicationContext, never()).close();
     }
 }
