@@ -27,9 +27,12 @@ import static org.mockito.Mockito.when;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
 import java.util.Properties;
+
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,13 +49,15 @@ class SpringBootKafkaStreamsInitializerTest {
     private KafkaStreamsStarter kafkaStreamsStarter;
 
     @Mock
+    private MeterRegistry meterRegistry;
+
+    @Mock
     private KafkaProperties kafkaProperties;
 
-    @InjectMocks
     private SpringBootKafkaStreamsInitializer initializer;
 
-    @Test
-    void shouldStartProperties() {
+    @BeforeEach
+    void setUp() {
         Properties properties = new Properties();
         properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
         properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
@@ -60,8 +65,13 @@ class SpringBootKafkaStreamsInitializerTest {
 
         when(kafkaProperties.asProperties()).thenReturn(properties);
 
-        initializer.initProperties();
+        initializer = new SpringBootKafkaStreamsInitializer(
+                kafkaStreamsStarter, 8080, kafkaProperties, applicationContext, meterRegistry
+        );
+    }
 
+    @Test
+    void shouldInitProperties() {
         assertEquals(kafkaStreamsStarter, initializer.getKafkaStreamsStarter());
         assertNotNull(initializer.getKafkaProperties());
         assertEquals("abc.", KafkaStreamsExecutionContext.getPrefix());
@@ -71,14 +81,6 @@ class SpringBootKafkaStreamsInitializerTest {
 
     @Test
     void shouldCloseSpringBootContextOnUncaughtException() {
-        Properties properties = new Properties();
-        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "appId");
-        properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        properties.put("prefix.self", "abc.");
-
-        when(kafkaProperties.asProperties()).thenReturn(properties);
-
-        initializer.initProperties();
         StreamsUncaughtExceptionHandler.StreamThreadExceptionResponse response =
                 initializer.uncaughtExceptionHandler(new RuntimeException("Unexpected test exception"));
 

@@ -45,7 +45,7 @@ class KafkaStreamsInitializerTest {
     private KafkaStreamsStarter kafkaStreamsStarter;
 
     @Test
-    void shouldStartProperties() {
+    void shouldInitProperties() {
         try (MockedStatic<PropertiesUtils> propertiesUtilsMockedStatic = mockStatic(PropertiesUtils.class)) {
             Properties properties = new Properties();
             properties.put(SERVER_PORT, 8080);

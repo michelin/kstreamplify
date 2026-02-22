@@ -19,7 +19,7 @@
 package com.michelin.kstreamplify;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.*;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -53,7 +52,7 @@ public abstract class KafkaStreamsStarterTest {
     /** The topology test driver. */
     protected TopologyTestDriver testDriver;
 
-    /** The dlq topic, initialized in {@link #generalSetUp()}. */
+    /** The DLQ topic. */
     protected TestOutputTopic<String, KafkaError> dlqTopic;
 
     /** Constructor. */
@@ -86,22 +85,19 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
-     * Get the properties for the test.
+     * Get additional properties for the tests.
      *
-     * @return The properties for the test
+     * @return The properties
      */
     private Properties getProperties() {
         Properties properties = new Properties();
 
-        // Default properties
-        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
-        properties.setProperty(
-                StreamsConfig.STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
+        properties.setProperty(APPLICATION_ID_CONFIG, "test");
+        properties.setProperty(BOOTSTRAP_SERVERS_CONFIG, "mock:1234");
+        properties.setProperty(STATE_DIR_CONFIG, STATE_DIR + getClass().getSimpleName());
         properties.setProperty(
                 SCHEMA_REGISTRY_URL_CONFIG, "mock://" + getClass().getSimpleName());
 
-        // Add specific properties or overwrite default properties
         Map<String, String> propertiesMap = getSpecificProperties();
         if (propertiesMap != null && !propertiesMap.isEmpty()) {
             properties.putAll(propertiesMap);
@@ -111,33 +107,33 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
-     * Method to override to provide the KafkaStreamsStarter to test.
+     * Provide the KafkaStreamsStarter to test.
      *
      * @return The KafkaStreamsStarter to test
      */
     protected abstract KafkaStreamsStarter getKafkaStreamsStarter();
 
     /**
-     * Default base wall clock time for topology test driver.
+     * Default wall clock time for topology test driver.
      *
-     * @return The default wall clock time as instant
+     * @return The default wall clock time
      */
     protected Instant getInitialWallClockTime() {
         return Instant.ofEpochMilli(1577836800000L);
     }
 
     /**
-     * Create/Overwrite properties.
+     * Provide specific properties to add or override for the tests.
      *
-     * @return new/overwrite properties
+     * @return A map of properties
      */
     protected Map<String, String> getSpecificProperties() {
         return Collections.emptyMap();
     }
 
-    /** Method to close everything properly at the end of the test. */
+    /** Close everything after each test. */
     @AfterEach
-    void generalTearDown() throws IOException {
+    protected void generalTearDown() throws IOException {
         testDriver.close();
         Files.deleteIfExists(
                 Path.of(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
@@ -147,13 +143,13 @@ public abstract class KafkaStreamsStarterTest {
     /**
      * Creates an input test topic on the testDriver using the provided topicWithSerde.
      *
-     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param topicWithSerde The topic with serde used to create the test topic
      * @param <K> The serializable type of the key
      * @param <V> The serializable type of the value
      * @return The corresponding TestInputTopic
      */
     protected <K, V> TestInputTopic<K, V> createInputTestTopic(TopicWithSerde<K, V> topicWithSerde) {
-        return this.testDriver.createInputTopic(
+        return testDriver.createInputTopic(
                 topicWithSerde.toString(),
                 topicWithSerde.getKeySerde().serializer(),
                 topicWithSerde.getValueSerde().serializer());
@@ -162,7 +158,7 @@ public abstract class KafkaStreamsStarterTest {
     /**
      * Creates an input test topic on the testDriver using the provided topicWithSerde.
      *
-     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param topicWithSerde The topic with serde used to create the test topic
      * @param <K> The serializable type of the key
      * @param <V> The serializable type of the value
      * @return The corresponding TestInputTopic
@@ -178,7 +174,7 @@ public abstract class KafkaStreamsStarterTest {
     /**
      * Creates an output test topic on the testDriver using the provided topicWithSerde.
      *
-     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param topicWithSerde The topic with serde used to create the test topic
      * @param <K> The serializable type of the key
      * @param <V> The serializable type of the value
      * @return The corresponding TestOutputTopic
@@ -193,7 +189,7 @@ public abstract class KafkaStreamsStarterTest {
     /**
      * Creates an output test topic on the testDriver using the provided topicWithSerde.
      *
-     * @param topicWithSerde The topic with serde used to crete the test topic
+     * @param topicWithSerde The topic with serde used to create the test topic
      * @param <K> The serializable type of the key
      * @param <V> The serializable type of the value
      * @return The corresponding TestOutputTopic
