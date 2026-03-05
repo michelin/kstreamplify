@@ -27,7 +27,8 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.kafka.streams.KeyValue;
+import java.time.Instant;
+import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.junit.jupiter.api.Test;
@@ -69,5 +70,38 @@ class WindowStateStoreUtilsTest {
         assertEquals("testValue", result);
         assertNull(nullResult);
         verify(windowStore).put(eq(key), eq(value), anyLong());
+    }
+
+    @Test
+    void shouldPutWithExplicitTimestamp() {
+        String key = "testKey";
+        String value = "testValue";
+        long timestamp = System.currentTimeMillis();
+
+        // Call the new put method with explicit timestamp
+        WindowStateStoreUtils.put(windowStore, key, value, timestamp);
+
+        // Verify that the store's put was called with the exact timestamp
+        verify(windowStore).put(eq(key), eq(value), eq(timestamp));
+    }
+
+    @Test
+    void shouldGetWithExplicitTimeRange() {
+        String key = "testKey";
+        String value = "testValue";
+
+        // Mock iterator for backwardFetch with explicit range
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
+        when(iterator.next()).thenReturn(KeyValue.pair(1L, value));
+
+        Instant from = Instant.now().minusSeconds(60);
+        Instant to = Instant.now();
+
+        when(windowStore.backwardFetch(eq(key), eq(from), eq(to))).thenReturn(iterator);
+
+        // Call the new get method with explicit range
+        String result = WindowStateStoreUtils.get(windowStore, key, from, to);
+
+        assertEquals(value, result);
     }
 }
