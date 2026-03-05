@@ -27,36 +27,64 @@ public final class WindowStateStoreUtils {
     private WindowStateStoreUtils() {}
 
     /**
-     * Put the key/value into the state store.
+     * Puts a key/value pair into the {@link WindowStore} using the current system time as the record timestamp.
      *
-     * @param stateStore The stateStore
-     * @param key The key
-     * @param value The value
-     * @param <K> The template for the key
-     * @param <V> The template for the value
+     * @param stateStore the target state store
+     * @param key the record key
+     * @param value the record value
+     * @param <K> the key type
+     * @param <V> the value type
      */
     public static <K, V> void put(WindowStore<K, V> stateStore, K key, V value) {
-        stateStore.put(key, value, Instant.now().toEpochMilli());
+        put(stateStore, key, value, Instant.now().toEpochMilli());
     }
 
     /**
-     * Get the value by the key from the state store.
+     * Puts a key/value pair into the {@link WindowStore} using the provided timestamp.
      *
-     * @param stateStore The stateStore
-     * @param key The key
-     * @param retentionDays The delay of retention
-     * @param <K> The template for the key
-     * @param <V> The template for the value
-     * @return The last value inserted in the state store for the key
+     * @param stateStore the target state store
+     * @param key the record key
+     * @param value the record value
+     * @param timestamp the timestamp associated with the record (epoch milliseconds)
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    public static <K, V> void put(WindowStore<K, V> stateStore, K key, V value, long timestamp) {
+        stateStore.put(key, value, timestamp);
+    }
+
+    /**
+     * Gets the latest value associated with the given key from the {@link WindowStore} within the specified retention
+     * period.
+     *
+     * @param stateStore the source state store
+     * @param key the record key
+     * @param retentionDays the retention period in days to look back from the current time
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return the most recent value for the key within the retention window, or {@code null} if none exists
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, int retentionDays) {
-        var resultIterator =
-                stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)), Instant.now());
+        Instant now = Instant.now();
+        return get(stateStore, key, now.minus(Duration.ofDays(retentionDays)), now);
+    }
 
+    /**
+     * Gets the latest value associated with the given key from the {@link WindowStore} within the provided time range.
+     *
+     * @param stateStore the source state store
+     * @param key the record key
+     * @param from the start timestamp (inclusive)
+     * @param to the end timestamp (inclusive)
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return the most recent value for the key within the given time range, or {@code null} if none exists
+     */
+    public static <K, V> V get(WindowStore<K, V> stateStore, K key, Instant from, Instant to) {
+        var resultIterator = stateStore.backwardFetch(key, from, to);
         if (resultIterator != null && resultIterator.hasNext()) {
             return resultIterator.next().value;
         }
-
         return null;
     }
 }
