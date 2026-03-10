@@ -35,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.CompressionType;
 import org.rocksdb.Options;
+import org.rocksdb.RocksDB;
 
 @ExtendWith(MockitoExtension.class)
 class RocksDbConfigTest {
@@ -44,10 +45,13 @@ class RocksDbConfigTest {
     @BeforeEach
     void setUp() {
         when(options.tableFormatConfig()).thenReturn(new BlockBasedTableConfig());
+
+        // Fix https://github.com/facebook/rocksdb/issues/6789, only for tests
+        RocksDB.loadLibrary();
     }
 
     @Test
-    void testSetConfigWithDefaultValues() {
+    void shouldSetConfigWithDefaultValues() {
         Map<String, Object> configs = new HashMap<>();
         RocksDbConfig rocksDbConfig = new RocksDbConfig();
         KafkaStreamsExecutionContext.registerProperties(new Properties());
@@ -62,7 +66,7 @@ class RocksDbConfigTest {
     }
 
     @Test
-    void testSetConfigWithCustomValues() {
+    void shouldSetConfigWithCustomValues() {
         long cacheSize = 64 * 1024L * 1024L;
         long writeBufferSize = 8 * 1024L * 1024L;
         long blockSize = 8 * 1024L;
