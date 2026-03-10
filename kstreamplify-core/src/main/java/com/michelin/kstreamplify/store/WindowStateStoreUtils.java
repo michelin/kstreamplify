@@ -81,7 +81,11 @@ public final class WindowStateStoreUtils {
      * @return the most recent value for the key within the given time range, or {@code null} if none exists
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, Instant from, Instant to) {
-        try (var it = stateStore.backwardFetch(key, from, to)) {
+        var it = stateStore.backwardFetch(key, from, to);
+        if (it == null) {
+            return null;
+        }
+        try (it) {
             return it.hasNext() ? it.next().value : null;
         }
     }
