@@ -78,10 +78,8 @@ class WindowStateStoreUtilsTest {
         String value = "testValue";
         long timestamp = System.currentTimeMillis();
 
-        // Call the new put method with explicit timestamp
         WindowStateStoreUtils.put(windowStore, key, value, timestamp);
 
-        // Verify that the store's put was called with the exact timestamp
         verify(windowStore).put(eq(key), eq(value), eq(timestamp));
     }
 
@@ -99,9 +97,7 @@ class WindowStateStoreUtilsTest {
 
         when(windowStore.backwardFetch(eq(key), eq(from), eq(to))).thenReturn(iterator);
 
-        // Call the new get method with explicit range
         String result = WindowStateStoreUtils.get(windowStore, key, from, to);
-
         assertEquals(value, result);
     }
 }
