@@ -27,6 +27,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -69,5 +70,34 @@ class WindowStateStoreUtilsTest {
         assertEquals("testValue", result);
         assertNull(nullResult);
         verify(windowStore).put(eq(key), eq(value), anyLong());
+    }
+
+    @Test
+    void shouldPutWithExplicitTimestamp() {
+        String key = "testKey";
+        String value = "testValue";
+        long timestamp = System.currentTimeMillis();
+
+        WindowStateStoreUtils.put(windowStore, key, value, timestamp);
+
+        verify(windowStore).put(eq(key), eq(value), eq(timestamp));
+    }
+
+    @Test
+    void shouldGetWithExplicitTimeRange() {
+        String key = "testKey";
+        String value = "testValue";
+
+        // Mock iterator for backwardFetch with explicit range
+        when(iterator.hasNext()).thenReturn(true).thenReturn(false);
+        when(iterator.next()).thenReturn(KeyValue.pair(1L, value));
+
+        Instant from = Instant.now().minusSeconds(60);
+        Instant to = Instant.now();
+
+        when(windowStore.backwardFetch(eq(key), eq(from), eq(to))).thenReturn(iterator);
+
+        String result = WindowStateStoreUtils.get(windowStore, key, from, to);
+        assertEquals(value, result);
     }
 }
