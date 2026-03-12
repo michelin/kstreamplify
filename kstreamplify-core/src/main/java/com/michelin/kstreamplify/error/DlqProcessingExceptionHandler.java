@@ -23,24 +23,23 @@ import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdesUtils;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
-import org.apache.kafka.streams.errors.ProductionExceptionHandler;
+import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
+import org.apache.kafka.streams.processor.api.Record;
 
-/** The class managing DLQ production exceptions. */
 @Slf4j
-public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
+public class DlqProcessingExceptionHandler extends DlqExceptionHandler implements ProcessingExceptionHandler {
 
     @Override
-    public Response handleError(
-            ErrorHandlerContext context, ProducerRecord<byte[], byte[]> record, Exception exception) {
+    public Response handleError(ErrorHandlerContext context, Record<?, ?> record, Exception exception) {
         log.warn(
-                "Exception during message Production, processor node: {}, taskId: {}, source topic: {}, source partition: {}, source offset: {}",
+                "Exception during message Processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
                 context.processorNodeId(),
                 context.taskId(),
                 context.topic(),
@@ -49,39 +48,41 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                 exception);
 
         if (!isDlqDefined()) {
-            log.warn("Failed to route production error to DLQ. Define a DLQ topic in configuration.");
+            log.warn("Failed to route processing error to DLQ.");
             return Response.fail();
-        }
-
-        if (exception instanceof RetriableException) {
-            return Response.retry();
         }
 
         try {
             KafkaError.Builder builder = KafkaError.newBuilder()
                     .setContextMessage(
-                            "An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.")
+                            "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.")
                     .setOffset(context.offset())
                     .setPartition(context.partition())
-                    .setTopic(record.topic())
+                    .setTopic(context.topic())
                     .setApplicationId(
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
                     .setProcessorNodeId(context.processorNodeId())
-                    .setTaskId(context.taskId().toString());
+                    .setTaskId(context.taskId().toString())
+                    .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
+                    .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()))
+                    .setValue(record.value() == null ? null : record.value().toString());
 
-            KafkaError error = enrichWithException(builder, exception, record.key(), record.value())
+            KafkaError error = enrichWithException(
+                            builder,
+                            exception,
+                            record.key() != null ? record.key().toString().getBytes() : null,
+                            record.value() != null ? record.value().toString().getBytes() : null)
                     .build();
 
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(deadLetterQueueTopic, error);
 
-            return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, record.key(), value)));
+            byte[] key = record.key() != null ? record.key().toString().getBytes() : null;
+
+            return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, key, value)));
         } catch (Exception e) {
-            log.error(
-                    "Cannot send production exception to DLQ topic {}",
-                    KafkaStreamsExecutionContext.getDlqTopicName(),
-                    e);
-            return Response.resume();
+            log.error("Cannot send processing exception to DLQ topic {}", deadLetterQueueTopic, e);
+            return Response.fail();
         }
     }
 

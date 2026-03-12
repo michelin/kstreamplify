@@ -54,6 +54,31 @@
       "type": ["null",  "string"],
       "doc": "Application id of the application that produced the erroneous message",
       "default": null
+    },
+    {
+      "name": "processorNodeId",
+      "type": ["null",  "string"],
+      "doc": "Processor node id of the processor that produced the erroneous message",
+      "default": null
+    },
+    {
+      "name": "taskId",
+      "type": ["null",  "string"],
+      "doc": "Task id of the task that produced the erroneous message",
+      "default": null
+    },
+
+    {
+      "name": "sourceRawKey",
+      "type": ["null", "bytes"],
+      "doc": "Non-deserialized byte[] of the input message key if the context has been triggered by a message",
+      "default": null
+    },
+    {
+      "name": "sourceRawValue",
+      "type": ["null", "bytes"],
+      "doc": "Non-deserialized byte[] of the input message value if the context has been triggered by a message",
+      "default": null
     }
   ]
 }
