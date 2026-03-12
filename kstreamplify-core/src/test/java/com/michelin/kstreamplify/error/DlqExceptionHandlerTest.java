@@ -18,23 +18,59 @@
  */
 package com.michelin.kstreamplify.error;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.michelin.kstreamplify.avro.KafkaError;
+import java.nio.charset.StandardCharsets;
+import org.apache.kafka.common.errors.RecordTooLargeException;
 import org.junit.jupiter.api.Test;
 
 class DlqExceptionHandlerTest {
 
     @Test
-    void shouldInstantiateProducer() {
-        Map<String, Object> configs = new HashMap<>();
-        configs.put("bootstrap.servers", "localhost:9092");
-        configs.put("schema.registry.url", "localhost:8080");
-        configs.put("acks", "all");
+    void shouldEnrichWithException() {
+        KafkaError.Builder kafkaError = KafkaError.newBuilder()
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value");
 
-        DlqExceptionHandler.instantiateProducer("test-client", configs);
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(
+                kafkaError,
+                new RuntimeException("Exception..."),
+                "key".getBytes(StandardCharsets.UTF_8),
+                "value".getBytes(StandardCharsets.UTF_8));
 
-        assertNotNull(DlqExceptionHandler.getProducer());
+        KafkaError error = enrichedBuilder.build();
+        assertEquals("Unknown cause", error.getCause());
+        assertNull(error.getContextMessage());
+    }
+
+    @Test
+    void shouldEnrichWithRecordTooLargeException() {
+        KafkaError.Builder kafkaError = KafkaError.newBuilder()
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value");
+
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        KafkaError.Builder enrichedBuilder = handler.enrichWithException(
+                kafkaError,
+                new RecordTooLargeException("Exception..."),
+                "key".getBytes(StandardCharsets.UTF_8),
+                "value".getBytes(StandardCharsets.UTF_8));
+
+        KafkaError error = enrichedBuilder.build();
+        assertEquals("Unknown cause", error.getCause());
+        assertEquals(
+                "The record is too large to be set as value (5 bytes). " + "The key will be used instead",
+                error.getValue());
     }
 }
