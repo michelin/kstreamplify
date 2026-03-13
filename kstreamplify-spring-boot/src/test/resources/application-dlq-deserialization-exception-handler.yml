@@ -1,0 +1,11 @@
+kafka:
+  properties:
+    application.id: "appKeyValueDeserializationExceptionHandlerId"
+    deserialization.exception.handler: "com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler"
+    auto.offset.reset: "earliest"
+    commit.interval.ms: 1
+    default.key.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    default.value.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    state.dir: "/tmp/kstreamplify/kstreamplify-spring-boot-test"
+server:
+  port: 8006

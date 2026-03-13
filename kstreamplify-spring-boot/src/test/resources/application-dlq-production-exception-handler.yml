@@ -1,0 +1,11 @@
+kafka:
+  properties:
+    application.id: "appKeyValueProductionExceptionHandlerId"
+    production.exception.handler: "com.michelin.kstreamplify.error.DlqProductionExceptionHandler"
+    auto.offset.reset: "earliest"
+    commit.interval.ms: 1
+    default.key.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    default.value.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
+    state.dir: "/tmp/kstreamplify/kstreamplify-spring-boot-test"
+server:
+  port: 8008

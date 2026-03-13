@@ -19,12 +19,8 @@
 package com.michelin.kstreamplify.integration.interactivequeries.window;
 
 import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
-import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,11 +47,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
@@ -86,51 +80,22 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
                 new TopicPartition("STRING_TOPIC", 3),
                 new TopicPartition("AVRO_TOPIC", 2));
 
-        try (KafkaProducer<String, String> stringKafkaProducer = new KafkaProducer<>(Map.of(
-                BOOTSTRAP_SERVERS_CONFIG,
-                broker.getBootstrapServers(),
-                KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName(),
-                VALUE_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName()))) {
+        Properties properties = getKafkaGlobalProperties();
+        ProducerRecord<String, String> message = new ProducerRecord<>("STRING_TOPIC", "user", "Doe");
+        produceRecordToTopic(List.of(message), properties);
 
-            ProducerRecord<String, String> message = new ProducerRecord<>("STRING_TOPIC", "user", "Doe");
+        properties.setProperty(VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+        KafkaUserStub kafkaUserStub = KafkaUserStub.newBuilder()
+                .setId(1L)
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
+                .build();
+        ProducerRecord<String, KafkaUserStub> avroMessage = new ProducerRecord<>("AVRO_TOPIC", "user", kafkaUserStub);
+        produceRecordToTopic(List.of(avroMessage), properties);
 
-            stringKafkaProducer.send(message).get();
-        }
-
-        try (KafkaProducer<String, KafkaUserStub> avroKafkaProducer = new KafkaProducer<>(Map.of(
-                BOOTSTRAP_SERVERS_CONFIG,
-                broker.getBootstrapServers(),
-                KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName(),
-                VALUE_SERIALIZER_CLASS_CONFIG,
-                KafkaAvroSerializer.class.getName(),
-                SCHEMA_REGISTRY_URL_CONFIG,
-                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort()))) {
-
-            KafkaUserStub kafkaUserStub = KafkaUserStub.newBuilder()
-                    .setId(1L)
-                    .setFirstName("John")
-                    .setLastName("Doe")
-                    .setBirthDate(Instant.parse("2000-01-01T01:00:00Z"))
-                    .build();
-
-            ProducerRecord<String, KafkaUserStub> message = new ProducerRecord<>("AVRO_TOPIC", "user", kafkaUserStub);
-
-            avroKafkaProducer.send(message).get();
-        }
-
-        Properties properties = new Properties();
-        properties.putAll(Map.of(
-                KAFKA_PROPERTIES_PREFIX + BOOTSTRAP_SERVERS_CONFIG,
-                broker.getBootstrapServers(),
-                KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG,
-                "appWindowInteractiveQueriesId",
-                KAFKA_PROPERTIES_PREFIX + SCHEMA_REGISTRY_URL_CONFIG,
-                "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort(),
-                KAFKA_PROPERTIES_PREFIX + STATE_DIR_CONFIG,
-                "/tmp/kstreamplify/kstreamplify-core-test/interactive-queries/window"));
+        properties = getKafkaStreamProperties();
+        properties.put(KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG, "appWindowInteractiveQueriesId");
 
         initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8085, properties);
 
