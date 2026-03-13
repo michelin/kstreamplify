@@ -113,7 +113,9 @@ class DlqProductionExceptionHandlerTest {
                 .deserialize(
                         "DLQ_TOPIC", response.deadLetterQueueRecords().get(0).value());
 
-        assertEquals("An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.", kafkaError.getContextMessage());
+        assertEquals(
+                "An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.",
+                kafkaError.getContextMessage());
         assertEquals(0, kafkaError.getOffset());
         assertEquals(0, kafkaError.getPartition());
         assertEquals("topic", kafkaError.getTopic());
