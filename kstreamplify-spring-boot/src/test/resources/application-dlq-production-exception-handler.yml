@@ -8,4 +8,4 @@ kafka:
     default.value.serde: "org.apache.kafka.common.serialization.Serdes$StringSerde"
     state.dir: "/tmp/kstreamplify/kstreamplify-spring-boot-test"
 server:
-  port: 8002
+  port: 8008

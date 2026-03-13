@@ -78,7 +78,7 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
                 KAFKA_PROPERTIES_PREFIX + RETRIES_CONFIG,
                 "1"));
 
-        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8082, properties);
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8089, properties);
 
         initializer.start();
     }
