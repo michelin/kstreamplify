@@ -72,7 +72,7 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
                 KAFKA_PROPERTIES_PREFIX + DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                 "com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler"));
 
-        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8082, properties);
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8087, properties);
 
         initializer.start();
     }

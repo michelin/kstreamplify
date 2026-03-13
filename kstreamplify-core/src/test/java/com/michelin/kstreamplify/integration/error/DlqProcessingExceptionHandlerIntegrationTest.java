@@ -70,7 +70,7 @@ class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
                 KAFKA_PROPERTIES_PREFIX + PROCESSING_EXCEPTION_HANDLER_CLASS_CONFIG,
                 "com.michelin.kstreamplify.error.DlqProcessingExceptionHandler"));
 
-        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8082, properties);
+        initializer = new KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8088, properties);
 
         initializer.start();
     }
