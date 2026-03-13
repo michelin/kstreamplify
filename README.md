@@ -310,10 +310,61 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 ```
 
 ### Handling Processing Errors
+Kafka Streams may throw exceptions during record processing (for example in `map`, `mapValues`, `filter`, `process`, etc.).
 
-To catch processing errors and route them to the DLQ, use the `ProcessingResult` class.
+Kstreamplify provides two ways to handle these errors and route problematic records to a **Dead Letter Queue (DLQ)**:
 
-#### DSL
+- **ProcessingExceptionHandler (recommended)**
+- **ProcessingResult API (legacy approach)**
+
+> ⚠️ The `ProcessingExceptionHandler` approach requires **Kafka Streams 4.2.0 or later**.
+
+
+#### ProcessingExceptionHandler (recommended)
+
+Kstreamplify rely on the Kafka Streams `ProcessingExceptionHandler` to handle processing exceptions.  
+
+This mechanism was introduced in Kafka Streams 4.2.0 and allows exceptions thrown during processing to be intercepted and routed to the configured DLQ topic.  
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    streamsBuilder
+            .stream("input_topic", Consumed.with(Serdes.String(), Serdes.String()))
+            .mapValues(value -> value.toUpperCase())
+            .to("output_topic", Produced.with(Serdes.String(), Serdes.String()));
+  }
+
+  @Override
+  public String dlqTopic() {
+    return "dlq_topic";
+  }
+}
+```
+If an exception occurs during processing (for example inside `mapValues`):
+- the **ProcessingExceptionHandler** intercepts the exception
+- the failed record is sent to the **DLQ topic**
+- the stream continues processing normally  
+
+#### Legacy Approach (ProcessingResult)
+The `ProcessingResult` API allows applications to explicitly represent success or failure during processing.
+
+> ⚠️ Note: The `ProcessingResult` API is considered legacy and may be deprecated in a future Kstreamplify release. New topologies should prefer `ProcessingExceptionHandler`.
+
+`ProcessingResult<V, V2>` contains:
+
+`V` — transformed value when processing succeeds
+
+`V2` — original value when processing fails
+
+`TopologyErrorHandler.catchErrors()` intercepts failed results and routes them to the DLQ topic.
+
+This approach can still be useful when applications need to branch the topology depending on success or failure. 
+
+##### DSL Example
 
 ```java
 @Component
@@ -344,11 +395,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-The `mapValues` operation returns a `ProcessingResult<V, V2>`, where:
-
-- The first type parameter (`V`) represents the transformed value upon success.
-- The second type (`V2`) represents the original value if an error occurs.
-
 To mark a result as successful:
 
 ```java
@@ -361,9 +407,7 @@ To mark it as failed:
 ProcessingResult.fail(e, value, "Something went wrong...");
 ```
 
-Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. A healthy stream is returned and can be further processed as needed.
-
-#### Processor API
+##### Processor API Example
 
 ```java
 @Component
@@ -395,11 +439,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-The `process` operation forwards a `ProcessingResult<V, V2>`, where:
-
-- The first type parameter (`V`) represents the transformed value upon success.
-- The second type (`V2`) represents the original value if an error occurs.
-
 To mark a result as successful:
 
 ```java
@@ -412,7 +451,88 @@ To mark it as failed:
 ProcessingResult.wrapRecordFailure(e, record, "Something went wrong...");
 ```
 
-Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. A healthy stream is returned and can be further processed as needed.
+#### Migrating from ProcessingResult API
+
+Recent versions of **Kstreamplify** rely on the Kafka Streams `ProcessingExceptionHandler` to handle processing exceptions.  
+
+Because of this, the `ProcessingResult` pattern is no longer required in most cases. Failed records are automatically routed to the configured **DLQ topic**, and the stream continues processing other records.  
+
+Follow these steps to migrate existing topologies.
+
+1. Replace methods returning `ProcessingResult`
+
+Replace methods returning `ProcessingResult<V, V2>` with methods returning the transformed value directly.
+
+Before:
+
+```java
+private static ProcessingResult<KafkaUser, KafkaUser> toUpperCase(KafkaUser value)
+```
+
+After:
+
+```java
+private static KafkaUser toUpperCase(KafkaUser value)
+```
+
+2. Remove `ProcessingResult.success()` and `ProcessingResult.fail()`
+
+Instead of wrapping results, simply return the value or throw an exception.  
+
+Before:
+
+```java
+try {
+    value.setLastName(value.getLastName().toUpperCase());
+    return ProcessingResult.success(value);
+} catch (Exception e) {
+    return ProcessingResult.fail(e, value, "Something went wrong");
+}
+```
+
+After:
+
+```java
+value.setLastName(value.getLastName().toUpperCase());
+return value;
+```
+
+> ⚠️ Let exceptions propagate naturally. Do not catch them unless you want to handle them manually. This ensures Kstreamplify routes failed records to the DLQ using the ProcessingExceptionHandler.
+
+3. Remove `TopologyErrorHandler.catchErrors()` from the topology
+
+Before:
+
+```java
+TopologyErrorHandler
+    .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
+    .to("output_topic");
+```
+
+After:
+
+```java
+stream
+    .mapValues(MyKafkaStreams::toUpperCase)
+    .to("output_topic");
+```
+
+4. Update Processor API implementations  
+
+Before:
+
+```java
+context().forward(
+    ProcessingResult.wrapRecordSuccess(record)
+);
+```
+
+After:
+
+```java
+context().forward(record);
+```
+> ⚠️ Important: Do not catch exceptions inside your processor unless you intend to handle them manually. Letting exceptions propagate is required to trigger the `ProcessingExceptionHandler` and ensure failed records are sent to the DLQ.
 
 ### Production and Deserialization Errors
 
