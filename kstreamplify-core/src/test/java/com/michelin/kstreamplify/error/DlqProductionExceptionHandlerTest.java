@@ -99,8 +99,6 @@ class DlqProductionExceptionHandlerTest {
         when(producerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
         when(errorHandlerContext.partition()).thenReturn(0);
-        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
-        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
         // Wrap the KafkaException so that getCause() instanceof KafkaException
         Exception wrapped = new Exception("Wrapper", new KafkaException("Exception..."));
@@ -115,8 +113,8 @@ class DlqProductionExceptionHandlerTest {
                 .deserialize(
                         "DLQ_TOPIC", response.deadLetterQueueRecords().get(0).value());
 
-        assertEquals("An exception occurred during the stream internal production", kafkaError.getContextMessage());
-        assertEquals(-1, kafkaError.getOffset());
+        assertEquals("An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.", kafkaError.getContextMessage());
+        assertEquals(0, kafkaError.getOffset());
         assertEquals(0, kafkaError.getPartition());
         assertEquals("topic", kafkaError.getTopic());
         assertEquals("test-app", kafkaError.getApplicationId());
