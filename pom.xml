@@ -101,7 +101,7 @@
         <jackson-core.version>3.0.4</jackson-core.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <junit-jupiter.version>6.0.3</junit-jupiter.version>
-        <kafka-streams-avro-serde.version>8.1.1</kafka-streams-avro-serde.version>
+        <kafka-streams-avro-serde.version>8.2.0</kafka-streams-avro-serde.version>
         <kafka.version>4.2.0</kafka.version>
         <lombok.version>1.18.42</lombok.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
@@ -110,16 +110,16 @@
         <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
-        <mockito.version>5.21.0</mockito.version>
+        <mockito.version>5.22.0</mockito.version>
         <palantir.version>2.80.0</palantir.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>michelin</sonar.organization>
         <sonar.projectKey>michelin_kstreamplify</sonar.projectKey>
-        <spotless-maven-plugin.version>3.2.1</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.3.0</spotless-maven-plugin.version>
         <spring-boot.version>4.0.3</spring-boot.version>
-        <springdoc.version>3.0.1</springdoc.version>
+        <springdoc.version>3.0.2</springdoc.version>
         <testcontainers.version>2.0.3</testcontainers.version>
     </properties>
 
