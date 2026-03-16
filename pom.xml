@@ -110,7 +110,7 @@
         <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
         <maven.compiler.java.version>17</maven.compiler.java.version>
-        <mockito.version>5.22.0</mockito.version>
+        <mockito.version>5.23.0</mockito.version>
         <palantir.version>2.80.0</palantir.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
