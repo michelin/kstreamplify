@@ -18,12 +18,23 @@
  */
 package com.michelin.kstreamplify.serde;
 
+import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
+import java.util.Collections;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.processor.api.ContextualProcessor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
+import org.apache.kafka.streams.state.TimestampedKeyValueStore;
+import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.junit.jupiter.api.Test;
 
 class TopicWithSerdeTest {
@@ -113,5 +124,76 @@ class TopicWithSerdeTest {
                   --> none
                   <-- KSTREAM-SOURCE-0000000000
             """, streamsBuilder.build().describe().toString());
+    }
+
+    @Test
+    void shouldCreateGlobalStore() {
+        KafkaStreamsExecutionContext.registerProperties(new Properties());
+        KafkaStreamsExecutionContext.setSerdesConfig(
+                Collections.singletonMap(SCHEMA_REGISTRY_URL_CONFIG, "http://mock:8081"));
+
+        TopicWithSerde<String, String> topicWithSerde =
+                new TopicWithSerde<>("INPUT_TOPIC", Serdes.String(), Serdes.String());
+
+        TopicWithSerde<String, KafkaUserStub> topicUserWithSerde =
+                new TopicWithSerde<>("INPUT_USER_TOPIC", Serdes.String(), SerdesUtils.getValueSerdes());
+
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+
+        StoreBuilder<KeyValueStore<String, String>> storeBuilder = Stores.keyValueStoreBuilder(
+                Stores.persistentKeyValueStore("myStore"), Serdes.String(), Serdes.String());
+
+        StoreBuilder<TimestampedKeyValueStore<String, KafkaUserStub>> timestampedStoreBuilder =
+                Stores.timestampedKeyValueStoreBuilder(
+                        Stores.persistentTimestampedKeyValueStore("myTimestampedStore"),
+                        Serdes.String(),
+                        SerdesUtils.getValueSerdes());
+
+        topicWithSerde.addGlobalStore(streamsBuilder, storeBuilder, MyStringProcessor::new);
+        topicUserWithSerde.addGlobalStore(streamsBuilder, timestampedStoreBuilder, MyUserProcessor::new);
+
+        assertEquals("""
+            Topologies:
+               Sub-topology: 0 for global store (will not generate tasks)
+                Source: KSTREAM-SOURCE-0000000000 (topics: [INPUT_TOPIC])
+                  --> KTABLE-SOURCE-0000000001
+                Processor: KTABLE-SOURCE-0000000001 (stores: [myStore])
+                  --> none
+                  <-- KSTREAM-SOURCE-0000000000
+              Sub-topology: 1 for global store (will not generate tasks)
+                Source: KSTREAM-SOURCE-0000000002 (topics: [INPUT_USER_TOPIC])
+                  --> KTABLE-SOURCE-0000000003
+                Processor: KTABLE-SOURCE-0000000003 (stores: [myTimestampedStore])
+                  --> none
+                  <-- KSTREAM-SOURCE-0000000002
+            """, streamsBuilder.build().describe().toString());
+    }
+
+    private static class MyStringProcessor extends ContextualProcessor<String, String, Void, Void> {
+        private KeyValueStore<String, String> store;
+
+        @Override
+        public void init(ProcessorContext<Void, Void> context) {
+            this.store = context.getStateStore("users-store");
+        }
+
+        @Override
+        public void process(Record<String, String> record) {
+            store.put(record.key(), record.value());
+        }
+    }
+
+    private static class MyUserProcessor extends ContextualProcessor<String, KafkaUserStub, Void, Void> {
+        private TimestampedKeyValueStore<String, KafkaUserStub> store;
+
+        @Override
+        public void init(ProcessorContext<Void, Void> context) {
+            this.store = context.getStateStore("users-store");
+        }
+
+        @Override
+        public void process(Record<String, KafkaUserStub> record) {
+            store.put(record.key(), ValueAndTimestamp.make(record.value(), record.timestamp()));
+        }
     }
 }
