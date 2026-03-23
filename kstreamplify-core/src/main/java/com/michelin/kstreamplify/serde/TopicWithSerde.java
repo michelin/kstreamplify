@@ -29,7 +29,9 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.api.ProcessorSupplier;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
 
 /**
  * TopicWithSerde API.
@@ -138,6 +140,22 @@ public class TopicWithSerde<K, V> {
                 Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
                         .withKeySerde(keySerde)
                         .withValueSerde(valueSerde));
+    }
+
+    /**
+     * Wrapper for {@link StreamsBuilder#addGlobalStore(StoreBuilder, String, Consumed, ProcessorSupplier)}.
+     *
+     * @param streamsBuilder The streams builder
+     * @param storeBuilder The store builder
+     * @param processorSupplier The processor supplier
+     * @return A ${@link StreamsBuilder}
+     */
+    public StreamsBuilder addGlobalStore(
+            StreamsBuilder streamsBuilder,
+            StoreBuilder<?> storeBuilder,
+            ProcessorSupplier<K, V, Void, Void> processorSupplier) {
+        return streamsBuilder.addGlobalStore(
+                storeBuilder, topicName, Consumed.with(keySerde, valueSerde), processorSupplier);
     }
 
     /**
