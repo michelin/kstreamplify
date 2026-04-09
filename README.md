@@ -528,6 +528,8 @@ kafka:
     deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
 ```
 
+It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
+
 Additionally, some exceptions can optionally be forwarded to the DLQ by enabling the following properties:
 
 ```yml
@@ -553,6 +555,8 @@ kafka:
   properties:
     production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
 ```
+
+It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
 ### Avro Kafka Error
 
