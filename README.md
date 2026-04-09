@@ -342,9 +342,9 @@ It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
 #### Processing Result API
 
-The `ProcessingResult` API allows to represent success or failure during processing.
+The `ProcessingResult` API represents success or failure during processing.
 
-> It is considered legacy (used before [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
+> It is considered legacy (since [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
 
 `ProcessingResult<V, V2>` contains:
 - `V`: The transformed value when processing succeeds.
