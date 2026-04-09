@@ -39,12 +39,15 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 /** The class managing deserialization exceptions. */
 @Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
-
     private boolean handleSchemaRegistryRestException;
 
+    /** Constructor. */
+    public DlqDeserializationExceptionHandler() {}
+
+    /** {@inheritDoc} */
     @Override
     public Response handleError(
-            ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> record, Exception exception) {
+            ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> consumerRecord, Exception exception) {
 
         log.warn(
                 "Exception during Deserialization, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
@@ -55,7 +58,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                 context.offset(),
                 exception);
 
-        if (!isDlqDefined()) {
+        if (isDlqNotDefined()) {
             log.warn("Failed to route deserialization error to DLQ.");
             return Response.fail();
         }
@@ -64,9 +67,9 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             KafkaError.Builder builder = KafkaError.newBuilder()
                     .setContextMessage(
                             "An exception occurred during the stream internal deserialization. Please find more details about the exception in the cause and stack fields.")
-                    .setOffset(record.offset())
-                    .setPartition(record.partition())
-                    .setTopic(record.topic())
+                    .setOffset(consumerRecord.offset())
+                    .setPartition(consumerRecord.partition())
+                    .setTopic(consumerRecord.topic())
                     .setApplicationId(
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
                     .setProcessorNodeId(context.processorNodeId())
@@ -74,7 +77,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                     .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
                     .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()));
 
-            KafkaError error = enrichWithException(builder, exception, record.key(), record.value())
+            KafkaError error = enrichWithException(builder, exception, consumerRecord.key(), consumerRecord.value())
                     .build();
 
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
@@ -86,7 +89,8 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
             if (isCausedByKafka
                     || exception.getCause() == null
                     || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)) {
-                return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, record.key(), value)));
+                return Response.resume(
+                        List.of(new ProducerRecord<>(deadLetterQueueTopic, consumerRecord.key(), value)));
             }
 
             return Response.fail();

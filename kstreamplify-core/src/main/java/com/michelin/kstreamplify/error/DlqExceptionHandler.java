@@ -29,7 +29,7 @@ import org.apache.kafka.common.errors.RecordTooLargeException;
 /** The class to manage DLQ exception. */
 @Slf4j
 public abstract class DlqExceptionHandler {
-
+    /** The DLQ topic */
     protected String deadLetterQueueTopic;
 
     /** Constructor. */
@@ -64,8 +64,12 @@ public abstract class DlqExceptionHandler {
                 .setByteValue(tooLarge ? ByteBuffer.wrap(key) : ByteBuffer.wrap(value));
     }
 
-    /** Check if DLQ topic is defined */
-    protected boolean isDlqDefined() {
-        return StringUtils.isNotBlank(deadLetterQueueTopic);
+    /**
+     * Check if DLQ topic is defined.
+     *
+     * @return {@code true} if the dead letter queue topic is not defined, {@code false} otherwise
+     */
+    protected boolean isDlqNotDefined() {
+        return StringUtils.isBlank(deadLetterQueueTopic);
     }
 }

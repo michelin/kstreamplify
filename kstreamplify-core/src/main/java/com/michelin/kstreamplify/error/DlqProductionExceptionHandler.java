@@ -36,9 +36,12 @@ import org.apache.kafka.streams.errors.ProductionExceptionHandler;
 @Slf4j
 public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
 
+    /** Constructor. */
+    public DlqProductionExceptionHandler() {}
+
     @Override
     public Response handleError(
-            ErrorHandlerContext context, ProducerRecord<byte[], byte[]> record, Exception exception) {
+            ErrorHandlerContext context, ProducerRecord<byte[], byte[]> producerRecord, Exception exception) {
         log.warn(
                 "Exception during message Production, processor node: {}, taskId: {}, source topic: {}, source partition: {}, source offset: {}",
                 context.processorNodeId(),
@@ -48,7 +51,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                 context.offset(),
                 exception);
 
-        if (!isDlqDefined()) {
+        if (isDlqNotDefined()) {
             log.warn("Failed to route production error to DLQ. Define a DLQ topic in configuration.");
             return Response.fail();
         }
@@ -63,19 +66,19 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
                             "An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.")
                     .setOffset(context.offset())
                     .setPartition(context.partition())
-                    .setTopic(record.topic())
+                    .setTopic(producerRecord.topic())
                     .setApplicationId(
                             KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
                     .setProcessorNodeId(context.processorNodeId())
                     .setTaskId(context.taskId().toString());
 
-            KafkaError error = enrichWithException(builder, exception, record.key(), record.value())
+            KafkaError error = enrichWithException(builder, exception, producerRecord.key(), producerRecord.value())
                     .build();
 
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(deadLetterQueueTopic, error);
 
-            return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, record.key(), value)));
+            return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, producerRecord.key(), value)));
         } catch (Exception e) {
             log.error(
                     "Cannot send production exception to DLQ topic {}",

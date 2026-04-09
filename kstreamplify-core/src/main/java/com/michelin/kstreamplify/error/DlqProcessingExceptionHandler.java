@@ -33,11 +33,15 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
 import org.apache.kafka.streams.processor.api.Record;
 
+/** The class managing processing exceptions. */
 @Slf4j
 public class DlqProcessingExceptionHandler extends DlqExceptionHandler implements ProcessingExceptionHandler {
 
+    /** Constructor. */
+    public DlqProcessingExceptionHandler() {}
+
     @Override
-    public Response handleError(ErrorHandlerContext context, Record<?, ?> record, Exception exception) {
+    public Response handleError(ErrorHandlerContext context, Record<?, ?> processingRecord, Exception exception) {
         log.warn(
                 "Exception during message Processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
                 context.processorNodeId(),
@@ -47,7 +51,7 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
                 context.offset(),
                 exception);
 
-        if (!isDlqDefined()) {
+        if (isDlqNotDefined()) {
             log.warn("Failed to route processing error to DLQ.");
             return Response.fail();
         }
@@ -65,19 +69,28 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
                     .setTaskId(context.taskId().toString())
                     .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
                     .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()))
-                    .setValue(record.value() == null ? null : record.value().toString());
+                    .setValue(
+                            processingRecord.value() == null
+                                    ? null
+                                    : processingRecord.value().toString());
 
             KafkaError error = enrichWithException(
                             builder,
                             exception,
-                            record.key() != null ? record.key().toString().getBytes() : null,
-                            record.value() != null ? record.value().toString().getBytes() : null)
+                            processingRecord.key() != null
+                                    ? processingRecord.key().toString().getBytes()
+                                    : null,
+                            processingRecord.value() != null
+                                    ? processingRecord.value().toString().getBytes()
+                                    : null)
                     .build();
 
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(deadLetterQueueTopic, error);
 
-            byte[] key = record.key() != null ? record.key().toString().getBytes() : null;
+            byte[] key = processingRecord.key() != null
+                    ? processingRecord.key().toString().getBytes()
+                    : null;
 
             return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, key, value)));
         } catch (Exception e) {
