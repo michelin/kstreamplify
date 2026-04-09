@@ -344,7 +344,7 @@ It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
 The `ProcessingResult` API represents success or failure during processing.
 
-> It is considered legacy (since [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
+> It is considered legacy (since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
 
 `ProcessingResult<V, V2>` contains:
 - `V`: The transformed value when processing succeeds.
@@ -443,7 +443,7 @@ Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to th
 
 ##### Migrating to Processing Exception Handler
 
-Since the `ProcessingExceptionHandler` is recommended over the `ProcessingResult` API, follow these steps to migrate.
+Since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams), the `ProcessingExceptionHandler` is recommended over the `ProcessingResult` API for managing errors. Follow these steps to migrate.
 
 1. Replace methods that return `ProcessingResult`.
 
