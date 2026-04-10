@@ -19,7 +19,9 @@
 package com.michelin.kstreamplify;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.*;
+import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
@@ -131,7 +133,11 @@ public abstract class KafkaStreamsStarterTest {
         return Collections.emptyMap();
     }
 
-    /** Close everything after each test. */
+    /**
+     * Close everything after each test.
+     *
+     * @throws IOException if an I/O error occurs while deleting the state directory
+     */
     @AfterEach
     protected void generalTearDown() throws IOException {
         testDriver.close();

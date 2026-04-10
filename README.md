@@ -35,11 +35,15 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
   * [Set up DLQ Topic](#set-up-dlq-topic)
-  * [Handling Processing Errors](#handling-processing-errors)
-    * [DSL](#dsl)
-    * [Processor API](#processor-api)
-  * [Production and Deserialization Errors](#production-and-deserialization-errors)
-  * [Avro Schema](#avro-schema)
+  * [Processing Errors](#processing-errors)
+    * [Processing Exception Handler](#processing-exception-handler)
+    * [Processing Result API](#processing-result-api)
+      * [DSL](#dsl)
+      * [Processor API](#processor-api)
+      * [Migrating to Processing Exception Handler](#migrating-to-processing-exception-handler)
+  * [Deserialization Errors](#deserialization-errors)
+  * [Production Errors](#production-errors)
+  * [Avro Kafka Error](#avro-kafka-error)
   * [Uncaught Exception Handler](#uncaught-exception-handler)
 * [Web Services](#web-services)
   * [Topology](#topology)
@@ -91,15 +95,21 @@ Wondering what makes Kstreamplify stand out? Here are some of the key features t
 
 ### Spring Boot
 
-For Spring applications using the Spring Boot starter parent:
+Using the [Spring Boot Starter Parent](https://docs.spring.io/spring-boot/maven-plugin/using.html#using.parent-pom):
 
 ```xml
+<properties>
+    <kafka.version>4.2.0</kafka.version>
+</properties>
+
 <dependency>
     <groupId>com.michelin</groupId>
     <artifactId>kstreamplify-spring-boot</artifactId>
     <version>${kstreamplify.version}</version>
 </dependency>
 ```
+
+> Overriding the `kafka.version` property may be necessary to align the Spring Boot Starter Parent with the Kstreamplify Kafka version.
 
 Create a `KafkaStreamsStarter` bean and override the `KafkaStreamsStarter#topology()` method:
 
@@ -309,11 +319,38 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-### Handling Processing Errors
+### Processing Errors
 
-To catch processing errors and route them to the DLQ, use the `ProcessingResult` class.
+Kstreamplify provides two ways to handle processing errors and route problematic records to a DLQ topic:
 
-#### DSL
+- Processing Exception Handler (recommended)
+- Processing Result API (legacy)
+
+#### Processing Exception Handler
+
+Kstreamplify provides a built-in implementation of the `ProcessingExceptionHandler` interface introduced by [KIP-1033](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1033%3A+Add+Kafka+Streams+exception+handler+for+exceptions+occurring+during+processing). It forwards failed records to the configured DLQ topic and resumes stream processing, or fails the stream if no DLQ topic is configured.
+
+It leverages the native dead letter queue mechanism introduced by [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams). It can be configured as follows:
+
+```yml
+kafka:
+  properties:
+    processing.exception.handler: 'com.michelin.kstreamplify.error.DlqProcessingExceptionHandler'
+```
+
+It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
+
+#### Processing Result API
+
+The `ProcessingResult` API represents success or failure during processing.
+
+> It is considered legacy (since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
+
+`ProcessingResult<V, V2>` contains:
+- `V`: The transformed value when processing succeeds.
+- `V2`: The original value when processing fails.
+
+##### DSL
 
 ```java
 @Component
@@ -344,11 +381,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-The `mapValues` operation returns a `ProcessingResult<V, V2>`, where:
-
-- The first type parameter (`V`) represents the transformed value upon success.
-- The second type (`V2`) represents the original value if an error occurs.
-
 To mark a result as successful:
 
 ```java
@@ -361,9 +393,9 @@ To mark it as failed:
 ProcessingResult.fail(e, value, "Something went wrong...");
 ```
 
-Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. A healthy stream is returned and can be further processed as needed.
+Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. It returns a healthy stream that can be further processed as needed.
 
-#### Processor API
+##### Processor API
 
 ```java
 @Component
@@ -395,11 +427,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-The `process` operation forwards a `ProcessingResult<V, V2>`, where:
-
-- The first type parameter (`V`) represents the transformed value upon success.
-- The second type (`V2`) represents the original value if an error occurs.
-
 To mark a result as successful:
 
 ```java
@@ -414,18 +441,94 @@ ProcessingResult.wrapRecordFailure(e, record, "Something went wrong...");
 
 Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. A healthy stream is returned and can be further processed as needed.
 
-### Production and Deserialization Errors
+##### Migrating to Processing Exception Handler
 
-Kstreamplify provides handlers implementations to forward production and deserialization errors to the DLQ.
+Since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams), the `ProcessingExceptionHandler` is recommended over the `ProcessingResult` API for managing errors. Follow these steps to migrate.
 
-Add the following properties to your `application.yml`:
+1. Replace methods that return `ProcessingResult`.
+
+Before:
+
+```java
+private static ProcessingResult<KafkaUser, KafkaUser> toUpperCase(KafkaUser value);
+```
+
+After:
+
+```java
+private static KafkaUser toUpperCase(KafkaUser value);
+```
+
+2. Remove `ProcessingResult.success()` and `ProcessingResult.fail()`.
+
+Do not catch exceptions unless you intend to handle them manually. This ensures that Kstreamplify routes failed records to the DLQ using the `ProcessingExceptionHandler`.
+
+Before:
+
+```java
+try {
+    value.setLastName(value.getLastName().toUpperCase());
+    return ProcessingResult.success(value);
+} catch (Exception e) {
+    return ProcessingResult.fail(e, value, "Something went wrong");
+}
+```
+
+After:
+
+```java
+value.setLastName(value.getLastName().toUpperCase());
+return value;
+```
+
+3. Remove `TopologyErrorHandler.catchErrors()` from the topology.
+
+Before:
+
+```java
+TopologyErrorHandler
+    .catchErrors(stream.mapValues(MyKafkaStreams::toUpperCase))
+    .to("output_topic");
+```
+
+After:
+
+```java
+stream
+    .mapValues(MyKafkaStreams::toUpperCase)
+    .to("output_topic");
+```
+
+4. Update Processor API implementations.
+
+Do not catch exceptions inside your processor unless you intend to handle them manually.
+Letting exceptions propagate is required to trigger the `ProcessingExceptionHandler` and ensure that failed records are sent to the DLQ.
+
+Before:
+
+```java
+context().forward(ProcessingResult.wrapRecordSuccess(record));
+```
+
+After:
+
+```java
+context().forward(record);
+```
+
+### Deserialization Errors
+
+Kstreamplify provides a built-in `DeserializationExceptionHandler` implementation that forwards deserialization errors to the DLQ.
+
+It can be configured as follows:
 
 ```yml
 kafka:
   properties:
     deserialization.exception.handler: 'com.michelin.kstreamplify.error.DlqDeserializationExceptionHandler'
-    production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
 ```
+
+It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
 Additionally, some exceptions can optionally be forwarded to the DLQ by enabling the following properties:
 
@@ -437,12 +540,27 @@ kafka:
         forward-restclient-exception: true
 ```
 
-| Property                                                   | Handler                           | Description                                                                                |
-|------------------------------------------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
-| `dlq.deserialization-handler.forward-restclient-exception` | Deserialization Exception Handler | Forwards `RestClientException` from the Schema Registry (e.g., when a schema is not found) |
+| Property                                                   | Description                                                                                |
+|------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| `dlq.deserialization-handler.forward-restclient-exception` | Forwards `RestClientException` from the Schema Registry (e.g., when a schema is not found) |
 
-### Avro Schema
+### Production Errors
 
+Kstreamplify provides a built-in `ProductionExceptionHandler` implementation to forward production errors to the DLQ.
+
+It can be configured as follows:
+
+```yml
+kafka:
+  properties:
+    production.exception.handler: 'com.michelin.kstreamplify.error.DlqProductionExceptionHandler'
+```
+
+It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
+
+### Avro Kafka Error
+
+A `KafkaError` Avro object is sent to the DLQ topic for each failed record.
 The DLQ topic must have an associated Avro schema registered in the Schema Registry.
 You can find the schema [here](https://github.com/michelin/kstreamplify/blob/main/kstreamplify-core/src/main/avro/kafka-error.avsc).
 

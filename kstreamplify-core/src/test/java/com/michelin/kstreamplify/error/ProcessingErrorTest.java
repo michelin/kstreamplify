@@ -71,9 +71,9 @@ class ProcessingErrorTest {
         assertEquals(contextMessage, processingError.getContextMessage());
         assertEquals("""
             {
-              "partition": 1,
               "offset": 1,
               "cause": "Cause",
+              "partition": 1,
               "topic": "Topic",
               "applicationId": "ApplicationId",
               "value": "Value"

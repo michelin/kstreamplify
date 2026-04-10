@@ -19,15 +19,34 @@
 package com.michelin.kstreamplify.integration.container;
 
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
+import static io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,11 +99,65 @@ public abstract class KafkaIntegrationTest {
     }
 
     protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
+        createTopics(bootstrapServers, null, topicPartitions);
+    }
+
+    protected static void createTopics(
+            String bootstrapServers, Map<String, String> configs, TopicPartition... topicPartitions) {
         var newTopics = Arrays.stream(topicPartitions)
-                .map(topicPartition -> new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1))
+                .map(topicPartition ->
+                        new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1).configs(configs))
                 .toList();
-        try (var admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+        try (var admin = AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
+        }
+    }
+
+    public static Properties getKafkaGlobalProperties() {
+        Properties properties = new Properties();
+
+        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
+        properties.put(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl());
+
+        properties.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        properties.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(SPECIFIC_AVRO_READER_CONFIG, "true");
+
+        return properties;
+    }
+
+    private static String schemaRegistryUrl() {
+        return "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort();
+    }
+
+    public static <K, V> void produceRecordToTopic(List<ProducerRecord<K, V>> records, Properties properties) {
+        try (KafkaProducer<K, V> producer = new KafkaProducer<>(properties)) {
+            for (ProducerRecord<K, V> record : records) {
+                producer.send(record);
+            }
+            producer.flush();
+        }
+    }
+
+    public static <K, V> List<ConsumerRecord<K, V>> readAllRecordsFromTopic(
+            String topic, Properties properties, int expectedNumberOfRecords) {
+        try (KafkaConsumer<K, V> consumer = new KafkaConsumer<>(properties)) {
+            consumer.subscribe(Collections.singletonList(topic));
+            final int pollIntervalMs = 500;
+            List<ConsumerRecord<K, V>> consumerRecords = new ArrayList<>();
+            int totalPollTimeMs = 0;
+            while (totalPollTimeMs < 30000 && consumerRecords.size() < expectedNumberOfRecords) {
+                totalPollTimeMs += pollIntervalMs;
+                final ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollIntervalMs));
+                for (final ConsumerRecord<K, V> record : records) {
+                    consumerRecords.add(record);
+                }
+            }
+            return consumerRecords;
         }
     }
 
