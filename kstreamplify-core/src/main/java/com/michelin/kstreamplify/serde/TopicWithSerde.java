@@ -111,6 +111,18 @@ public class TopicWithSerde<K, V> {
     }
 
     /**
+     * Wrapper for {@link StreamsBuilder#stream(String, Consumed)} with a name.
+     *
+     * @param streamsBuilder The streams builder
+     * @param name The name of the stream processor
+     * @return A ${@link KStream} from the given topic
+     */
+    public KStream<K, V> stream(StreamsBuilder streamsBuilder, String name) {
+        return streamsBuilder.stream(
+                this.toString(), Consumed.with(keySerde, valueSerde).withName(name));
+    }
+
+    /**
      * Wrapper for {@link StreamsBuilder#table(String, Consumed, Materialized)}.
      *
      * @param streamsBuilder The streams builder
@@ -121,6 +133,23 @@ public class TopicWithSerde<K, V> {
         return streamsBuilder.table(
                 this.toString(),
                 Consumed.with(keySerde, valueSerde),
+                Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
+                        .withKeySerde(keySerde)
+                        .withValueSerde(valueSerde));
+    }
+
+    /**
+     * Wrapper for {@link StreamsBuilder#table(String, Consumed, Materialized)} with a name.
+     *
+     * @param streamsBuilder The streams builder
+     * @param storeName The store name
+     * @param name The name of the stream processor
+     * @return A ${@link KTable} from the given topic
+     */
+    public KTable<K, V> table(StreamsBuilder streamsBuilder, String storeName, String name) {
+        return streamsBuilder.table(
+                this.toString(),
+                Consumed.with(keySerde, valueSerde).withName(name),
                 Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
                         .withKeySerde(keySerde)
                         .withValueSerde(valueSerde));
@@ -143,6 +172,23 @@ public class TopicWithSerde<K, V> {
     }
 
     /**
+     * Wrapper for {@link StreamsBuilder#globalTable(String, Consumed, Materialized)} with a name.
+     *
+     * @param streamsBuilder The streams builder
+     * @param storeName The store name
+     * @param name The name of the stream processor
+     * @return A ${@link GlobalKTable} from the given topic
+     */
+    public GlobalKTable<K, V> globalTable(StreamsBuilder streamsBuilder, String storeName, String name) {
+        return streamsBuilder.globalTable(
+                this.toString(),
+                Consumed.with(keySerde, valueSerde).withName(name),
+                Materialized.<K, V, KeyValueStore<Bytes, byte[]>>as(storeName)
+                        .withKeySerde(keySerde)
+                        .withValueSerde(valueSerde));
+    }
+
+    /**
      * Wrapper for {@link StreamsBuilder#addGlobalStore(StoreBuilder, String, Consumed, ProcessorSupplier)}.
      *
      * @param streamsBuilder The streams builder
@@ -159,11 +205,38 @@ public class TopicWithSerde<K, V> {
     }
 
     /**
+     * Wrapper for {@link StreamsBuilder#addGlobalStore(StoreBuilder, String, Consumed, ProcessorSupplier)}.
+     *
+     * @param streamsBuilder The streams builder
+     * @param storeBuilder The store builder
+     * @param processorSupplier The processor supplier
+     * @return A ${@link StreamsBuilder}
+     */
+    public StreamsBuilder addGlobalStore(
+            StreamsBuilder streamsBuilder,
+            StoreBuilder<?> storeBuilder,
+            ProcessorSupplier<K, V, Void, Void> processorSupplier,
+            String name) {
+        return streamsBuilder.addGlobalStore(
+                storeBuilder, topicName, Consumed.with(keySerde, valueSerde).withName(name), processorSupplier);
+    }
+
+    /**
      * Wrapper for {@link KStream#to(String, Produced)}.
      *
      * @param stream The stream to produce
      */
     public void produce(KStream<K, V> stream) {
         stream.to(this.toString(), Produced.with(keySerde, valueSerde));
+    }
+
+    /**
+     * Wrapper for {@link KStream#to(String, Produced)} with a name.
+     *
+     * @param stream The stream to produce
+     * @param name The name of the stream processor
+     */
+    public void produce(KStream<K, V> stream, String name) {
+        stream.to(this.toString(), Produced.with(keySerde, valueSerde).withName(name));
     }
 }
