@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,7 +29,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
-import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import java.util.List;
 import org.apache.kafka.streams.KeyValue;
@@ -48,7 +48,7 @@ class DedupHeadersProcessorTest {
     private DedupHeadersProcessor<KafkaError> processor;
 
     @Mock
-    private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
+    private ProcessorContext<String, KafkaError> context;
 
     @Mock
     private WindowStore<String, String> windowStore;
@@ -76,7 +76,7 @@ class DedupHeadersProcessorTest {
         processor.process(message);
 
         verify(windowStore).put("value-1#value-3", "value-1#value-3", message.timestamp());
-        verify(context).forward(argThat(arg -> arg.value().getValue().equals(message.value())));
+        verify(context).forward(argThat(arg -> arg.value().equals(message.value())));
     }
 
     @Test
@@ -115,12 +115,6 @@ class DedupHeadersProcessorTest {
                 .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
-        processor.process(message);
-
-        verify(context).forward(argThat(arg -> arg.value()
-                .getError()
-                .getContextMessage()
-                .equals("Could not figure out what to do with the current payload: "
-                        + "An unlikely error occurred during deduplication transform")));
+        assertThrows(RuntimeException.class, () -> processor.process(message));
     }
 }

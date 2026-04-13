@@ -92,19 +92,19 @@ class KafkaStreamsStarterTest {
         public void topology(StreamsBuilder streamsBuilder) {
             var streams = TopicWithSerdeStub.inputTopicWithSerde().stream(streamsBuilder);
 
-            DeduplicationUtils.deduplicateKeys(
+            DeduplicationUtils.distinctKeysWithErrors(
                     streamsBuilder,
                     streams,
                     "deduplicateKeysStoreName",
                     "deduplicateKeysRepartitionName",
                     Duration.ZERO);
-            DeduplicationUtils.deduplicateKeyValues(
+            DeduplicationUtils.distinctByKeyValuesWithErrors(
                     streamsBuilder,
                     streams,
                     "deduplicateKeyValuesStoreName",
                     "deduplicateKeyValuesRepartitionName",
                     Duration.ZERO);
-            DeduplicationUtils.deduplicateWithPredicate(streamsBuilder, streams, Duration.ofMillis(1), null);
+            DeduplicationUtils.distinctByPredicateWithErrors(streamsBuilder, streams, Duration.ofMillis(1), null);
 
             var enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
             var enrichedStreams2 = streams.mapValues(KafkaStreamsStarterStub::enrichValue2);

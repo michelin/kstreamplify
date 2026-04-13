@@ -808,29 +808,74 @@ For more details about prefixes, see the [Prefix](#prefix) section.
 
 The `DeduplicationUtils` class helps you deduplicate streams based on various criteria and within a specified time window.
 
-All deduplication methods return a `KStream<String, ProcessingResult<V,V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
+All `*withErrors` methods return a `KStream<String, ProcessingResult<V,V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
+Methods without `*withErrors` return a plain `KStream<String, V>` and can be used directly.  
 
 **Note**: Only streams with `String` keys and Avro values are supported.
 
-#### By Key
+#### By Key 
+
+##### With error handling
 
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaUser> myStream = streamsBuilder
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
-        DeduplicationUtils
-            .deduplicateKeys(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("output_topic");
-    }
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .distinctKeysWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+##### Without error handling
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+    
+    DeduplicationUtils
+            .distinctKeysWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
 }
 ```
 
 #### By Key and Value
 
+##### With error handling
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .distinctByKeyValuesWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+##### Without error handling
+
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
@@ -840,7 +885,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
         DeduplicationUtils
-            .deduplicateKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
+            .distinctByKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
             .to("output_topic");
     }
 }
@@ -848,6 +893,33 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 #### By Predicate
 
+##### With error handling
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .distinctByPredicateWithErrors(
+                                    streamsBuilder,
+                                    myStream,
+                                    Duration.ofDays(60),
+                                    value -> value.getFirstName() + "#" + value.getLastName()
+                            )
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+##### Without error handling
+
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
@@ -857,7 +929,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
         DeduplicationUtils
-            .deduplicateWithPredicate(streamsBuilder, myStream, Duration.ofDays(60),
+            .distinctByPredicate(streamsBuilder, myStream, Duration.ofDays(60),
                 value -> value.getFirstName() + "#" + value.getLastName())
             .to("output_topic");
     }
@@ -867,6 +939,35 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 In the predicate approach, the provided predicate is used as the key in the window store. The stream will be deduplicated based on the values derived from the predicate.
 
 #### By Headers
+
+##### With error handling
+
+```java
+import java.util.List;
+
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .distinctByHeadersWithErrors(
+                                    streamsBuilder,
+                                    myStream,
+                                    Duration.ofDays(60),
+                                    List.of("header1", "header2")
+                            )
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+##### Without error handling
 
 ```java
 import java.util.List;
@@ -879,7 +980,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
     DeduplicationUtils
-            .deduplicateWithHeaders(streamsBuilder, myStream, Duration.ofDays(60),
+            .distinctByHeaders(streamsBuilder, myStream, Duration.ofDays(60),
                     List.of("header1", "header2"))
             .to("output_topic");
   }

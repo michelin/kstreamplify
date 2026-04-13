@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,24 +45,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DedupKeyValueProcessorTest {
+class DedupHeadersProcessorWithErrorsTest {
 
-    private DedupKeyValueProcessor<KafkaError> processor;
-
-    @Mock
-    private ProcessorContext<String, KafkaError> context;
+    private DedupHeadersProcessorWithErrors<KafkaError> processor;
 
     @Mock
-    private WindowStore<String, KafkaError> windowStore;
+    private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
 
     @Mock
-    private WindowStoreIterator<KafkaError> windowStoreIterator;
+    private WindowStore<String, String> windowStore;
+
+    @Mock
+    private WindowStoreIterator<String> windowStoreIterator;
 
     @BeforeEach
     void setUp() {
-        // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupKeyValueProcessor<>("testStore", Duration.ofHours(1));
-
+        // Create an instance of DedupWithHeadersProcessor for testing
+        processor = new DedupHeadersProcessorWithErrors<>("testStore", Duration.ofHours(1), List.of("header-1", "header-3"));
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
 
@@ -72,23 +72,28 @@ class DedupKeyValueProcessorTest {
     void shouldProcessNewRecord() {
         final KafkaError kafkaError = new KafkaError();
         final Record<String, KafkaError> message = new Record<>("key", kafkaError, 0);
-
+        message.headers().add("header-1", "value-1".getBytes());
+        message.headers().add("header-2", "value-2".getBytes());
+        message.headers().add("header-3", "value-3".getBytes());
         processor.process(message);
 
-        verify(windowStore).put(message.key(), message.value(), message.timestamp());
-        verify(context).forward(argThat(arg -> arg.value().equals(message.value())));
+        verify(windowStore).put("value-1#value-3", "value-1#value-3", message.timestamp());
+        verify(context).forward(argThat(arg -> arg.value().getValue().equals(message.value())));
     }
 
     @Test
     void shouldProcessDuplicate() {
         final KafkaError kafkaError = new KafkaError();
-        final Record<String, KafkaError> message = new Record<>("key", kafkaError, 0L);
+        final Record<String, KafkaError> message = new Record<>("key", kafkaError, 0);
+        message.headers().add("header-1", "value-1".getBytes());
+        message.headers().add("header-2", "value-2".getBytes());
+        message.headers().add("header-3", "value-3".getBytes());
 
         // Simulate hasNext() returning true once and then false
         when(windowStoreIterator.hasNext()).thenReturn(true);
 
         // Simulate the condition to trigger the return statement
-        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, kafkaError));
+        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, "value-1#value-3"));
 
         // Simulate the backwardFetch() method returning the mocked ResultIterator
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(windowStoreIterator);
@@ -102,15 +107,22 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldThrowException() {
-        final Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
+        Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
+        message.headers().add("header-1", "value-1".getBytes());
+        message.headers().add("header-2", "value-2".getBytes());
+        message.headers().add("header-3", "value-3".getBytes());
 
         when(windowStore.backwardFetch(any(), any(), any()))
                 .thenReturn(null)
                 .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
-        // Call the process method
-        assertThrows(RuntimeException.class, () -> processor.process(message));
+        processor.process(message);
 
+        verify(context).forward(argThat(arg -> arg.value()
+                .getError()
+                .getContextMessage()
+                .equals("Could not figure out what to do with the current payload: "
+                        + "An unlikely error occurred during deduplication transform")));
     }
 }
