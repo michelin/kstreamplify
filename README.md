@@ -866,6 +866,28 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 In the predicate approach, the provided predicate is used as the key in the window store. The stream will be deduplicated based on the values derived from the predicate.
 
+#### By Headers
+
+```java
+import java.util.List;
+
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    DeduplicationUtils
+            .deduplicateWithHeaders(streamsBuilder, myStream, Duration.ofDays(60),
+                    List.of("header1", "header2"))
+            .to("output_topic");
+  }
+}
+```
+
+The provided list of headers is used to build a composite deduplication key. The stream is deduplicated based on the extracted header values.
+
 ## OpenTelemetry
 
 Kstreamplify simplifies the integration between [OpenTelemetry](https://opentelemetry.io/) and Kafka Streams.
