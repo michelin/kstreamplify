@@ -228,7 +228,7 @@ public final class DeduplicationUtils {
      *
      * <p><b>Note:</b> This method uses internally generated store and repartition names. It should not be used multiple
      * times in the same topology. In such cases, use {@link DeduplicationUtils#deduplicateWithHeaders(StreamsBuilder,
-     * KStream, String, String, Duration, Function)}.
+     * KStream, String, String, Duration, List)}.
      *
      * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
      * @param initialStream the input stream to deduplicate (must have String keys)
