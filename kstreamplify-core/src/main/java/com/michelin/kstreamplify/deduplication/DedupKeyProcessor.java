@@ -18,44 +18,34 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-import java.time.Instant;
-
 /**
  * Processor class for the deduplication mechanism on keys of a given topic.
  *
  * @param <V> The type of the value
  */
-public class DedupKeyProcessor<V extends SpecificRecord>
-        implements Processor<String, V, String, V> {
+public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<String, V, String, V> {
 
-    /**
-     * Window store name, initialized @ construction.
-     */
+    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
-    /**
-     * Retention window for the state store. Used for fetching data.
-     */
+    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
-    /**
-     * Context for this processor.
-     */
+    /** Context for this processor. */
     private ProcessorContext<String, V> processorContext;
-    /**
-     * Window store containing all the records seen on the given window.
-     */
+    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, String> dedupWindowStore;
 
     /**
      * Constructor.
      *
-     * @param windowStoreName         The name of the constructor
+     * @param windowStoreName The name of the constructor
      * @param retentionWindowDuration The retentionWindow Duration
      */
     public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration) {
@@ -90,6 +80,5 @@ public class DedupKeyProcessor<V extends SpecificRecord>
         // First time we see this record, store entry in the window store and forward the record to the output
         dedupWindowStore.put(message.key(), message.key(), message.timestamp());
         processorContext.forward(message);
-
     }
 }

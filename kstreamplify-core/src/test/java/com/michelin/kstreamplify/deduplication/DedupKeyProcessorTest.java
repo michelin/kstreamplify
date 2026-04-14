@@ -29,7 +29,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
-import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -109,6 +108,5 @@ class DedupKeyProcessorTest {
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         assertThrows(RuntimeException.class, () -> processor.process(message));
-
     }
 }

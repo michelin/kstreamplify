@@ -18,44 +18,34 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
 
-import java.time.Duration;
-import java.time.Instant;
-
 /**
  * Processor class for the deduplication mechanism on both keys and values of a given topic.
  *
  * @param <V> The type of the value
  */
-public class DedupKeyValueProcessor<V extends SpecificRecord>
-        implements Processor<String, V, String, V> {
+public class DedupKeyValueProcessor<V extends SpecificRecord> implements Processor<String, V, String, V> {
 
-    /**
-     * Window store name, initialized @ construction.
-     */
+    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
-    /**
-     * Retention window for the state store. Used for fetching data.
-     */
+    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
-    /**
-     * Kstream context for this processor.
-     */
+    /** Kstream context for this processor. */
     private ProcessorContext<String, V> processorContext;
-    /**
-     * Window store containing all the records seen on the given window.
-     */
+    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, V> dedupWindowStore;
 
     /**
      * Constructor.
      *
-     * @param windowStoreName      The window store name
+     * @param windowStoreName The window store name
      * @param retentionWindowHours The retention window duration
      */
     public DedupKeyValueProcessor(String windowStoreName, Duration retentionWindowHours) {

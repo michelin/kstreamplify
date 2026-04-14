@@ -58,7 +58,8 @@ class DedupWithPredicateProcessorWithErrorsTest {
     @BeforeEach
     void setUp() {
         // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupWithPredicateProcessorWithErrors<>("testStore", Duration.ofHours(1), KeyExtractorStub::extract);
+        processor = new DedupWithPredicateProcessorWithErrors<>(
+                "testStore", Duration.ofHours(1), KeyExtractorStub::extract);
 
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
