@@ -71,19 +71,7 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
         try {
             KafkaError error = buildKafkaError(context, consumerRecord, exception);
             byte[] value = serializeError(error);
-
-            boolean shouldResume = shouldResume(exception);
-
-            if (shouldResume) {
-                return resumeWithDlqRecord(consumerRecord, value);
-            }
-
-            if (continueOnUnhandledErrors) {
-                return resumeWithDlqRecord(consumerRecord, value);
-            }
-
-            return Response.fail();
-
+            return shouldResume(exception) ? resumeWithDlqRecord(consumerRecord, value) : Response.fail();
         } catch (Exception e) {
             log.error("Cannot send deserialization exception to DLQ topic {}", deadLetterQueueTopic, e);
             return Response.fail();
@@ -92,12 +80,15 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
 
     /** Determines if the exception should be handled by continuing processing based on known handled scenarios. */
     private boolean shouldResume(Exception exception) {
-        boolean isCausedByKafka = exception.getCause() instanceof KafkaException;
-        boolean isRestClientSchemaRegistryException = exception.getCause() instanceof RestClientException;
+        Throwable cause = exception.getCause() != null ? exception.getCause() : exception;
+
+        boolean isCausedByKafka = cause instanceof KafkaException;
+        boolean isRestClientSchemaRegistryException = cause instanceof RestClientException;
 
         return isCausedByKafka
-                || exception.getCause() == null
-                || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException);
+                || cause == null
+                || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)
+                || continueOnUnhandledErrors;
     }
 
     /** Builds a KafkaError enriched with record metadata and exception details for DLQ publishing. */
