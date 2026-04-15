@@ -26,6 +26,9 @@ public abstract class KstreamplifyConfig {
     /** Property key to configure handling of Schema Registry RestClient exceptions in DLQ deserialization. */
     public static final String DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION =
             "dlq.deserialization-handler.forward-restclient-exception";
+    /** Property key to configure handling of unhandled exceptions in DLQ deserialization. */
+    public static final String DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS =
+            "dlq.deserialization-handler.continue-on-unhandled-errors";
 
     /** Constructor. */
     private KstreamplifyConfig() {}

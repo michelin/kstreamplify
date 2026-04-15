@@ -8,5 +8,6 @@ kafka:
     dlq:
       deserialization-handler:
         forward-restclient-exception: true
+        continue-on-unhandled-errors: true
 server:
   port: 8080
