@@ -538,11 +538,13 @@ kafka:
     dlq:
       deserialization-handler:
         forward-restclient-exception: true
+        continue-on-unhandled-errors: true
 ```
 
-| Property                                                   | Description                                                                                |
-|------------------------------------------------------------|--------------------------------------------------------------------------------------------|
-| `dlq.deserialization-handler.forward-restclient-exception` | Forwards `RestClientException` from the Schema Registry (e.g., when a schema is not found) |
+| Property                                                         | Description                                                                                         |
+|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `dlq.deserialization-handler.forward-restclient-exception`       | Forwards `RestClientException` from the Schema Registry (e.g., when a schema is not found)          |
+| `dlq.deserialization-handler.continue-on-unhandled-errors`       | Routes all unhandled deserialization errors to DLQ and continues processing instead of failing      |
 
 ### Production Errors
 

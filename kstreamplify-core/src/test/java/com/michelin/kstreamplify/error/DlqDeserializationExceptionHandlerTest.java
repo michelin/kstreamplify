@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.error;
 
+import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS;
 import static com.michelin.kstreamplify.property.KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION;
 import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -217,5 +218,65 @@ class DlqDeserializationExceptionHandlerTest {
         // Default behavior without property should be FAIL
         assertEquals(DeserializationExceptionHandler.Result.FAIL, response.result());
         assertTrue(response.deadLetterQueueRecords().isEmpty());
+    }
+
+    @Test
+    void shouldContinueOnUnhandledExceptionWhenFeatureFlagEnabled() {
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
+
+        Properties props = new Properties();
+        props.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        props.setProperty(DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS, "true");
+
+        KafkaStreamsExecutionContext.registerProperties(props);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        handler.configure(Map.of());
+
+        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.topic()).thenReturn("topic");
+        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
+        when(errorHandlerContext.partition()).thenReturn(0);
+        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
+        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
+
+        // Generic exception (NOT KafkaException, NOT RestClientException)
+        Exception wrapped = new Exception("Wrapper", new RuntimeException("random error"));
+
+        DeserializationExceptionHandler.Response response =
+                handler.handleError(errorHandlerContext, consumerRecord, wrapped);
+
+        assertEquals(DeserializationExceptionHandler.Result.RESUME, response.result());
+        assertEquals(1, response.deadLetterQueueRecords().size());
+    }
+
+    @Test
+    void shouldFailOnUnhandledExceptionWhenFeatureFlagDisabled() {
+        DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
+
+        // Do NOT enable flag
+        Properties props = new Properties();
+        props.setProperty(APPLICATION_ID_CONFIG, "test-app");
+
+        KafkaStreamsExecutionContext.registerProperties(props);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        handler.configure(Map.of());
+
+        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+        when(consumerRecord.topic()).thenReturn("topic");
+        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
+        when(errorHandlerContext.partition()).thenReturn(0);
+        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
+        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
+
+        Exception wrapped = new Exception("Wrapper", new RuntimeException("random error"));
+
+        DeserializationExceptionHandler.Response response =
+                handler.handleError(errorHandlerContext, consumerRecord, wrapped);
+
+        assertEquals(DeserializationExceptionHandler.Result.FAIL, response.result());
     }
 }
