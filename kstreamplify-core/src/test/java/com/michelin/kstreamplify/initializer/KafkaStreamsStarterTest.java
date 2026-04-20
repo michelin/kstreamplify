@@ -42,6 +42,7 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.apache.kafka.streams.kstream.KStream;
 import org.junit.jupiter.api.Test;
 
 class KafkaStreamsStarterTest {
@@ -75,9 +76,9 @@ class KafkaStreamsStarterTest {
         assertNotNull(builder.build().describe());
         assertEquals("DLQ_TOPIC", starter.dlqTopic());
         assertEquals(
+                REPLACE_THREAD,
                 starter.uncaughtExceptionHandler()
-                        .handle(new Exception("Register a custom uncaught exception handler test.")),
-                REPLACE_THREAD);
+                        .handle(new Exception("Register a custom uncaught exception handler test.")));
 
         starter.onStart(null);
         assertTrue(starter.isStarted());
@@ -90,7 +91,7 @@ class KafkaStreamsStarterTest {
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
-            var streams = TopicWithSerdeStub.inputTopicWithSerde().stream(streamsBuilder);
+            KStream<String, KafkaError> streams = TopicWithSerdeStub.inputTopicWithSerde().stream(streamsBuilder);
 
             DeduplicationUtils.deduplicateByKeyWithErrors(
                     streamsBuilder,
@@ -106,9 +107,9 @@ class KafkaStreamsStarterTest {
                     Duration.ZERO);
             DeduplicationUtils.deduplicateByPredicateWithErrors(streamsBuilder, streams, Duration.ofMillis(1), null);
 
-            var enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
-            var enrichedStreams2 = streams.mapValues(KafkaStreamsStarterStub::enrichValue2);
-            var processingResults = TopologyErrorHandler.catchErrors(enrichedStreams);
+            KStream<String, ProcessingResult<String, String>> enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
+            KStream<String, ProcessingResult<String, String>> enrichedStreams2 = streams.mapValues(KafkaStreamsStarterStub::enrichValue2);
+            KStream<String, String> processingResults = TopologyErrorHandler.catchErrors(enrichedStreams);
             TopologyErrorHandler.catchErrors(enrichedStreams2, true);
             TopicWithSerdeStub.outputTopicWithSerde().produce(processingResults);
         }
