@@ -107,8 +107,10 @@ class KafkaStreamsStarterTest {
                     Duration.ZERO);
             DeduplicationUtils.deduplicateByPredicateWithErrors(streamsBuilder, streams, Duration.ofMillis(1), null);
 
-            KStream<String, ProcessingResult<String, String>> enrichedStreams = streams.mapValues(KafkaStreamsStarterStub::enrichValue);
-            KStream<String, ProcessingResult<String, String>> enrichedStreams2 = streams.mapValues(KafkaStreamsStarterStub::enrichValue2);
+            KStream<String, ProcessingResult<String, String>> enrichedStreams =
+                    streams.mapValues(KafkaStreamsStarterStub::enrichValue);
+            KStream<String, ProcessingResult<String, String>> enrichedStreams2 =
+                    streams.mapValues(KafkaStreamsStarterStub::enrichValue2);
             KStream<String, String> processingResults = TopologyErrorHandler.catchErrors(enrichedStreams);
             TopologyErrorHandler.catchErrors(enrichedStreams2, true);
             TopicWithSerdeStub.outputTopicWithSerde().produce(processingResults);
