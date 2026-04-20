@@ -28,10 +28,12 @@ import org.apache.avro.specific.SpecificRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /**
  * Processor class for the deduplication mechanism on headers of a given topic.
@@ -40,16 +42,10 @@ import org.apache.kafka.streams.state.WindowStore;
  */
 public class DedupHeadersProcessorWithErrors<V extends SpecificRecord>
         implements Processor<String, V, String, ProcessingResult<V, V>> {
-
-    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
-    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
-    /** Deduplication headers list. */
-    private final List<String> deduplicationHeadersList;
-    /** Kstream context for this processor. */
+    private final List<String> deduplicationHeaders;
     private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
-    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, String> dedupWindowStore;
 
     /**
@@ -57,35 +53,44 @@ public class DedupHeadersProcessorWithErrors<V extends SpecificRecord>
      *
      * @param windowStoreName Name of the deduplication state store
      * @param retentionWindowDuration Retention window duration
-     * @param deduplicationHeadersList Deduplication headers list
+     * @param deduplicationHeaders Deduplication headers list
      */
     public DedupHeadersProcessorWithErrors(
-            String windowStoreName, Duration retentionWindowDuration, List<String> deduplicationHeadersList) {
+            String windowStoreName, Duration retentionWindowDuration, List<String> deduplicationHeaders) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
-        this.deduplicationHeadersList = deduplicationHeadersList;
+        this.deduplicationHeaders = deduplicationHeaders;
     }
 
+    /**
+     * Initialize the processor.
+     *
+     * @param context the processor context
+     */
     @Override
     public void init(ProcessorContext<String, ProcessingResult<V, V>> context) {
-        this.processorContext = context;
-        dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
+        processorContext = context;
+        dedupWindowStore = processorContext.getStateStore(windowStoreName);
     }
 
+    /**
+     * Process a record.
+     *
+     * @param message the record to process
+     */
     @Override
     public void process(Record<String, V> message) {
         try {
-            // Get the record timestamp
-            var currentInstant = Instant.ofEpochMilli(message.timestamp());
+            Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
             String identifier = buildIdentifier(message.headers());
 
-            // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-            try (var resultIterator = dedupWindowStore.backwardFetch(
+            // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+            try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
                     identifier,
                     currentInstant.minus(retentionWindowDuration),
                     currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
-                    var currentKeyValue = resultIterator.next();
+                    KeyValue<Long, String> currentKeyValue = resultIterator.next();
                     if (identifier.equals(currentKeyValue.value)) {
                         return;
                     }
@@ -110,9 +115,7 @@ public class DedupHeadersProcessorWithErrors<V extends SpecificRecord>
      * @return The built identifier
      */
     private String buildIdentifier(Headers headers) {
-        return deduplicationHeadersList.stream()
-                .map(key -> getHeader(headers, key))
-                .collect(Collectors.joining("#"));
+        return deduplicationHeaders.stream().map(key -> getHeader(headers, key)).collect(Collectors.joining("#"));
     }
 
     /**

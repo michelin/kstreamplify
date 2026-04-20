@@ -22,10 +22,12 @@ import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /**
  * Processor class for the deduplication mechanism on keys of a given topic.
@@ -34,17 +36,9 @@ import org.apache.kafka.streams.state.WindowStore;
  */
 public class DedupKeyProcessorWithErrors<V extends SpecificRecord>
         implements Processor<String, V, String, ProcessingResult<V, V>> {
-
-    /** Context for this processor. */
     private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
-
-    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, String> dedupWindowStore;
-
-    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
-
-    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
 
     /**
@@ -58,25 +52,34 @@ public class DedupKeyProcessorWithErrors<V extends SpecificRecord>
         this.retentionWindowDuration = retentionWindowDuration;
     }
 
+    /**
+     * Initialize the processor.
+     *
+     * @param context the processor context
+     */
     @Override
     public void init(ProcessorContext<String, ProcessingResult<V, V>> context) {
         processorContext = context;
-        dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
+        dedupWindowStore = processorContext.getStateStore(windowStoreName);
     }
 
+    /**
+     * Process a record.
+     *
+     * @param message the record to process
+     */
     @Override
     public void process(Record<String, V> message) {
         try {
-            // Get the record timestamp
-            var currentInstant = Instant.ofEpochMilli(message.timestamp());
+            Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
 
-            // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-            try (var resultIterator = dedupWindowStore.backwardFetch(
+            // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+            try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
                     message.key(),
                     currentInstant.minus(retentionWindowDuration),
                     currentInstant.plus(retentionWindowDuration))) {
                 while (resultIterator != null && resultIterator.hasNext()) {
-                    var currentKeyValue = resultIterator.next();
+                    KeyValue<Long, String> currentKeyValue = resultIterator.next();
                     if (message.key().equals(currentKeyValue.value)) {
                         return;
                     }

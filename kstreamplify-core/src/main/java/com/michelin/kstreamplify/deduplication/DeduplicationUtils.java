@@ -40,12 +40,12 @@ public final class DeduplicationUtils {
 
     private DeduplicationUtils() {}
 
-    /** @deprecated Since 1.7.0, use {@link #distinctKeysWithErrors(StreamsBuilder, KStream, Duration)} instead. */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    /** @deprecated Since 1.8.0, use {@link #deduplicateByKeyWithErrors(StreamsBuilder, KStream, Duration)} instead. */
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctKeysWithErrors(
+        return deduplicateByKeyWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -54,10 +54,10 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctKeysWithErrors(StreamsBuilder, KStream, String, String, Duration)}
-     *     instead.
+     * @deprecated Since 1.8.0, use {@link #deduplicateByKeyWithErrors(StreamsBuilder, KStream, String, String,
+     *     Duration)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeys(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
@@ -65,14 +65,14 @@ public final class DeduplicationUtils {
             String repartitionName,
             Duration windowDuration) {
 
-        return distinctKeysWithErrors(streamsBuilder, initialStream, storeName, repartitionName, windowDuration);
+        return deduplicateByKeyWithErrors(streamsBuilder, initialStream, storeName, repartitionName, windowDuration);
     }
 
-    /** See {@link #distinctKeysWithErrors(StreamsBuilder, KStream, String, String, Duration)} */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctKeysWithErrors(
+    /** See {@link #deduplicateByKeyWithErrors(StreamsBuilder, KStream, String, String, Duration)} */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyWithErrors(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctKeysWithErrors(
+        return deduplicateByKeyWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -95,7 +95,7 @@ public final class DeduplicationUtils {
      * @param <V> the value type of the stream
      * @return a deduplicated stream containing {@link ProcessingResult}
      */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctKeysWithErrors(
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -108,18 +108,18 @@ public final class DeduplicationUtils {
                 Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
         return repartitioned.process(() -> new DedupKeyProcessorWithErrors<>(storeName, windowDuration), storeName);
     }
 
-    /** See {@link #distinctKeys(StreamsBuilder, KStream, String, String, Duration)} */
-    public static <V extends SpecificRecord> KStream<String, V> distinctKeys(
+    /** See {@link #deduplicateByKey(StreamsBuilder, KStream, String, String, Duration)} */
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByKey(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctKeys(
+        return deduplicateByKey(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -142,7 +142,7 @@ public final class DeduplicationUtils {
      * @param <V> the value type of the stream
      * @return a deduplicated stream containing
      */
-    public static <V extends SpecificRecord> KStream<String, V> distinctKeys(
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByKey(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -155,7 +155,7 @@ public final class DeduplicationUtils {
                 Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
@@ -163,13 +163,13 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctByKeyValuesWithErrors(StreamsBuilder, KStream, Duration)} instead.
+     * @deprecated Since 1.8.0, use {@link #deduplicateByKeyValueWithErrors(StreamsBuilder, KStream, Duration)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctByKeyValuesWithErrors(
+        return deduplicateByKeyValueWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -178,10 +178,10 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctByKeyValuesWithErrors(StreamsBuilder, KStream, String, String,
+     * @deprecated Since 1.8.0, use {@link #deduplicateByKeyValueWithErrors(StreamsBuilder, KStream, String, String,
      *     Duration)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateKeyValues(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
@@ -189,14 +189,15 @@ public final class DeduplicationUtils {
             String repartitionName,
             Duration windowDuration) {
 
-        return distinctByKeyValuesWithErrors(streamsBuilder, initialStream, storeName, repartitionName, windowDuration);
+        return deduplicateByKeyValueWithErrors(
+                streamsBuilder, initialStream, storeName, repartitionName, windowDuration);
     }
 
-    /** See {@link #distinctByKeyValuesWithErrors(StreamsBuilder, KStream, String, String, Duration)} */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByKeyValuesWithErrors(
+    /** See {@link #deduplicateByKeyValueWithErrors(StreamsBuilder, KStream, String, String, Duration)} */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyValueWithErrors(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctByKeyValuesWithErrors(
+        return deduplicateByKeyValueWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -218,7 +219,7 @@ public final class DeduplicationUtils {
      * @param <V> the value type of the stream
      * @return a deduplicated stream containing {@link ProcessingResult}
      */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByKeyValuesWithErrors(
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyValueWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -231,7 +232,7 @@ public final class DeduplicationUtils {
                 SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
@@ -239,11 +240,11 @@ public final class DeduplicationUtils {
                 () -> new DedupKeyValueProcessorWithErrors<>(storeName, windowDuration), storeName);
     }
 
-    /** See {@link #distinctByKeyValues(StreamsBuilder, KStream, String, String, Duration)} */
-    public static <V extends SpecificRecord> KStream<String, V> distinctByKeyValues(
+    /** See {@link #deduplicateByKeyValue(StreamsBuilder, KStream, String, String, Duration)} */
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByKeyValue(
             StreamsBuilder streamsBuilder, KStream<String, V> initialStream, Duration windowDuration) {
 
-        return distinctByKeyValues(
+        return deduplicateByKeyValue(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -265,7 +266,7 @@ public final class DeduplicationUtils {
      * @param <V> the value type of the stream
      * @return a deduplicated stream containing
      */
-    public static <V extends SpecificRecord> KStream<String, V> distinctByKeyValues(
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByKeyValue(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -278,7 +279,7 @@ public final class DeduplicationUtils {
                 SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
@@ -286,17 +287,17 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctByPredicateWithErrors(StreamsBuilder, KStream, Duration, Function)}
-     *     instead.
+     * @deprecated Since 1.8.0, use {@link #deduplicateByPredicateWithErrors(StreamsBuilder, KStream, Duration,
+     *     Function)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
             Function<V, String> extractor) {
 
-        return distinctByPredicateWithErrors(
+        return deduplicateByPredicateWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -306,10 +307,10 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctByPredicateWithErrors(StreamsBuilder, KStream, String, String,
+     * @deprecated Since 1.8.0, use {@link #deduplicateByPredicateWithErrors(StreamsBuilder, KStream, String, String,
      *     Duration, Function)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithPredicate(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
@@ -318,18 +319,18 @@ public final class DeduplicationUtils {
             Duration windowDuration,
             Function<V, String> extractor) {
 
-        return distinctByPredicateWithErrors(
+        return deduplicateByPredicateWithErrors(
                 streamsBuilder, initialStream, storeName, repartitionName, windowDuration, extractor);
     }
 
-    /** See {@link #distinctByPredicateWithErrors(StreamsBuilder, KStream, String, String, Duration, Function)} */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByPredicateWithErrors(
+    /** See {@link #deduplicateByPredicateWithErrors(StreamsBuilder, KStream, String, String, Duration, Function)} */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByPredicateWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
             Function<V, String> extractor) {
 
-        return distinctByPredicateWithErrors(
+        return deduplicateByPredicateWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -353,7 +354,7 @@ public final class DeduplicationUtils {
      * @param <V> value type
      * @return a deduplicated stream containing {@link ProcessingResult}
      */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByPredicateWithErrors(
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByPredicateWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -367,7 +368,7 @@ public final class DeduplicationUtils {
                 SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
@@ -375,14 +376,14 @@ public final class DeduplicationUtils {
                 () -> new DedupWithPredicateProcessorWithErrors<>(storeName, windowDuration, extractor), storeName);
     }
 
-    /** See {@link #distinctByPredicateWithErrors(StreamsBuilder, KStream, String, String, Duration, Function)} */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByPredicate(
+    /** See {@link #deduplicateByPredicateWithErrors(StreamsBuilder, KStream, String, String, Duration, Function)} */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByPredicate(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
             Function<V, String> extractor) {
 
-        return distinctByPredicateWithErrors(
+        return deduplicateByPredicateWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
@@ -406,7 +407,7 @@ public final class DeduplicationUtils {
      * @param <V> value type
      * @return a deduplicated stream containing
      */
-    public static <V extends SpecificRecord> KStream<String, V> distinctByPredicate(
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByPredicate(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
@@ -420,7 +421,7 @@ public final class DeduplicationUtils {
                 SerdesUtils.getValueSerdes());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
 
@@ -429,63 +430,63 @@ public final class DeduplicationUtils {
     }
 
     /**
-     * @deprecated Since 1.7.0, use {@link #distinctByHeadersWithErrors(StreamsBuilder, KStream, Duration, List)}
+     * @deprecated Since 1.8.0, use {@link #deduplicateByHeadersWithErrors(StreamsBuilder, KStream, Duration, List)}
      *     instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithHeaders(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
+            List<String> deduplicationHeaders) {
 
-        return distinctByHeadersWithErrors(
+        return deduplicateByHeadersWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
                 DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
                 windowDuration,
-                deduplicationHeadersList);
+                deduplicationHeaders);
     }
 
     /**
-     * @deprecated since 1.7.0, use {@link #distinctByHeadersWithErrors(StreamsBuilder, KStream, String, String,
+     * @deprecated since 1.8.0, use {@link #deduplicateByHeadersWithErrors(StreamsBuilder, KStream, String, String,
      *     Duration, List)} instead.
      */
-    @Deprecated(since = "1.7.0", forRemoval = true)
+    @Deprecated(since = "1.8.0", forRemoval = true)
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateWithHeaders(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
             String repartitionName,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
+            List<String> deduplicationHeaders) {
 
-        return distinctByHeadersWithErrors(
-                streamsBuilder, initialStream, storeName, repartitionName, windowDuration, deduplicationHeadersList);
+        return deduplicateByHeadersWithErrors(
+                streamsBuilder, initialStream, storeName, repartitionName, windowDuration, deduplicationHeaders);
     }
 
-    /** See {@link #distinctByHeadersWithErrors(StreamsBuilder, KStream, String, String, Duration, List)} */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByHeadersWithErrors(
+    /** See {@link #deduplicateByHeadersWithErrors(StreamsBuilder, KStream, String, String, Duration, List)} */
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByHeadersWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
+            List<String> deduplicationHeaders) {
 
-        return distinctByHeadersWithErrors(
+        return deduplicateByHeadersWithErrors(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
                 DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
                 windowDuration,
-                deduplicationHeadersList);
+                deduplicationHeaders);
     }
 
     /**
      * Deduplicates records from the input stream using a composite key built from the provided headers.
      *
-     * <p>The {@code deduplicationHeadersList} defines which headers are used to build the deduplication key. Records
-     * with identical header values within the configured time window are considered duplicates and filtered out.
+     * <p>The {@code deduplicationHeaders} defines which headers are used to build the deduplication key. Records with
+     * identical header values within the configured time window are considered duplicates and filtered out.
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
@@ -494,17 +495,17 @@ public final class DeduplicationUtils {
      * @param storeName the name of the state store used for deduplication
      * @param repartitionName the name of the repartition topic
      * @param windowDuration the time window during which duplicates are filtered
-     * @param deduplicationHeadersList list of header names used to build the deduplication key
+     * @param deduplicationHeaders list of header names used to build the deduplication key
      * @param <V> the value type of the stream
      * @return a deduplicated stream containing {@link ProcessingResult}
      */
-    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> distinctByHeadersWithErrors(
+    public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByHeadersWithErrors(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
             String repartitionName,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
+            List<String> deduplicationHeaders) {
 
         StoreBuilder<WindowStore<String, String>> dedupWindowStore = Stores.windowStoreBuilder(
                 Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
@@ -512,35 +513,35 @@ public final class DeduplicationUtils {
                 Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
         return repartitioned.process(
-                () -> new DedupHeadersProcessorWithErrors<>(storeName, windowDuration, deduplicationHeadersList),
+                () -> new DedupHeadersProcessorWithErrors<>(storeName, windowDuration, deduplicationHeaders),
                 storeName);
     }
 
-    /** See {@link #distinctByHeaders(StreamsBuilder, KStream, String, String, Duration, List)} */
-    public static <V extends SpecificRecord> KStream<String, V> distinctByHeaders(
+    /** See {@link #deduplicateByHeaders(StreamsBuilder, KStream, String, String, Duration, List)} */
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByHeaders(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
+            List<String> deduplicationHeaders) {
 
-        return distinctByHeaders(
+        return deduplicateByHeaders(
                 streamsBuilder,
                 initialStream,
                 DEFAULT_DEDUP_NAME + DEFAULT_WINDOWSTORE,
                 DEFAULT_DEDUP_NAME + DEFAULT_REPARTITION,
                 windowDuration,
-                deduplicationHeadersList);
+                deduplicationHeaders);
     }
 
     /**
      * Deduplicates records from the input stream using a composite key built from the provided headers.
      *
-     * <p>The {@code deduplicationHeadersList} defines which headers are used to build the deduplication key. Records
-     * with identical header values within the configured time window are considered duplicates and filtered out.
+     * <p>The {@code deduplicationHeaders} defines which headers are used to build the deduplication key. Records with
+     * identical header values within the configured time window are considered duplicates and filtered out.
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
@@ -549,28 +550,27 @@ public final class DeduplicationUtils {
      * @param storeName the name of the state store used for deduplication
      * @param repartitionName the name of the repartition topic
      * @param windowDuration the time window during which duplicates are filtered
-     * @param deduplicationHeadersList list of header names used to build the deduplication key
+     * @param deduplicationHeaders list of header names used to build the deduplication key
      * @param <V> the value type of the stream
      * @return a deduplicated stream
      */
-    public static <V extends SpecificRecord> KStream<String, V> distinctByHeaders(
+    public static <V extends SpecificRecord> KStream<String, V> deduplicateByHeaders(
             StreamsBuilder streamsBuilder,
             KStream<String, V> initialStream,
             String storeName,
             String repartitionName,
             Duration windowDuration,
-            List<String> deduplicationHeadersList) {
-
+            List<String> deduplicationHeaders) {
         StoreBuilder<WindowStore<String, String>> dedupWindowStore = Stores.windowStoreBuilder(
                 Stores.persistentWindowStore(storeName, windowDuration, windowDuration, false),
                 Serdes.String(),
                 Serdes.String());
         streamsBuilder.addStateStore(dedupWindowStore);
 
-        var repartitioned =
+        KStream<String, V> repartitioned =
                 initialStream.repartition(Repartitioned.with(Serdes.String(), SerdesUtils.<V>getValueSerdes())
                         .withName(repartitionName));
         return repartitioned.process(
-                () -> new DedupHeadersProcessor<>(storeName, windowDuration, deduplicationHeadersList), storeName);
+                () -> new DedupHeadersProcessor<>(storeName, windowDuration, deduplicationHeaders), storeName);
     }
 }

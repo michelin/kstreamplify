@@ -807,36 +807,13 @@ For more details about prefixes, see the [Prefix](#prefix) section.
 
 ### Deduplication
 
-The `DeduplicationUtils` class helps you deduplicate streams based on various criteria and within a specified time window.
+`DeduplicationUtils` deduplicates streams based on various criteria within a specified time window.
+- Methods with `withErrors` return a `KStream<String, ProcessingResult<V, V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
+- Methods without `withErrors` return a plain `KStream<String, V>` and can be used directly.  
 
-All `*withErrors` methods return a `KStream<String, ProcessingResult<V,V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
-Methods without `*withErrors` return a plain `KStream<String, V>` and can be used directly.  
+Only streams with `String` keys and Avro values are supported.
 
-**Note**: Only streams with `String` keys and Avro values are supported.
-
-#### By Key 
-
-##### With error handling
-
-```java
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-  @Override
-  public void topology(StreamsBuilder streamsBuilder) {
-    KStream<String, KafkaUser> myStream = streamsBuilder
-            .stream("input_topic");
-
-    TopologyErrorHandler
-            .catchErrors(
-                    DeduplicationUtils
-                            .distinctKeysWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
-            )
-            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
-  }
-}
-```
-
-##### Without error handling
+#### By Key
 
 ```java
 @Component
@@ -847,15 +824,13 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
     
     DeduplicationUtils
-            .distinctKeysWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            .deduplicateByKeyWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
             .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
   }
 }
 ```
 
-#### By Key and Value
-
-##### With error handling
+Or, using the `ProcessingResult` API:
 
 ```java
 @Component
@@ -868,14 +843,14 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     TopologyErrorHandler
             .catchErrors(
                     DeduplicationUtils
-                            .distinctByKeyValuesWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+                            .deduplicateByKeyWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
             )
             .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
   }
 }
 ```
 
-##### Without error handling
+#### By Key and Value
 
 ```java
 @Component
@@ -886,15 +861,13 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
         DeduplicationUtils
-            .distinctByKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
+            .deduplicateByKeyValue(streamsBuilder, myStream, Duration.ofDays(60))
             .to("output_topic");
     }
 }
 ```
 
-#### By Predicate
-
-##### With error handling
+Or, using the `ProcessingResult` API:
 
 ```java
 @Component
@@ -907,7 +880,48 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     TopologyErrorHandler
             .catchErrors(
                     DeduplicationUtils
-                            .distinctByPredicateWithErrors(
+                            .deduplicateByKeyValueWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+#### By Predicate
+
+The predicate is used as the key in the underlying window store that tracks seen records.
+The stream is deduplicated based on the values derived from the predicate.
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+    @Override
+    public void topology(StreamsBuilder streamsBuilder) {
+        KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+        DeduplicationUtils
+            .deduplicateByPredicate(streamsBuilder, myStream, Duration.ofDays(60),
+                value -> value.getFirstName() + "#" + value.getLastName())
+            .to("output_topic");
+    }
+}
+```
+
+Or, using the `ProcessingResult` API:
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .deduplicateByPredicateWithErrors(
                                     streamsBuilder,
                                     myStream,
                                     Duration.ofDays(60),
@@ -919,33 +933,30 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 }
 ```
 
-##### Without error handling
+#### By Headers
+
+The list of headers is used to build a composite deduplication key.
+The stream is deduplicated based on the extracted header values.
 
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaUser> myStream = streamsBuilder
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
-        DeduplicationUtils
-            .distinctByPredicate(streamsBuilder, myStream, Duration.ofDays(60),
-                value -> value.getFirstName() + "#" + value.getLastName())
+    DeduplicationUtils
+            .deduplicateByHeaders(streamsBuilder, myStream, Duration.ofDays(60),
+                    List.of("header1", "header2"))
             .to("output_topic");
-    }
+  }
 }
 ```
 
-In the predicate approach, the provided predicate is used as the key in the window store. The stream will be deduplicated based on the values derived from the predicate.
-
-#### By Headers
-
-##### With error handling
+Or, using the `ProcessingResult` API:
 
 ```java
-import java.util.List;
-
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
   @Override
@@ -956,7 +967,7 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
     TopologyErrorHandler
             .catchErrors(
                     DeduplicationUtils
-                            .distinctByHeadersWithErrors(
+                            .deduplicateByHeadersWithErrors(
                                     streamsBuilder,
                                     myStream,
                                     Duration.ofDays(60),
@@ -967,28 +978,6 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
   }
 }
 ```
-
-##### Without error handling
-
-```java
-import java.util.List;
-
-@Component
-public class MyKafkaStreams extends KafkaStreamsStarter {
-  @Override
-  public void topology(StreamsBuilder streamsBuilder) {
-    KStream<String, KafkaUser> myStream = streamsBuilder
-            .stream("input_topic");
-
-    DeduplicationUtils
-            .distinctByHeaders(streamsBuilder, myStream, Duration.ofDays(60),
-                    List.of("header1", "header2"))
-            .to("output_topic");
-  }
-}
-```
-
-The provided list of headers is used to build a composite deduplication key. The stream is deduplicated based on the extracted header values.
 
 ## OpenTelemetry
 

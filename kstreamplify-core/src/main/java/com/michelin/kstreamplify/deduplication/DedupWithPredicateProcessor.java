@@ -22,10 +22,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /**
  * Processor class for the deduplication mechanism on predicate of a given topic.
@@ -34,16 +36,10 @@ import org.apache.kafka.streams.state.WindowStore;
  * @param <V> The type of the value
  */
 public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements Processor<K, V, K, V> {
-
-    /** Window store name, initialized @ construction. */
     private final String windowStoreName;
-    /** Retention window for the state store. Used for fetching data. */
     private final Duration retentionWindowDuration;
-    /** Deduplication key extractor. */
     private final Function<V, String> deduplicationKeyExtractor;
-    /** Kstream context for this processor. */
     private ProcessorContext<K, V> processorContext;
-    /** Window store containing all the records seen on the given window. */
     private WindowStore<String, V> dedupWindowStore;
 
     /**
@@ -60,25 +56,34 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
         this.deduplicationKeyExtractor = deduplicationKeyExtractor;
     }
 
+    /**
+     * Initialize the processor.
+     *
+     * @param context the processor context
+     */
     @Override
     public void init(ProcessorContext<K, V> context) {
-        this.processorContext = context;
-        dedupWindowStore = this.processorContext.getStateStore(windowStoreName);
+        processorContext = context;
+        dedupWindowStore = processorContext.getStateStore(windowStoreName);
     }
 
+    /**
+     * Process a record.
+     *
+     * @param message the record to process
+     */
     @Override
     public void process(Record<K, V> message) {
-        // Get the record timestamp
-        var currentInstant = Instant.ofEpochMilli(message.timestamp());
+        Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
         String identifier = deduplicationKeyExtractor.apply(message.value());
 
-        // Retrieve all the matching keys in the stateStore and return null if found it (signaling a duplicate)
-        try (var resultIterator = dedupWindowStore.backwardFetch(
+        // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+        try (WindowStoreIterator<V> resultIterator = dedupWindowStore.backwardFetch(
                 identifier,
                 currentInstant.minus(retentionWindowDuration),
                 currentInstant.plus(retentionWindowDuration))) {
             while (resultIterator != null && resultIterator.hasNext()) {
-                var currentKeyValue = resultIterator.next();
+                KeyValue<Long, V> currentKeyValue = resultIterator.next();
                 if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
                     return;
                 }
