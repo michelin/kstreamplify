@@ -67,6 +67,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
     * [By Key](#by-key)
     * [By Key and Value](#by-key-and-value)
     * [By Predicate](#by-predicate)
+    * [By Headers](#by-headers)
 * [OpenTelemetry](#opentelemetry)
   * [Custom Tags for Metrics](#custom-tags-for-metrics)
 * [Swagger](#swagger)
@@ -808,26 +809,46 @@ For more details about prefixes, see the [Prefix](#prefix) section.
 
 ### Deduplication
 
-The `DeduplicationUtils` class helps you deduplicate streams based on various criteria and within a specified time window.
+`DeduplicationUtils` deduplicates streams based on various criteria within a specified time window.
+- Methods with `withErrors` return a `KStream<String, ProcessingResult<V, V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
+- Methods without `withErrors` return a plain `KStream<String, V>` and can be used directly.  
 
-All deduplication methods return a `KStream<String, ProcessingResult<V,V2>`, allowing you to handle errors and route them to `TopologyErrorHandler#catchErrors()`.
-
-**Note**: Only streams with `String` keys and Avro values are supported.
+Only streams with `String` keys and Avro values are supported.
 
 #### By Key
 
 ```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
-    @Override
-    public void topology(StreamsBuilder streamsBuilder) {
-        KStream<String, KafkaUser> myStream = streamsBuilder
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+    
+    DeduplicationUtils
+            .deduplicateByKeyWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
+Or, using the `ProcessingResult` API:
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
             .stream("input_topic");
 
-        DeduplicationUtils
-            .deduplicateKeys(streamsBuilder, myStream, Duration.ofDays(60))
-            .to("output_topic");
-    }
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .deduplicateByKeyWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
 }
 ```
 
@@ -842,13 +863,36 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
         DeduplicationUtils
-            .deduplicateKeyValues(streamsBuilder, myStream, Duration.ofDays(60))
+            .deduplicateByKeyValue(streamsBuilder, myStream, Duration.ofDays(60))
             .to("output_topic");
     }
 }
 ```
 
+Or, using the `ProcessingResult` API:
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .deduplicateByKeyValueWithErrors(streamsBuilder, myStream, Duration.ofDays(60))
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
+
 #### By Predicate
+
+The predicate is used as the key in the underlying window store that tracks seen records.
+The stream is deduplicated based on the values derived from the predicate.
 
 ```java
 @Component
@@ -859,20 +903,44 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
         DeduplicationUtils
-            .deduplicateWithPredicate(streamsBuilder, myStream, Duration.ofDays(60),
+            .deduplicateByPredicate(streamsBuilder, myStream, Duration.ofDays(60),
                 value -> value.getFirstName() + "#" + value.getLastName())
             .to("output_topic");
     }
 }
 ```
 
-In the predicate approach, the provided predicate is used as the key in the window store. The stream will be deduplicated based on the values derived from the predicate.
+Or, using the `ProcessingResult` API:
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .deduplicateByPredicateWithErrors(
+                                    streamsBuilder,
+                                    myStream,
+                                    Duration.ofDays(60),
+                                    value -> value.getFirstName() + "#" + value.getLastName()
+                            )
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
 
 #### By Headers
 
-```java
-import java.util.List;
+The list of headers is used to build a composite deduplication key.
+The stream is deduplicated based on the extracted header values.
 
+```java
 @Component
 public class MyKafkaStreams extends KafkaStreamsStarter {
   @Override
@@ -881,14 +949,37 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
             .stream("input_topic");
 
     DeduplicationUtils
-            .deduplicateWithHeaders(streamsBuilder, myStream, Duration.ofDays(60),
+            .deduplicateByHeaders(streamsBuilder, myStream, Duration.ofDays(60),
                     List.of("header1", "header2"))
             .to("output_topic");
   }
 }
 ```
 
-The provided list of headers is used to build a composite deduplication key. The stream is deduplicated based on the extracted header values.
+Or, using the `ProcessingResult` API:
+
+```java
+@Component
+public class MyKafkaStreams extends KafkaStreamsStarter {
+  @Override
+  public void topology(StreamsBuilder streamsBuilder) {
+    KStream<String, KafkaUser> myStream = streamsBuilder
+            .stream("input_topic");
+
+    TopologyErrorHandler
+            .catchErrors(
+                    DeduplicationUtils
+                            .deduplicateByHeadersWithErrors(
+                                    streamsBuilder,
+                                    myStream,
+                                    Duration.ofDays(60),
+                                    List.of("header1", "header2")
+                            )
+            )
+            .to("output_topic", Produced.with(Serdes.String(), SerdesUtils.getValueSerdes()));
+  }
+}
+```
 
 ## OpenTelemetry
 

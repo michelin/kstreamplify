@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import java.time.Instant;
 import org.apache.avro.specific.SpecificRecord;
@@ -33,11 +34,12 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
  *
  * @param <V> The type of the value
  */
-public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<String, V, String, V> {
+public class DedupKeyProcessorWithErrors<V extends SpecificRecord>
+        implements Processor<String, V, String, ProcessingResult<V, V>> {
+    private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
+    private WindowStore<String, String> dedupWindowStore;
     private final String windowStoreName;
     private final Duration retentionWindowDuration;
-    private ProcessorContext<String, V> processorContext;
-    private WindowStore<String, String> dedupWindowStore;
 
     /**
      * Constructor.
@@ -45,7 +47,7 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
      * @param windowStoreName The name of the constructor
      * @param retentionWindowDuration The retentionWindow Duration
      */
-    public DedupKeyProcessor(String windowStoreName, Duration retentionWindowDuration) {
+    public DedupKeyProcessorWithErrors(String windowStoreName, Duration retentionWindowDuration) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
     }
@@ -56,7 +58,7 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
      * @param context the processor context
      */
     @Override
-    public void init(ProcessorContext<String, V> context) {
+    public void init(ProcessorContext<String, ProcessingResult<V, V>> context) {
         processorContext = context;
         dedupWindowStore = processorContext.getStateStore(windowStoreName);
     }
@@ -68,23 +70,31 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
      */
     @Override
     public void process(Record<String, V> message) {
-        Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
+        try {
+            Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
 
-        // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
-        try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
-                message.key(),
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
-            while (resultIterator != null && resultIterator.hasNext()) {
-                KeyValue<Long, String> currentKeyValue = resultIterator.next();
-                if (message.key().equals(currentKeyValue.value)) {
-                    return;
+            // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+            try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
+                    message.key(),
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
+                while (resultIterator != null && resultIterator.hasNext()) {
+                    KeyValue<Long, String> currentKeyValue = resultIterator.next();
+                    if (message.key().equals(currentKeyValue.value)) {
+                        return;
+                    }
                 }
             }
-        }
 
-        // First time we see this record, store entry in the window store and forward the record to the output
-        dedupWindowStore.put(message.key(), message.key(), message.timestamp());
-        processorContext.forward(message);
+            // First time we see this record, store entry in the window store and forward the record to the output
+            dedupWindowStore.put(message.key(), message.key(), message.timestamp());
+            processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
+        } catch (Exception e) {
+            processorContext.forward(ProcessingResult.wrapRecordFailure(
+                    e,
+                    message,
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
+        }
     }
 }

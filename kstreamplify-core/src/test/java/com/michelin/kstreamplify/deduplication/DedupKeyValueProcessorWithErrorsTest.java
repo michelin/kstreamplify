@@ -18,7 +18,6 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -42,12 +42,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DedupKeyValueProcessorTest {
+class DedupKeyValueProcessorWithErrorsTest {
 
-    private DedupKeyValueProcessor<KafkaError> processor;
+    private DedupKeyValueProcessorWithErrors<KafkaError> processor;
 
     @Mock
-    private ProcessorContext<String, KafkaError> context;
+    private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
 
     @Mock
     private WindowStore<String, KafkaError> windowStore;
@@ -58,7 +58,7 @@ class DedupKeyValueProcessorTest {
     @BeforeEach
     void setUp() {
         // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupKeyValueProcessor<>("testStore", Duration.ofHours(1));
+        processor = new DedupKeyValueProcessorWithErrors<>("testStore", Duration.ofHours(1));
 
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
@@ -74,7 +74,7 @@ class DedupKeyValueProcessorTest {
         processor.process(message);
 
         verify(windowStore).put(message.key(), message.value(), message.timestamp());
-        verify(context).forward(argThat(arg -> arg.value().equals(message.value())));
+        verify(context).forward(argThat(arg -> arg.value().getValue().equals(message.value())));
     }
 
     @Test
@@ -108,6 +108,12 @@ class DedupKeyValueProcessorTest {
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
         // Call the process method
-        assertThrows(RuntimeException.class, () -> processor.process(message));
+        processor.process(message);
+
+        verify(context).forward(argThat(arg -> arg.value()
+                .getError()
+                .getContextMessage()
+                .equals("Could not figure out what to do with the current payload: "
+                        + "An unlikely error occurred during deduplication transform")));
     }
 }

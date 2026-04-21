@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Function;
@@ -35,12 +36,13 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
  * @param <K> The type of the key
  * @param <V> The type of the value
  */
-public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements Processor<K, V, K, V> {
+public class DedupWithPredicateProcessorWithErrors<K, V extends SpecificRecord>
+        implements Processor<K, V, K, ProcessingResult<V, V>> {
+    private ProcessorContext<K, ProcessingResult<V, V>> processorContext;
+    private WindowStore<String, V> dedupWindowStore;
     private final String windowStoreName;
     private final Duration retentionWindowDuration;
     private final Function<V, String> deduplicationKeyExtractor;
-    private ProcessorContext<K, V> processorContext;
-    private WindowStore<String, V> dedupWindowStore;
 
     /**
      * Constructor.
@@ -49,7 +51,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
      * @param retentionWindowDuration Retention window duration
      * @param deduplicationKeyExtractor Deduplication function
      */
-    public DedupWithPredicateProcessor(
+    public DedupWithPredicateProcessorWithErrors(
             String windowStoreName, Duration retentionWindowDuration, Function<V, String> deduplicationKeyExtractor) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
@@ -62,7 +64,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
      * @param context the processor context
      */
     @Override
-    public void init(ProcessorContext<K, V> context) {
+    public void init(ProcessorContext<K, ProcessingResult<V, V>> context) {
         processorContext = context;
         dedupWindowStore = processorContext.getStateStore(windowStoreName);
     }
@@ -74,24 +76,33 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
      */
     @Override
     public void process(Record<K, V> message) {
-        Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
-        String identifier = deduplicationKeyExtractor.apply(message.value());
+        try {
+            Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
+            String identifier = deduplicationKeyExtractor.apply(message.value());
 
-        // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
-        try (WindowStoreIterator<V> resultIterator = dedupWindowStore.backwardFetch(
-                identifier,
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
-            while (resultIterator != null && resultIterator.hasNext()) {
-                KeyValue<Long, V> currentKeyValue = resultIterator.next();
-                if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
-                    return;
+            // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+            try (WindowStoreIterator<V> resultIterator = dedupWindowStore.backwardFetch(
+                    identifier,
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
+                while (resultIterator != null && resultIterator.hasNext()) {
+                    KeyValue<Long, V> currentKeyValue = resultIterator.next();
+                    if (identifier.equals(deduplicationKeyExtractor.apply(currentKeyValue.value))) {
+                        return;
+                    }
                 }
             }
-        }
 
-        // First time we see this record, store entry in the window store and forward the record to the output
-        dedupWindowStore.put(identifier, message.value(), message.timestamp());
-        processorContext.forward(message);
+            // First time we see this record, store entry in the window store and forward the record to the output
+            dedupWindowStore.put(identifier, message.value(), message.timestamp());
+            processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
+
+        } catch (Exception e) {
+            processorContext.forward(ProcessingResult.wrapRecordFailure(
+                    e,
+                    message,
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
+        }
     }
 }

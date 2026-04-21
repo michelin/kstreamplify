@@ -18,6 +18,7 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
+import com.michelin.kstreamplify.error.ProcessingResult;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,11 +40,12 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
  *
  * @param <V> The type of the value
  */
-public class DedupHeadersProcessor<V extends SpecificRecord> implements Processor<String, V, String, V> {
+public class DedupHeadersProcessorWithErrors<V extends SpecificRecord>
+        implements Processor<String, V, String, ProcessingResult<V, V>> {
     private final String windowStoreName;
     private final Duration retentionWindowDuration;
     private final List<String> deduplicationHeaders;
-    private ProcessorContext<String, V> processorContext;
+    private ProcessorContext<String, ProcessingResult<V, V>> processorContext;
     private WindowStore<String, String> dedupWindowStore;
 
     /**
@@ -53,11 +55,67 @@ public class DedupHeadersProcessor<V extends SpecificRecord> implements Processo
      * @param retentionWindowDuration Retention window duration
      * @param deduplicationHeaders Deduplication headers list
      */
-    public DedupHeadersProcessor(
+    public DedupHeadersProcessorWithErrors(
             String windowStoreName, Duration retentionWindowDuration, List<String> deduplicationHeaders) {
         this.windowStoreName = windowStoreName;
         this.retentionWindowDuration = retentionWindowDuration;
         this.deduplicationHeaders = deduplicationHeaders;
+    }
+
+    /**
+     * Initialize the processor.
+     *
+     * @param context the processor context
+     */
+    @Override
+    public void init(ProcessorContext<String, ProcessingResult<V, V>> context) {
+        processorContext = context;
+        dedupWindowStore = processorContext.getStateStore(windowStoreName);
+    }
+
+    /**
+     * Process a record.
+     *
+     * @param message the record to process
+     */
+    @Override
+    public void process(Record<String, V> message) {
+        try {
+            Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
+            String identifier = buildIdentifier(message.headers());
+
+            // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
+            try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
+                    identifier,
+                    currentInstant.minus(retentionWindowDuration),
+                    currentInstant.plus(retentionWindowDuration))) {
+                while (resultIterator != null && resultIterator.hasNext()) {
+                    KeyValue<Long, String> currentKeyValue = resultIterator.next();
+                    if (identifier.equals(currentKeyValue.value)) {
+                        return;
+                    }
+                }
+            }
+            // First time we see this record, store entry in the window store and forward the record to the output
+            dedupWindowStore.put(identifier, identifier, message.timestamp());
+            processorContext.forward(ProcessingResult.wrapRecordSuccess(message));
+        } catch (Exception e) {
+            processorContext.forward(ProcessingResult.wrapRecordFailure(
+                    e,
+                    message,
+                    "Could not figure out what to do with the current payload: "
+                            + "An unlikely error occurred during deduplication transform"));
+        }
+    }
+
+    /**
+     * Build an identifier for the record based on the headers and the keys provided.
+     *
+     * @param headers The headers of the record
+     * @return The built identifier
+     */
+    private String buildIdentifier(Headers headers) {
+        return deduplicationHeaders.stream().map(key -> getHeader(headers, key)).collect(Collectors.joining("#"));
     }
 
     /**
@@ -74,53 +132,5 @@ public class DedupHeadersProcessor<V extends SpecificRecord> implements Processo
         }
         String value = new String(header.value(), StandardCharsets.UTF_8);
         return StringUtils.defaultString(value);
-    }
-
-    /**
-     * Initialize the processor.
-     *
-     * @param context the processor context
-     */
-    @Override
-    public void init(ProcessorContext<String, V> context) {
-        processorContext = context;
-        dedupWindowStore = processorContext.getStateStore(windowStoreName);
-    }
-
-    /**
-     * Process a record.
-     *
-     * @param message the record to process
-     */
-    @Override
-    public void process(Record<String, V> message) {
-        Instant currentInstant = Instant.ofEpochMilli(message.timestamp());
-        String identifier = buildIdentifier(message.headers());
-
-        // Retrieve all the matching keys in the state store and return null if found it (signaling a duplicate)
-        try (WindowStoreIterator<String> resultIterator = dedupWindowStore.backwardFetch(
-                identifier,
-                currentInstant.minus(retentionWindowDuration),
-                currentInstant.plus(retentionWindowDuration))) {
-            while (resultIterator != null && resultIterator.hasNext()) {
-                KeyValue<Long, String> currentKeyValue = resultIterator.next();
-                if (identifier.equals(currentKeyValue.value)) {
-                    return;
-                }
-            }
-        }
-        // First time we see this record, store entry in the window store and forward the record to the output
-        dedupWindowStore.put(identifier, identifier, message.timestamp());
-        processorContext.forward(message);
-    }
-
-    /**
-     * Build an identifier for the record based on the headers and the keys provided.
-     *
-     * @param headers The headers of the record
-     * @return The built identifier
-     */
-    private String buildIdentifier(Headers headers) {
-        return deduplicationHeaders.stream().map(key -> getHeader(headers, key)).collect(Collectors.joining("#"));
     }
 }

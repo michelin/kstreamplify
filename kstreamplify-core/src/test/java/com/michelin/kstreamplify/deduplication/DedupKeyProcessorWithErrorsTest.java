@@ -18,7 +18,6 @@
  */
 package com.michelin.kstreamplify.deduplication;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.error.ProcessingResult;
 import java.time.Duration;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -42,23 +42,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DedupKeyValueProcessorTest {
+class DedupKeyProcessorWithErrorsTest {
 
-    private DedupKeyValueProcessor<KafkaError> processor;
-
-    @Mock
-    private ProcessorContext<String, KafkaError> context;
+    private DedupKeyProcessorWithErrors<KafkaError> processor;
 
     @Mock
-    private WindowStore<String, KafkaError> windowStore;
+    private ProcessorContext<String, ProcessingResult<KafkaError, KafkaError>> context;
 
     @Mock
-    private WindowStoreIterator<KafkaError> windowStoreIterator;
+    private WindowStore<String, String> windowStore;
+
+    @Mock
+    private WindowStoreIterator<String> windowStoreIterator;
 
     @BeforeEach
     void setUp() {
         // Create an instance of DedupWithPredicateProcessor for testing
-        processor = new DedupKeyValueProcessor<>("testStore", Duration.ofHours(1));
+        processor = new DedupKeyProcessorWithErrors<>("testStore", Duration.ofHours(1));
 
         // Stub the context.getStateStore method to return the mock store
         when(context.getStateStore("testStore")).thenReturn(windowStore);
@@ -73,8 +73,8 @@ class DedupKeyValueProcessorTest {
 
         processor.process(message);
 
-        verify(windowStore).put(message.key(), message.value(), message.timestamp());
-        verify(context).forward(argThat(arg -> arg.value().equals(message.value())));
+        verify(windowStore).put("key", "key", message.timestamp());
+        verify(context).forward(argThat(arg -> arg.value().getValue().equals(message.value())));
     }
 
     @Test
@@ -86,7 +86,7 @@ class DedupKeyValueProcessorTest {
         when(windowStoreIterator.hasNext()).thenReturn(true);
 
         // Simulate the condition to trigger the return statement
-        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, kafkaError));
+        when(windowStoreIterator.next()).thenReturn(KeyValue.pair(0L, "key"));
 
         // Simulate the backwardFetch() method returning the mocked ResultIterator
         when(windowStore.backwardFetch(any(), any(), any())).thenReturn(windowStoreIterator);
@@ -100,14 +100,19 @@ class DedupKeyValueProcessorTest {
 
     @Test
     void shouldThrowException() {
-        final Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
+        Record<String, KafkaError> message = new Record<>("key", new KafkaError(), 0L);
 
         when(windowStore.backwardFetch(any(), any(), any()))
                 .thenReturn(null)
                 .thenThrow(new RuntimeException("Exception..."));
         doThrow(new RuntimeException("Exception...")).when(windowStore).put(anyString(), any(), anyLong());
 
-        // Call the process method
-        assertThrows(RuntimeException.class, () -> processor.process(message));
+        processor.process(message);
+
+        verify(context).forward(argThat(arg -> arg.value()
+                .getError()
+                .getContextMessage()
+                .equals("Could not figure out what to do with the current payload: "
+                        + "An unlikely error occurred during deduplication transform")));
     }
 }
