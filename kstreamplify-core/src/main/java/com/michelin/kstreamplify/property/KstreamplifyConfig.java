@@ -30,6 +30,10 @@ public abstract class KstreamplifyConfig {
     public static final String DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS =
             "dlq.deserialization-handler.continue-on-unhandled-errors";
 
+    /** Property key to configure handling of serialization exceptions in DLQ production handler. */
+    public static final String DLQ_PRODUCTION_HANDLER_CONTINUE_ON_SERIALIZATION_EXCEPTION =
+            "dlq.production-handler.continue-on-serialization-exception";
+
     /** Constructor. */
     private KstreamplifyConfig() {}
 }

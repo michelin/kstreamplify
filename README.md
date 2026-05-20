@@ -561,6 +561,20 @@ kafka:
 
 It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
+Additionally, serialization exceptions can optionally be forwarded to the DLQ by enabling the following property:
+
+```yml
+kafka:
+  properties:
+    dlq:
+      production-handler:
+        continue-on-serialization-exception: true
+```
+
+| Property                                                             | Description                                                                                              |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `dlq.production-handler.continue-on-serialization-exception`         | Routes serialization errors to the DLQ and continues processing instead of failing the application       |
+
 ### Avro Kafka Error
 
 A `KafkaError` Avro object is sent to the DLQ topic for each failed record.
