@@ -100,7 +100,7 @@ Using the [Spring Boot Starter Parent](https://docs.spring.io/spring-boot/maven-
 
 ```xml
 <properties>
-    <kafka.version>4.2.0</kafka.version>
+    <kafka.version>4.3.0</kafka.version>
 </properties>
 
 <dependency>
