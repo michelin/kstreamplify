@@ -9,5 +9,7 @@ kafka:
       deserialization-handler:
         forward-restclient-exception: true
         continue-on-unhandled-errors: true
+      production-handler:
+        continue-on-serialization-exception: true
 server:
   port: 8080
