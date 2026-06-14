@@ -40,22 +40,23 @@ import org.apache.kafka.streams.errors.ErrorHandlerContext;
 /** The class managing deserialization exceptions. */
 @Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
-    private boolean handleSchemaRegistryRestException;
-    private boolean continueOnUnhandledErrors;
 
     /** Constructor. */
     public DlqDeserializationExceptionHandler() {}
 
     /**
-     * Handles deserialization errors by routing records to the DLQ and deciding whether to continue or fail processing
-     * based on configured rules.
+     * Handles deserialization exceptions by routing the record to the DLQ topic.
+     *
+     * @param context The error handler context
+     * @param consumerRecord The record that failed deserialization
+     * @param exception The exception that occurred
+     * @return A {@link Response} indicating how to proceed
      */
     @Override
     public Response handleError(
             ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> consumerRecord, Exception exception) {
-
         log.warn(
-                "Exception during Deserialization, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                "Exception during deserialization, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
                 context.processorNodeId(),
                 context.taskId(),
                 context.topic(),
@@ -64,34 +65,59 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                 exception);
 
         if (isDlqNotDefined()) {
-            log.warn("Failed to route deserialization error to DLQ.");
+            log.warn("Failed to route deserialization error to DLQ. Define a DLQ topic in configuration.");
+            return Response.fail();
+        }
+
+        if (shouldNotResume(exception)) {
             return Response.fail();
         }
 
         try {
             KafkaError error = buildKafkaError(context, consumerRecord, exception);
-            byte[] value = serializeError(error);
-            return shouldResume(exception) ? resumeWithDlqRecord(consumerRecord, value) : Response.fail();
+            Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
+            byte[] value = serde.serializer().serialize(KafkaStreamsExecutionContext.getDlqTopicName(), error);
+            return Response.resume(List.of(
+                    new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), consumerRecord.key(), value)));
         } catch (Exception e) {
-            log.error("Cannot send deserialization exception to DLQ topic {}", deadLetterQueueTopic, e);
+            log.error(
+                    "Cannot send deserialization exception to DLQ topic {}",
+                    KafkaStreamsExecutionContext.getDlqTopicName(),
+                    e);
             return Response.fail();
         }
     }
 
-    /** Determines if the exception should be handled by continuing processing based on known handled scenarios. */
-    private boolean shouldResume(Exception exception) {
+    /**
+     * Determines whether processing should not resume after the exception.
+     *
+     * @param exception The exception that occurred
+     * @return {@code true} if processing should not resume, {@code false} otherwise
+     */
+    private boolean shouldNotResume(Exception exception) {
         Throwable cause = exception.getCause() != null ? exception.getCause() : exception;
 
         boolean isCausedByKafka = cause instanceof KafkaException;
         boolean isRestClientSchemaRegistryException = cause instanceof RestClientException;
+        boolean handleSchemaRegistryRestException = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
+                DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
+        boolean continueOnUnhandledErrors = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
+                KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS);
 
-        return isCausedByKafka
+        return !(isCausedByKafka
                 || cause == null
                 || (isRestClientSchemaRegistryException && handleSchemaRegistryRestException)
-                || continueOnUnhandledErrors;
+                || continueOnUnhandledErrors);
     }
 
-    /** Builds a KafkaError enriched with record metadata and exception details for DLQ publishing. */
+    /**
+     * Builds a {@link KafkaError} from the record metadata and exception details.
+     *
+     * @param context The error handler context
+     * @param consumerRecord The record that failed deserialization
+     * @param exception The exception that occurred
+     * @return The built {@link KafkaError}
+     */
     private KafkaError buildKafkaError(
             ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> consumerRecord, Exception exception) {
 
@@ -111,24 +137,13 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
                 .build();
     }
 
-    /** Serializes the KafkaError into a byte array for DLQ topic. */
-    private byte[] serializeError(KafkaError error) {
-        Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
-        return serde.serializer().serialize(deadLetterQueueTopic, error);
-    }
-
-    /** Creates a DLQ record and returns a resume response to continue processing. */
-    private Response resumeWithDlqRecord(ConsumerRecord<byte[], byte[]> consumerRecord, byte[] value) {
-        return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, consumerRecord.key(), value)));
-    }
-
-    /** {@inheritDoc} */
+    /**
+     * Configures the handler.
+     *
+     * @param configs The configuration map
+     */
     @Override
     public void configure(Map<String, ?> configs) {
-        deadLetterQueueTopic = KafkaStreamsExecutionContext.getDlqTopicName();
-        handleSchemaRegistryRestException = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
-                DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION);
-        continueOnUnhandledErrors = KafkaStreamsExecutionContext.isDlqFeatureEnabled(
-                KstreamplifyConfig.DLQ_DESERIALIZATION_HANDLER_CONTINUE_ON_UNHANDLED_ERRORS);
+        // Do nothing
     }
 }
