@@ -231,7 +231,7 @@ class DlqProductionExceptionHandlerTest {
     }
 
     @Test
-    void shouldReturnResumeOnExceptionDuringSerializationErrorHandling() {
+    void shouldFailOnExceptionDuringSerializationErrorHandling() {
         Properties properties = new Properties();
         properties.setProperty(APPLICATION_ID_CONFIG, "test-app");
         properties.setProperty(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://");
@@ -251,7 +251,7 @@ class DlqProductionExceptionHandlerTest {
                 new KafkaException("Serialization failed"),
                 SerializationExceptionOrigin.KEY);
 
-        assertEquals(ProductionExceptionHandler.Result.RESUME, response.result());
+        assertEquals(ProductionExceptionHandler.Result.FAIL, response.result());
         assertTrue(response.deadLetterQueueRecords().isEmpty());
     }
 }

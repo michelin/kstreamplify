@@ -19,6 +19,7 @@
 package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.avro.KafkaError;
+import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
@@ -29,8 +30,6 @@ import org.apache.kafka.common.errors.RecordTooLargeException;
 /** The class to manage DLQ exception. */
 @Slf4j
 public abstract class DlqExceptionHandler {
-    /** The DLQ topic */
-    protected String deadLetterQueueTopic;
 
     /** Constructor. */
     protected DlqExceptionHandler() {}
@@ -46,7 +45,6 @@ public abstract class DlqExceptionHandler {
      */
     protected KafkaError.Builder enrichWithException(
             KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {
-
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
@@ -70,6 +68,6 @@ public abstract class DlqExceptionHandler {
      * @return {@code true} if the dead letter queue topic is not defined, {@code false} otherwise
      */
     protected boolean isDlqNotDefined() {
-        return StringUtils.isBlank(deadLetterQueueTopic);
+        return StringUtils.isBlank(KafkaStreamsExecutionContext.getDlqTopicName());
     }
 }
