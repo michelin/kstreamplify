@@ -59,7 +59,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
     /**
      * Initialize the processor.
      *
-     * @param context the processor context
+     * @param context The processor context
      */
     @Override
     public void init(ProcessorContext<K, V> context) {
@@ -70,7 +70,7 @@ public class DedupWithPredicateProcessor<K, V extends SpecificRecord> implements
     /**
      * Process a record.
      *
-     * @param message the record to process
+     * @param message The record to process
      */
     @Override
     public void process(Record<K, V> message) {

@@ -35,6 +35,7 @@ import org.apache.kafka.streams.kstream.Produced;
 public class TopologyErrorHandler {
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
+    /** Private constructor. */
     private TopologyErrorHandler() {}
 
     /**

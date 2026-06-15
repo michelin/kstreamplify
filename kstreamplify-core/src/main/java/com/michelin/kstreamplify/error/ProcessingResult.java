@@ -48,7 +48,7 @@ public class ProcessingResult<V, V2> {
     /**
      * Private constructor that sets the error value.
      *
-     * @param error the ProcessingError containing the
+     * @param error The ProcessingError containing the
      */
     private ProcessingResult(ProcessingError<V2> error) {
         this.error = error;
@@ -222,7 +222,7 @@ public class ProcessingResult<V, V2> {
     /**
      * Is the processing result valid. Is it valid either if it contains a successful value or an error
      *
-     * @return true if valid, false otherwise
+     * @return True if valid, false otherwise
      */
     public boolean isValid() {
         return value != null && error == null;

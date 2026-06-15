@@ -53,7 +53,7 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
     /**
      * Initialize the processor.
      *
-     * @param context the processor context
+     * @param context The processor context
      */
     @Override
     public void init(ProcessorContext<String, V> context) {
@@ -64,7 +64,7 @@ public class DedupKeyProcessor<V extends SpecificRecord> implements Processor<St
     /**
      * Process a record.
      *
-     * @param message the record to process
+     * @param message The record to process
      */
     @Override
     public void process(Record<String, V> message) {

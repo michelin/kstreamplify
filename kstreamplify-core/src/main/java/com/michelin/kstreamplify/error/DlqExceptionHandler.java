@@ -37,11 +37,11 @@ public abstract class DlqExceptionHandler {
     /**
      * Enrich a KafkaError with exception details
      *
-     * @param builder the error builder
-     * @param exception the exception to add
-     * @param key record key bytes
-     * @param value record value bytes
-     * @return enriched builder
+     * @param builder The error builder
+     * @param exception The exception to add
+     * @param key Record key bytes
+     * @param value Record value bytes
+     * @return Enriched builder
      */
     protected KafkaError.Builder enrichWithException(
             KafkaError.Builder builder, Exception exception, byte[] key, byte[] value) {

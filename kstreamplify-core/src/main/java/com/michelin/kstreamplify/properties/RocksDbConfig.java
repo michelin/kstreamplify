@@ -135,6 +135,12 @@ public class RocksDbConfig implements RocksDBConfigSetter {
         options.setCompressionType(CompressionType.getCompressionType(compressionType));
     }
 
+    /**
+     * Close the RocksDB configuration.
+     *
+     * @param storeName The store name
+     * @param options The options
+     */
     @Override
     public void close(String storeName, Options options) {
         cache.close();

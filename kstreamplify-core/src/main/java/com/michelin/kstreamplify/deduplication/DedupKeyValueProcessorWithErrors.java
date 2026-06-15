@@ -55,7 +55,7 @@ public class DedupKeyValueProcessorWithErrors<V extends SpecificRecord>
     /**
      * Initialize the processor.
      *
-     * @param context the processor context
+     * @param context The processor context
      */
     @Override
     public void init(ProcessorContext<String, ProcessingResult<V, V>> context) {
@@ -66,7 +66,7 @@ public class DedupKeyValueProcessorWithErrors<V extends SpecificRecord>
     /**
      * Process a record.
      *
-     * @param message the record to process
+     * @param message The record to process
      */
     @Override
     public void process(Record<String, V> message) {
