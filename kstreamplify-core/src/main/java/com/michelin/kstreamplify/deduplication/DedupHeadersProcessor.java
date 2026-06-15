@@ -63,8 +63,8 @@ public class DedupHeadersProcessor<V extends SpecificRecord> implements Processo
     /**
      * Get the header value for a given key
      *
-     * @param headers headers of the record
-     * @param key the key to look for in the headers
+     * @param headers Headers of the record
+     * @param key The key to look for in the headers
      * @return The header value for the given key, or an empty string if the header is not present or has no value.
      */
     private static String getHeader(Headers headers, String key) {
@@ -79,7 +79,7 @@ public class DedupHeadersProcessor<V extends SpecificRecord> implements Processo
     /**
      * Initialize the processor.
      *
-     * @param context the processor context
+     * @param context The processor context
      */
     @Override
     public void init(ProcessorContext<String, V> context) {
@@ -90,7 +90,7 @@ public class DedupHeadersProcessor<V extends SpecificRecord> implements Processo
     /**
      * Process a record.
      *
-     * @param message the record to process
+     * @param message The record to process
      */
     @Override
     public void process(Record<String, V> message) {

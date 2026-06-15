@@ -38,6 +38,7 @@ public final class DeduplicationUtils {
     private static final String DEFAULT_WINDOWSTORE = "WindowStore";
     private static final String DEFAULT_REPARTITION = "Repartition";
 
+    /** Private constructor. */
     private DeduplicationUtils() {}
 
     /** @deprecated Since 1.8.0, use {@link #deduplicateByKeyWithErrors(StreamsBuilder, KStream, Duration)} instead. */
@@ -87,13 +88,13 @@ public final class DeduplicationUtils {
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate (must have String keys)
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream containing {@link ProcessingResult}
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate (must have String keys)
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream containing {@link ProcessingResult}
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyWithErrors(
             StreamsBuilder streamsBuilder,
@@ -134,13 +135,13 @@ public final class DeduplicationUtils {
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate (must have String keys)
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream containing
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate (must have String keys)
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream containing
      */
     public static <V extends SpecificRecord> KStream<String, V> deduplicateByKey(
             StreamsBuilder streamsBuilder,
@@ -211,13 +212,13 @@ public final class DeduplicationUtils {
      * <p>Records with identical key-value pairs within the configured time window are considered duplicates and are
      * filtered out.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream containing {@link ProcessingResult}
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream containing {@link ProcessingResult}
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByKeyValueWithErrors(
             StreamsBuilder streamsBuilder,
@@ -258,13 +259,13 @@ public final class DeduplicationUtils {
      * <p>Records with identical key-value pairs within the configured time window are considered duplicates and are
      * filtered out.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream containing
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream containing
      */
     public static <V extends SpecificRecord> KStream<String, V> deduplicateByKeyValue(
             StreamsBuilder streamsBuilder,
@@ -345,14 +346,14 @@ public final class DeduplicationUtils {
      * <p>The provided extractor builds a deduplication key for each record. Records with identical keys within the
      * configured time window are considered duplicates and are filtered out.
      *
-     * @param streamsBuilder the {@link StreamsBuilder}
-     * @param initialStream the input stream
-     * @param storeName state store name
-     * @param repartitionName repartition topic name
-     * @param windowDuration deduplication window
-     * @param extractor function building the deduplication key
-     * @param <V> value type
-     * @return a deduplicated stream containing {@link ProcessingResult}
+     * @param streamsBuilder The {@link StreamsBuilder}
+     * @param initialStream The input stream
+     * @param storeName State store name
+     * @param repartitionName Repartition topic name
+     * @param windowDuration Deduplication window
+     * @param extractor Function building the deduplication key
+     * @param <V> Value type
+     * @return A deduplicated stream containing {@link ProcessingResult}
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByPredicateWithErrors(
             StreamsBuilder streamsBuilder,
@@ -398,14 +399,14 @@ public final class DeduplicationUtils {
      * <p>The provided extractor builds a deduplication key for each record. Records with identical keys within the
      * configured time window are considered duplicates and are filtered out.
      *
-     * @param streamsBuilder the {@link StreamsBuilder}
-     * @param initialStream the input stream
-     * @param storeName state store name
-     * @param repartitionName repartition topic name
-     * @param windowDuration deduplication window
-     * @param extractor function building the deduplication key
-     * @param <V> value type
-     * @return a deduplicated stream containing
+     * @param streamsBuilder The {@link StreamsBuilder}
+     * @param initialStream The input stream
+     * @param storeName State store name
+     * @param repartitionName Repartition topic name
+     * @param windowDuration Deduplication window
+     * @param extractor Function building the deduplication key
+     * @param <V> Value type
+     * @return A deduplicated stream containing
      */
     public static <V extends SpecificRecord> KStream<String, V> deduplicateByPredicate(
             StreamsBuilder streamsBuilder,
@@ -490,14 +491,14 @@ public final class DeduplicationUtils {
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate (must have String keys)
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param deduplicationHeaders list of header names used to build the deduplication key
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream containing {@link ProcessingResult}
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate (must have String keys)
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param deduplicationHeaders List of header names used to build the deduplication key
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream containing {@link ProcessingResult}
      */
     public static <V extends SpecificRecord> KStream<String, ProcessingResult<V, V>> deduplicateByHeadersWithErrors(
             StreamsBuilder streamsBuilder,
@@ -545,14 +546,14 @@ public final class DeduplicationUtils {
      *
      * <p>A window store is used to track seen keys during the specified {@code windowDuration}.
      *
-     * @param streamsBuilder the {@link StreamsBuilder} used to build the topology
-     * @param initialStream the input stream to deduplicate (must have String keys)
-     * @param storeName the name of the state store used for deduplication
-     * @param repartitionName the name of the repartition topic
-     * @param windowDuration the time window during which duplicates are filtered
-     * @param deduplicationHeaders list of header names used to build the deduplication key
-     * @param <V> the value type of the stream
-     * @return a deduplicated stream
+     * @param streamsBuilder The {@link StreamsBuilder} used to build the topology
+     * @param initialStream The input stream to deduplicate (must have String keys)
+     * @param storeName The name of the state store used for deduplication
+     * @param repartitionName The name of the repartition topic
+     * @param windowDuration The time window during which duplicates are filtered
+     * @param deduplicationHeaders List of header names used to build the deduplication key
+     * @param <V> The value type of the stream
+     * @return A deduplicated stream
      */
     public static <V extends SpecificRecord> KStream<String, V> deduplicateByHeaders(
             StreamsBuilder streamsBuilder,

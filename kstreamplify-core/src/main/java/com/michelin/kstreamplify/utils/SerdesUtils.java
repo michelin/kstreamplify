@@ -28,13 +28,14 @@ import org.apache.avro.specific.SpecificRecord;
  */
 @Deprecated(since = "1.1.0")
 public final class SerdesUtils {
+    /** Private constructor. */
     private SerdesUtils() {}
 
     /**
      * Return a key serdes for a requested class.
      *
      * @param <T> The class of requested serdes
-     * @return a serdes for requested class
+     * @return A serdes for requested class
      */
     public static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdesForKey() {
         return com.michelin.kstreamplify.serde.SerdesUtils.getKeySerdes();
@@ -44,7 +45,7 @@ public final class SerdesUtils {
      * Return a value serdes for a requested class.
      *
      * @param <T> The class of requested serdes
-     * @return a serdes for requested class
+     * @return A serdes for requested class
      */
     public static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdesForValue() {
         return com.michelin.kstreamplify.serde.SerdesUtils.getValueSerdes();

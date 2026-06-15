@@ -24,16 +24,17 @@ import org.apache.kafka.streams.state.WindowStore;
 
 /** The window state store utils. */
 public final class WindowStateStoreUtils {
+    /** Private constructor. */
     private WindowStateStoreUtils() {}
 
     /**
      * Puts a key/value pair into the {@link WindowStore} using the current system time as the record timestamp.
      *
-     * @param stateStore the target state store
-     * @param key the record key
-     * @param value the record value
-     * @param <K> the key type
-     * @param <V> the value type
+     * @param stateStore The target state store
+     * @param key The record key
+     * @param value The record value
+     * @param <K> The key type
+     * @param <V> The value type
      */
     public static <K, V> void put(WindowStore<K, V> stateStore, K key, V value) {
         put(stateStore, key, value, Instant.now().toEpochMilli());
@@ -42,12 +43,12 @@ public final class WindowStateStoreUtils {
     /**
      * Puts a key/value pair into the {@link WindowStore} using the provided timestamp.
      *
-     * @param stateStore the target state store
-     * @param key the record key
-     * @param value the record value
-     * @param timestamp the timestamp associated with the record (epoch milliseconds)
-     * @param <K> the key type
-     * @param <V> the value type
+     * @param stateStore The target state store
+     * @param key The record key
+     * @param value The record value
+     * @param timestamp The timestamp associated with the record (epoch milliseconds)
+     * @param <K> The key type
+     * @param <V> The value type
      */
     public static <K, V> void put(WindowStore<K, V> stateStore, K key, V value, long timestamp) {
         stateStore.put(key, value, timestamp);
@@ -57,12 +58,12 @@ public final class WindowStateStoreUtils {
      * Gets the latest value associated with the given key from the {@link WindowStore} within the specified retention
      * period.
      *
-     * @param stateStore the source state store
-     * @param key the record key
-     * @param retentionDays the retention period in days to look back from the current time
-     * @param <K> the key type
-     * @param <V> the value type
-     * @return the most recent value for the key within the retention window, or {@code null} if none exists
+     * @param stateStore The source state store
+     * @param key The record key
+     * @param retentionDays The retention period in days to look back from the current time
+     * @param <K> The key type
+     * @param <V> The value type
+     * @return The most recent value for the key within the retention window, or {@code null} if none exists
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, int retentionDays) {
         Instant now = Instant.now();
@@ -72,13 +73,13 @@ public final class WindowStateStoreUtils {
     /**
      * Gets the latest value associated with the given key from the {@link WindowStore} within the provided time range.
      *
-     * @param stateStore the source state store
-     * @param key the record key
-     * @param from the start timestamp (inclusive)
-     * @param to the end timestamp (inclusive)
-     * @param <K> the key type
-     * @param <V> the value type
-     * @return the most recent value for the key within the given time range, or {@code null} if none exists
+     * @param stateStore The source state store
+     * @param key The record key
+     * @param from The start timestamp (inclusive)
+     * @param to The end timestamp (inclusive)
+     * @param <K> The key type
+     * @param <V> The value type
+     * @return The most recent value for the key within the given time range, or {@code null} if none exists
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, Instant from, Instant to) {
         var it = stateStore.backwardFetch(key, from, to);

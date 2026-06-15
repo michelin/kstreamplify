@@ -51,6 +51,7 @@ public class AvroToJsonConverter {
             .setPrettyPrinting()
             .create();
 
+    /** Private constructor. */
     private AvroToJsonConverter() {}
 
     /**
@@ -82,20 +83,20 @@ public class AvroToJsonConverter {
     }
 
     /**
-     * Convert the record from avro format to json format.
+     * Convert the record from avro format to JSON format.
      *
-     * @param inputRecord the record in avro format
-     * @return the record in json format
+     * @param inputRecord The record in avro format
+     * @return The record in JSON format
      */
     public static String convertRecord(GenericRecord inputRecord) {
         return gson.toJson(recordAsMap(inputRecord));
     }
 
     /**
-     * Convert avro to a map for json format.
+     * Convert avro to a map for JSON format.
      *
-     * @param inputRecord record in avro
-     * @return map for json format
+     * @param inputRecord Record in avro
+     * @return Map for JSON format
      */
     private static Map<String, Object> recordAsMap(GenericRecord inputRecord) {
         Map<String, Object> recordMapping = new HashMap<>();
@@ -145,12 +146,29 @@ public class AvroToJsonConverter {
     private static class LocalDateTypeAdapter implements JsonSerializer<LocalDate>, JsonDeserializer<LocalDate> {
         private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+        /**
+         * Serialize a {@link LocalDate} to its JSON representation.
+         *
+         * @param date The date to serialize
+         * @param typeOfSrc The type of the source object
+         * @param context The serialization context
+         * @return The serialized JSON element
+         */
         @Override
         public JsonElement serialize(
                 final LocalDate date, final Type typeOfSrc, final JsonSerializationContext context) {
             return new JsonPrimitive(date.format(formatter));
         }
 
+        /**
+         * Deserialize a {@link LocalDate} from its JSON representation.
+         *
+         * @param json The JSON element to deserialize
+         * @param typeOfT The type of the target object
+         * @param context The deserialization context
+         * @return The deserialized date
+         * @throws JsonParseException If the JSON element cannot be parsed
+         */
         @Override
         public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -165,6 +183,14 @@ public class AvroToJsonConverter {
         private static final DateTimeFormatter formatterNano =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS");
 
+        /**
+         * Serialize a {@link LocalDateTime} to its JSON representation.
+         *
+         * @param localDateTime The date-time to serialize
+         * @param srcType The type of the source object
+         * @param context The serialization context
+         * @return The serialized JSON element
+         */
         @Override
         public JsonElement serialize(LocalDateTime localDateTime, Type srcType, JsonSerializationContext context) {
             if (localDateTime.toString().length() == 29) {
@@ -173,6 +199,15 @@ public class AvroToJsonConverter {
             return new JsonPrimitive(formatter.format(localDateTime));
         }
 
+        /**
+         * Deserialize a {@link LocalDateTime} from its JSON representation.
+         *
+         * @param json The JSON element to deserialize
+         * @param typeOfT The type of the target object
+         * @param context The deserialization context
+         * @return The deserialized date-time
+         * @throws JsonParseException If the JSON element cannot be parsed
+         */
         @Override
         public LocalDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -184,6 +219,14 @@ public class AvroToJsonConverter {
         private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         private static final DateTimeFormatter formatterNano = DateTimeFormatter.ofPattern("HH:mm:ss.SSSSSS");
 
+        /**
+         * Serialize a {@link LocalTime} to its JSON representation.
+         *
+         * @param localTime The time to serialize
+         * @param srcType The type of the source object
+         * @param context The serialization context
+         * @return The serialized JSON element
+         */
         @Override
         public JsonElement serialize(LocalTime localTime, Type srcType, JsonSerializationContext context) {
             if (localTime.toString().length() == 15) {
@@ -192,6 +235,15 @@ public class AvroToJsonConverter {
             return new JsonPrimitive(formatter.format(localTime));
         }
 
+        /**
+         * Deserialize a {@link LocalTime} from its JSON representation.
+         *
+         * @param json The JSON element to deserialize
+         * @param typeOfT The type of the target object
+         * @param context The deserialization context
+         * @return The deserialized time
+         * @throws JsonParseException If the JSON element cannot be parsed
+         */
         @Override
         public LocalTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {

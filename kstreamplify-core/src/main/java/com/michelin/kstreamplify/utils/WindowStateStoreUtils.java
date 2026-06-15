@@ -29,6 +29,7 @@ import org.apache.kafka.streams.state.WindowStore;
  */
 @Deprecated(since = "1.1.0")
 public class WindowStateStoreUtils {
+    /** Private constructor. */
     private WindowStateStoreUtils() {}
 
     /**
