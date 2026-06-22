@@ -18,7 +18,7 @@ jobs:
         java: [ '17', '21', '25' ]
     steps:
       - name: Checkout project
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
