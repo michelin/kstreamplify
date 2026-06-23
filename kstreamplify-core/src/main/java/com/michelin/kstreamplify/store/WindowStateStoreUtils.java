@@ -21,6 +21,7 @@ package com.michelin.kstreamplify.store;
 import java.time.Duration;
 import java.time.Instant;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /** The window state store utils. */
 public final class WindowStateStoreUtils {
@@ -82,7 +83,7 @@ public final class WindowStateStoreUtils {
      * @return The most recent value for the key within the given time range, or {@code null} if none exists
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, Instant from, Instant to) {
-        var it = stateStore.backwardFetch(key, from, to);
+        WindowStoreIterator<V> it = stateStore.backwardFetch(key, from, to);
         if (it == null) {
             return null;
         }

@@ -109,7 +109,7 @@ public class JsonToAvroConverter {
         // Iterate over object attributes
         jsonObject.keySet().forEach(currentKey -> {
             try {
-                var currentValue = jsonObject.get(currentKey);
+                JsonElement currentValue = jsonObject.get(currentKey);
 
                 // If this is an object, add to prefix and call method again
                 if (currentValue instanceof JsonObject currentValueJsonObject) {
@@ -167,7 +167,7 @@ public class JsonToAvroConverter {
                     }
                 } else if (currentValue instanceof JsonArray jsonArray) {
                     // If this is an Array, call method for each one of them
-                    var arraySchema = message.getSchema().getField(currentKey).schema();
+                    Schema arraySchema = message.getSchema().getField(currentKey).schema();
                     Schema arrayType = arraySchema.getType() != Schema.Type.UNION
                             ? arraySchema
                             : arraySchema.getTypes().stream()
@@ -365,7 +365,7 @@ public class JsonToAvroConverter {
                 case ENUM -> {
                     try {
                         Class clazz = Class.forName(fieldSchema.getFullName());
-                        var value =
+                        Enum value =
                                 Enum.valueOf(clazz, jsonObject.get(fieldName).getAsString());
                         result.put(fieldName, value);
                     } catch (ClassNotFoundException e) {

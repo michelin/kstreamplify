@@ -104,11 +104,12 @@ public abstract class KafkaIntegrationTest {
 
     protected static void createTopics(
             String bootstrapServers, Map<String, String> configs, TopicPartition... topicPartitions) {
-        var newTopics = Arrays.stream(topicPartitions)
+        List<NewTopic> newTopics = Arrays.stream(topicPartitions)
                 .map(topicPartition ->
                         new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1).configs(configs))
                 .toList();
-        try (var admin = AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+        try (AdminClient admin =
+                AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
         }
     }
