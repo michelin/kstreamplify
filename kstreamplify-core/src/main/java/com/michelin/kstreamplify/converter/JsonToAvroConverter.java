@@ -167,7 +167,8 @@ public class JsonToAvroConverter {
                     }
                 } else if (currentValue instanceof JsonArray jsonArray) {
                     // If this is an Array, call method for each one of them
-                    Schema arraySchema = message.getSchema().getField(currentKey).schema();
+                    Schema arraySchema =
+                            message.getSchema().getField(currentKey).schema();
                     Schema arrayType = arraySchema.getType() != Schema.Type.UNION
                             ? arraySchema
                             : arraySchema.getTypes().stream()
