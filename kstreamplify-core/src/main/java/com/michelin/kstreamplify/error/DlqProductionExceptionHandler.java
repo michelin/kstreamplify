@@ -103,15 +103,17 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
             ProducerRecord producerRecord,
             Exception exception,
             SerializationExceptionOrigin origin) {
-        log.warn(
-                "Exception during serialization, origin: {}, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                origin,
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during serialization, origin: {}, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    origin,
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
             log.warn("Failed to route serialization error to DLQ. Define a DLQ topic in configuration.");
@@ -163,7 +165,6 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
             byte[] value,
             Exception exception,
             SerializationExceptionOrigin origin) {
-
         String contextMessage = origin == null
                 ? "An exception occurred during the stream internal production. "
                         + "Please find more details about the exception in the cause and stack fields."

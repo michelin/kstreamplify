@@ -51,14 +51,16 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
      */
     @Override
     public Response handleError(ErrorHandlerContext context, Record<?, ?> processingRecord, Exception exception) {
-        log.warn(
-                "Exception during processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
             log.warn("Failed to route processing error to DLQ. Define a DLQ topic in configuration.");

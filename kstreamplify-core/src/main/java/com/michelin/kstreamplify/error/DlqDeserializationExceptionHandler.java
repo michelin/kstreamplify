@@ -56,14 +56,16 @@ public class DlqDeserializationExceptionHandler extends DlqExceptionHandler impl
     @Override
     public Response handleError(
             ErrorHandlerContext context, ConsumerRecord<byte[], byte[]> consumerRecord, Exception exception) {
-        log.warn(
-                "Exception during deserialization, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during deserialization, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
             log.warn("Failed to route deserialization error to DLQ. Define a DLQ topic in configuration.");

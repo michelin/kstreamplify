@@ -122,7 +122,6 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
      */
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-
         public static void main(String[] args) {
             SpringApplication.run(SpringBootKafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub.class, args);
         }

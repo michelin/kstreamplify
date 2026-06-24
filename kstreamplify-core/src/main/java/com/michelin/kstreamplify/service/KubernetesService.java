@@ -61,10 +61,12 @@ public final class KubernetesService {
      */
     public int getReadiness() {
         if (kafkaStreamsInitializer.getKafkaStreams() != null) {
-            log.debug(
-                    "Kafka Stream \"{}\" state: {}",
-                    KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
-                    kafkaStreamsInitializer.getKafkaStreams().state());
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Kafka Stream \"{}\" state: {}",
+                        KafkaStreamsExecutionContext.getProperties().getProperty(StreamsConfig.APPLICATION_ID_CONFIG),
+                        kafkaStreamsInitializer.getKafkaStreams().state());
+            }
 
             if (kafkaStreamsInitializer.getKafkaStreams().state() == KafkaStreams.State.REBALANCING) {
                 long startingThreadCount = kafkaStreamsInitializer.getKafkaStreams().metadataForLocalThreads().stream()

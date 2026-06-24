@@ -51,8 +51,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(SpringBootKafkaStreamsInitializerIntegrationTest.class);
-
     @Autowired
     private MeterRegistry registry;
 

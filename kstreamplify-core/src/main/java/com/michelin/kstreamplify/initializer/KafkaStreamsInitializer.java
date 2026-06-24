@@ -163,11 +163,13 @@ public class KafkaStreamsInitializer {
 
         hostInfo = new HostInfo(host, serverPort);
 
-        log.info(
-                "Kafka Streams \"{}\" is running on {}:{}",
-                KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG),
-                hostInfo.host(),
-                hostInfo.port());
+        if (log.isInfoEnabled()) {
+            log.info(
+                    "Kafka Streams \"{}\" is running on {}:{}",
+                    KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG),
+                    hostInfo.host(),
+                    hostInfo.port());
+        }
 
         KafkaStreamsExecutionContext.getProperties()
                 .put(APPLICATION_SERVER_CONFIG, "%s:%s".formatted(hostInfo.host(), hostInfo.port()));

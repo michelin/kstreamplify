@@ -47,8 +47,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(KafkaStreamsInitializerIntegrationTest.class);
-
     @BeforeAll
     static void globalSetUp() {
         createTopics(
