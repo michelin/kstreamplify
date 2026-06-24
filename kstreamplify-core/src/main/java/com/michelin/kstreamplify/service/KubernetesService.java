@@ -21,14 +21,16 @@ package com.michelin.kstreamplify.service;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
 import java.net.HttpURLConnection;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.internals.StreamThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Kafka Streams Kubernetes service. */
-@Slf4j
 public final class KubernetesService {
+    private static final Logger log = LoggerFactory.getLogger(KubernetesService.class);
+
     /** The readiness path property name. */
     public static final String READINESS_PATH_PROPERTY_NAME = "kubernetes.readiness.path";
 

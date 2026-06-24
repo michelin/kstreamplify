@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.error;
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
@@ -29,10 +28,13 @@ import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The topology error handler class. */
-@Slf4j
 public class TopologyErrorHandler {
+    private static final Logger log = LoggerFactory.getLogger(TopologyErrorHandler.class);
+
     private static final String BRANCHING_NAME_NOMINAL = "branch-nominal";
 
     /** Private constructor. */

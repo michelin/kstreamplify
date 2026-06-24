@@ -18,14 +18,16 @@
  */
 package com.michelin.kstreamplify.initializer;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The Kafka Streams starter interface. */
-@Slf4j
 public abstract class KafkaStreamsStarter {
+    private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarter.class);
+
     /** Constructor. */
     protected KafkaStreamsStarter() {}
 

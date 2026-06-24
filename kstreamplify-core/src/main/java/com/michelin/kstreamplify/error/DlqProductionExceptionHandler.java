@@ -26,16 +26,17 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The class managing production exceptions. */
-@Slf4j
 public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DlqProductionExceptionHandler.class);
 
     /** Constructor. */
     public DlqProductionExceptionHandler() {}

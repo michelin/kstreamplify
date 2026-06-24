@@ -31,7 +31,6 @@ import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import java.util.List;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
@@ -47,18 +46,20 @@ import org.apache.kafka.streams.kstream.Repartitioned;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("dlq-processing-exception-handler")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(DlqProcessingExceptionHandlerIntegrationTest.class);
 
     @BeforeAll
     static void globalSetUp() {
@@ -138,9 +139,10 @@ class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics
      * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
+
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream("STRING_TOPIC", Consumed.with(Serdes.String(), Serdes.String()))

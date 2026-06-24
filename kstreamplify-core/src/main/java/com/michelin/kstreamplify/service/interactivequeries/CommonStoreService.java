@@ -34,19 +34,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.state.HostInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Interactive queries service. */
-@Slf4j
-@AllArgsConstructor
 public abstract class CommonStoreService {
+    private static final Logger log = LoggerFactory.getLogger(CommonStoreService.class);
+
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
 
     /** Error message when the state store is not found. */
@@ -66,6 +66,17 @@ public abstract class CommonStoreService {
     protected CommonStoreService(KafkaStreamsInitializer kafkaStreamsInitializer) {
         this.kafkaStreamsInitializer = kafkaStreamsInitializer;
         this.httpClient = HttpClient.newHttpClient();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param httpClient The HTTP client
+     * @param kafkaStreamsInitializer The Kafka Streams initializer
+     */
+    protected CommonStoreService(HttpClient httpClient, KafkaStreamsInitializer kafkaStreamsInitializer) {
+        this.httpClient = httpClient;
+        this.kafkaStreamsInitializer = kafkaStreamsInitializer;
     }
 
     /**

@@ -92,6 +92,7 @@ class TopicWithSerdeTest {
 
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         topicWithSerde.stream(streamsBuilder, "consumer-name");
+
         assertEquals("""
                 Topologies:
                    Sub-topology: 0
@@ -146,7 +147,7 @@ class TopicWithSerdeTest {
     }
 
     @Test
-    void shouldCreateGlobalKtable() {
+    void shouldCreateGlobalKTable() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         TopicWithSerde<String, String> topicWithSerde =
@@ -167,7 +168,7 @@ class TopicWithSerdeTest {
     }
 
     @Test
-    void shouldCreateGlobalKtableWithName() {
+    void shouldCreateGlobalKTableWithName() {
         KafkaStreamsExecutionContext.registerProperties(new Properties());
 
         TopicWithSerde<String, String> topicWithSerde =

@@ -43,7 +43,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
@@ -64,11 +63,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(TimestampedKeyValueIntegrationTest.class);
+
     private final TimestampedKeyValueStoreService timestampedKeyValueService =
             new TimestampedKeyValueStoreService(initializer);
 
@@ -243,8 +245,9 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics
      * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
+
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream("STRING_TOPIC", Consumed.with(Serdes.String(), Serdes.String()))

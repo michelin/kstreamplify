@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -49,6 +48,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -61,8 +62,9 @@ import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /** Base class for Kafka integration tests. */
-@Slf4j
 public abstract class KafkaIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(KafkaIntegrationTest.class);
+
     protected static final String CONFLUENT_PLATFORM_VERSION = "8.0.3";
     protected static final Network NETWORK = Network.newNetwork();
 

@@ -28,7 +28,6 @@ import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -36,6 +35,8 @@ import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -44,12 +45,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("web-services-path")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(WebServicesPathIntegrationTest.class);
 
     @BeforeAll
     static void globalSetUp() {
@@ -122,9 +123,10 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
      * Kafka Streams starter implementation for integration tests. The topology simply forwards messages from inputTopic
      * to outputTopic.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
+
         public static void main(String[] args) {
             SpringApplication.run(SpringBootKafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub.class, args);
         }

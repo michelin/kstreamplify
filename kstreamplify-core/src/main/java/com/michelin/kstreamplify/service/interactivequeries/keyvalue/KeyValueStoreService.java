@@ -25,7 +25,6 @@ import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.query.QueryResult;
@@ -33,10 +32,13 @@ import org.apache.kafka.streams.query.RangeQuery;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Key-value store service. */
-@Slf4j
 public class KeyValueStoreService extends CommonKeyValueStoreService {
+    private static final Logger log = LoggerFactory.getLogger(KeyValueStoreService.class);
+
     /**
      * Constructor.
      *

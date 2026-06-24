@@ -29,19 +29,19 @@ import com.michelin.kstreamplify.server.KafkaStreamsHttpServer;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.state.HostInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The Kafka Streams initializer class. */
-@Slf4j
-@Getter
 public class KafkaStreamsInitializer {
+    private static final Logger log = LoggerFactory.getLogger(KafkaStreamsInitializer.class);
+
     /** The property holding the application server variable name. */
     public static final String APPLICATION_SERVER_PROPERTY_NAME = "application.server.var.name";
 
@@ -212,5 +212,68 @@ public class KafkaStreamsInitializer {
      */
     public boolean isNotRunning() {
         return !kafkaStreams.state().equals(KafkaStreams.State.RUNNING);
+    }
+
+    /**
+     * Get the Kafka Streams starter.
+     *
+     * @return The Kafka Streams starter
+     */
+    public KafkaStreamsStarter getKafkaStreamsStarter() {
+        return kafkaStreamsStarter;
+    }
+
+    /**
+     * Get the Kafka Streams instance.
+     *
+     * @return The Kafka Streams instance
+     */
+    public KafkaStreams getKafkaStreams() {
+        return kafkaStreams;
+    }
+
+    /**
+     * Get the Kafka Streams topology.
+     *
+     * @return The Kafka Streams topology
+     */
+    public Topology getTopology() {
+        return topology;
+    }
+
+    /**
+     * Get the whole properties loaded from the properties file.
+     *
+     * @return The properties
+     */
+    public Properties getProperties() {
+        return properties;
+    }
+
+    /**
+     * Get the Kafka properties.
+     *
+     * @return The Kafka properties
+     */
+    public Properties getKafkaProperties() {
+        return kafkaProperties;
+    }
+
+    /**
+     * Get the host information.
+     *
+     * @return The host information
+     */
+    public HostInfo getHostInfo() {
+        return hostInfo;
+    }
+
+    /**
+     * Get the server port.
+     *
+     * @return The server port
+     */
+    public int getServerPort() {
+        return serverPort;
     }
 }

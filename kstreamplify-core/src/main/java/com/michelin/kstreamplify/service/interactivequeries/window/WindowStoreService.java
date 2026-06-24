@@ -26,7 +26,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.query.QueryResult;
@@ -36,10 +35,12 @@ import org.apache.kafka.streams.query.WindowKeyQuery;
 import org.apache.kafka.streams.query.WindowRangeQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Window store service. */
-@Slf4j
 public class WindowStoreService extends CommonWindowStoreService {
+    private static final Logger log = LoggerFactory.getLogger(WindowStoreService.class);
 
     /**
      * Constructor.

@@ -29,17 +29,18 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.DeserializationExceptionHandler;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The class managing deserialization exceptions. */
-@Slf4j
 public class DlqDeserializationExceptionHandler extends DlqExceptionHandler implements DeserializationExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DlqDeserializationExceptionHandler.class);
 
     /** Constructor. */
     public DlqDeserializationExceptionHandler() {}

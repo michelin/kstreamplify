@@ -23,8 +23,8 @@ import io.micrometer.core.instrument.Tag;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
@@ -33,10 +33,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 /** The OpenTelemetry configuration class. */
-@Slf4j
-@Getter
 @Configuration
 public class OpenTelemetryConfig {
+    private static final Logger log = LoggerFactory.getLogger(OpenTelemetryConfig.class);
+
     private final String otelResourceAttributes;
 
     /**
@@ -46,6 +46,15 @@ public class OpenTelemetryConfig {
      */
     public OpenTelemetryConfig(@Value("${otel.resource.attributes:#{null}}") String otelResourceAttributes) {
         this.otelResourceAttributes = otelResourceAttributes;
+    }
+
+    /**
+     * Get the OpenTelemetry resource attributes.
+     *
+     * @return The OpenTelemetry resource attributes
+     */
+    public String getOtelResourceAttributes() {
+        return otelResourceAttributes;
     }
 
     /**
