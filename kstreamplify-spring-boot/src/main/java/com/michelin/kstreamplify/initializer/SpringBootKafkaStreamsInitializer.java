@@ -100,7 +100,10 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
 
         kafkaStreamsStarter.onStart(kafkaStreams);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            kafkaStreams.close();
+            kafkaStreamsMetrics.close();
+        }));
 
         kafkaStreams.setUncaughtExceptionHandler(
                 ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::uncaughtExceptionHandler));
