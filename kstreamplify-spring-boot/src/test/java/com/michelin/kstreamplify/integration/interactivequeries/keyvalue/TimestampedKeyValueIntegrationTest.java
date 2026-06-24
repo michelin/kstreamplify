@@ -81,7 +81,7 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     private TimestampedKeyValueStoreService timestampedKeyValueService;
 
     @BeforeAll
-    static void globalSetUp() throws ExecutionException, InterruptedException {
+    static void globalSetUp() {
         createTopics(
                 broker.getBootstrapServers(),
                 new TopicPartition("STRING_TOPIC", 3),

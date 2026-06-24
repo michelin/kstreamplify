@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -87,7 +86,7 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
     }
 
     @Test
-    void shouldSendRecordToDlqWhenProductionFails() throws ExecutionException, InterruptedException {
+    void shouldSendRecordToDlqWhenProductionFails() {
         Properties properties = getKafkaGlobalProperties();
         ProducerRecord<String, String> message = new ProducerRecord<>("INPUT_TOPIC", "key", "value");
         ProducerRecord<String, String> error = new ProducerRecord<>("INPUT_TOPIC", "key-error", "value-error");
@@ -133,7 +132,7 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream("INPUT_TOPIC", Consumed.with(Serdes.String(), Serdes.String()))
                     .mapValues(
-                            (v) -> {
+                            v -> {
                                 if (v.equals("value-error")) {
                                     int recordSize = 1048588;
                                     char[] chars = new char[recordSize];

@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
@@ -74,7 +73,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
             new TimestampedWindowStoreService(initializer);
 
     @BeforeAll
-    static void globalSetUp() throws ExecutionException, InterruptedException {
+    static void globalSetUp() {
         createTopics(
                 broker.getBootstrapServers(),
                 new TopicPartition("STRING_TOPIC", 3),

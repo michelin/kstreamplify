@@ -78,7 +78,7 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
     }
 
     @Test
-    void shouldSendRecordToDlqWhenProductionFails() throws ExecutionException, InterruptedException {
+    void shouldSendRecordToDlqWhenProductionFails() {
         Properties properties = getKafkaGlobalProperties();
         ProducerRecord<String, String> message = new ProducerRecord<>("INPUT_TOPIC", "key", "value");
         ProducerRecord<String, String> error = new ProducerRecord<>("INPUT_TOPIC", "key-error", "value-error");
@@ -125,7 +125,7 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream("INPUT_TOPIC", Consumed.with(Serdes.String(), Serdes.String()))
                     .mapValues(
-                            (v) -> {
+                            v -> {
                                 if (v.equals("value-error")) {
                                     int recordSize = 1048588;
                                     char[] chars = new char[recordSize];
@@ -138,7 +138,6 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
                     .to(
                             "OUTPUT_TOPIC",
                             Produced.with(Serdes.String(), Serdes.String()).withName("sink-processor"));
-            ;
         }
 
         @Override

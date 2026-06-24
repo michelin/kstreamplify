@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /** The class to represent the context of the KStream. */
 public class KafkaStreamsExecutionContext {
-
     private static String dlqTopicName;
     private static Map<String, String> serdesConfig;
     private static Properties properties;

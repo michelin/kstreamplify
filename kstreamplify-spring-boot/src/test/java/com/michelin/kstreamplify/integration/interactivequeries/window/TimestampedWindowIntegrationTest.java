@@ -81,7 +81,7 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
     private WindowStoreService windowService;
 
     @BeforeAll
-    static void globalSetUp() throws ExecutionException, InterruptedException {
+    static void globalSetUp() {
         createTopics(
                 broker.getBootstrapServers(),
                 new TopicPartition("STRING_TOPIC", 3),

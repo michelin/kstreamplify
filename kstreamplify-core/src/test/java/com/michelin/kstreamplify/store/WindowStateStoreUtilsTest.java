@@ -80,7 +80,7 @@ class WindowStateStoreUtilsTest {
 
         WindowStateStoreUtils.put(windowStore, key, value, timestamp);
 
-        verify(windowStore).put(eq(key), eq(value), eq(timestamp));
+        verify(windowStore).put(key, value, timestamp);
     }
 
     @Test
@@ -95,7 +95,7 @@ class WindowStateStoreUtilsTest {
         Instant from = Instant.now().minusSeconds(60);
         Instant to = Instant.now();
 
-        when(windowStore.backwardFetch(eq(key), eq(from), eq(to))).thenReturn(iterator);
+        when(windowStore.backwardFetch(key, from, to)).thenReturn(iterator);
 
         String result = WindowStateStoreUtils.get(windowStore, key, from, to);
         assertEquals(value, result);

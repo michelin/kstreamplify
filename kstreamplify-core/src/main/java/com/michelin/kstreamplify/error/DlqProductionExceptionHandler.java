@@ -92,7 +92,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
      * Handles serialization exceptions by routing the record to the DLQ topic.
      *
      * @param context The error handler context
-     * @param record The record that failed serialization
+     * @param producerRecord The record that failed serialization
      * @param exception The exception that occurred
      * @param origin The origin of the serialization exception
      * @return A {@link Response} indicating how to proceed
@@ -100,7 +100,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     @Override
     public Response handleSerializationError(
             ErrorHandlerContext context,
-            ProducerRecord record,
+            ProducerRecord producerRecord,
             Exception exception,
             SerializationExceptionOrigin origin) {
         log.warn(
@@ -126,7 +126,12 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
 
         try {
             KafkaError error = buildKafkaError(
-                    context, record.topic(), context.sourceRawKey(), context.sourceRawValue(), exception, origin);
+                    context,
+                    producerRecord.topic(),
+                    context.sourceRawKey(),
+                    context.sourceRawValue(),
+                    exception,
+                    origin);
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(KafkaStreamsExecutionContext.getDlqTopicName(), error);
             return Response.resume(List.of(new ProducerRecord<>(
