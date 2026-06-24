@@ -61,8 +61,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -78,7 +76,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class WindowIntegrationTest extends KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(WindowIntegrationTest.class);
 
     @Autowired
     private WindowStoreService windowService;
@@ -297,7 +294,6 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
      */
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
 
         public static void main(String[] args) {
             SpringApplication.run(KafkaStreamsStarterStub.class, args);

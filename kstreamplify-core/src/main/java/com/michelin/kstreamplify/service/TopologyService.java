@@ -19,12 +19,9 @@
 package com.michelin.kstreamplify.service;
 
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Kafka Streams topology service. */
 public class TopologyService {
-    private static final Logger log = LoggerFactory.getLogger(TopologyService.class);
 
     /** The topology path property. */
     public static final String TOPOLOGY_PATH_PROPERTY_NAME = "topology.path";

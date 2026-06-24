@@ -46,8 +46,6 @@ import org.apache.kafka.streams.kstream.Repartitioned;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,7 +57,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(DlqProcessingExceptionHandlerIntegrationTest.class);
 
     @BeforeAll
     static void globalSetUp() {
@@ -141,7 +138,6 @@ class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
      */
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {

@@ -65,13 +65,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(TimestampedWindowIntegrationTest.class);
 
     private final TimestampedWindowStoreService timestampedWindowService =
             new TimestampedWindowStoreService(initializer);
@@ -321,7 +318,6 @@ class TimestampedWindowIntegrationTest extends KafkaIntegrationTest {
      * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {

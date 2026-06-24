@@ -35,12 +35,9 @@ import org.apache.kafka.streams.query.WindowKeyQuery;
 import org.apache.kafka.streams.query.WindowRangeQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStoreIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Window store service. */
 public class WindowStoreService extends CommonWindowStoreService {
-    private static final Logger log = LoggerFactory.getLogger(WindowStoreService.class);
 
     /**
      * Constructor.

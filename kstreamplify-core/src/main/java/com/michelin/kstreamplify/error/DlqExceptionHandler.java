@@ -25,12 +25,9 @@ import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.errors.RecordTooLargeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** The class to manage DLQ exception. */
 public abstract class DlqExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(DlqExceptionHandler.class);
 
     /** Constructor. */
     protected DlqExceptionHandler() {}

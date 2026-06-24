@@ -26,11 +26,8 @@ import com.michelin.kstreamplify.avro.EnumField;
 import com.michelin.kstreamplify.avro.KafkaRecordStub;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class JsonToAvroConverterTest {
-    private static final Logger log = LoggerFactory.getLogger(JsonToAvroConverterTest.class);
 
     private static final String JSON = "{"
             + "\"decimalField\":10.5,"

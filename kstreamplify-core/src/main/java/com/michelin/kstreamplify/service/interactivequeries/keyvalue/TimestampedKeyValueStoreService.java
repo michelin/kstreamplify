@@ -33,12 +33,9 @@ import org.apache.kafka.streams.query.TimestampedKeyQuery;
 import org.apache.kafka.streams.query.TimestampedRangeQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Timestamped key-value store service. */
 public class TimestampedKeyValueStoreService extends CommonKeyValueStoreService {
-    private static final Logger log = LoggerFactory.getLogger(TimestampedKeyValueStoreService.class);
 
     /**
      * Constructor.

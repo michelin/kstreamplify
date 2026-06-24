@@ -32,12 +32,9 @@ import org.apache.kafka.streams.query.RangeQuery;
 import org.apache.kafka.streams.query.StateQueryRequest;
 import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Key-value store service. */
 public class KeyValueStoreService extends CommonKeyValueStoreService {
-    private static final Logger log = LoggerFactory.getLogger(KeyValueStoreService.class);
 
     /**
      * Constructor.

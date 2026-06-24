@@ -27,21 +27,14 @@ import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** The class to represent the context of the KStream. */
 public class KafkaStreamsExecutionContext {
-    private static final Logger log = LoggerFactory.getLogger(KafkaStreamsExecutionContext.class);
 
     private static String dlqTopicName;
-
     private static Map<String, String> serdesConfig;
-
     private static Properties properties;
-
     private static Properties dlqProperties;
-
     private static String prefix;
 
     /** Constructor. */

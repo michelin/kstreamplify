@@ -40,12 +40,9 @@ import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.StreamsNotStartedException;
 import org.apache.kafka.streams.state.HostInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Interactive queries service. */
 public abstract class CommonStoreService {
-    private static final Logger log = LoggerFactory.getLogger(CommonStoreService.class);
 
     private static final String STREAMS_NOT_STARTED = "Cannot process request while instance is in %s state";
 

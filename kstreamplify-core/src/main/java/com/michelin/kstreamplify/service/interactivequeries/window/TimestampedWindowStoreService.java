@@ -36,12 +36,9 @@ import org.apache.kafka.streams.query.WindowRangeQuery;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStoreIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Window store service. */
 public class TimestampedWindowStoreService extends CommonWindowStoreService {
-    private static final Logger log = LoggerFactory.getLogger(TimestampedWindowStoreService.class);
 
     /**
      * Constructor.
