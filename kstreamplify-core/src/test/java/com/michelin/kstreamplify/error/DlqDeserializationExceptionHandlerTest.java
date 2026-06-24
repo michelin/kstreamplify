@@ -99,7 +99,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
@@ -146,7 +145,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
@@ -219,7 +217,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
