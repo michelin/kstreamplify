@@ -52,14 +52,16 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     @Override
     public Response handleError(
             ErrorHandlerContext context, ProducerRecord<byte[], byte[]> producerRecord, Exception exception) {
-        log.warn(
-                "Exception during production, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during production, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (exception instanceof RetriableException) {
             return Response.retry();
