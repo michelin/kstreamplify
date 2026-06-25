@@ -145,7 +145,6 @@ class DlqProductionExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
                     .to(
                             "OUTPUT_TOPIC",
                             Produced.with(Serdes.String(), Serdes.String()).withName("sink-processor"));
-            ;
         }
 
         @Override

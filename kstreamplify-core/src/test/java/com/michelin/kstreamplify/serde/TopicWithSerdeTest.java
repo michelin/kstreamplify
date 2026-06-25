@@ -286,8 +286,8 @@ class TopicWithSerdeTest {
         }
 
         @Override
-        public void process(Record<String, String> record) {
-            store.put(record.key(), record.value());
+        public void process(Record<String, String> message) {
+            store.put(message.key(), message.value());
         }
     }
 
@@ -300,8 +300,8 @@ class TopicWithSerdeTest {
         }
 
         @Override
-        public void process(Record<String, KafkaUserStub> record) {
-            store.put(record.key(), ValueAndTimestamp.make(record.value(), record.timestamp()));
+        public void process(Record<String, KafkaUserStub> message) {
+            store.put(message.key(), ValueAndTimestamp.make(message.value(), message.timestamp()));
         }
     }
 }

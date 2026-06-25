@@ -153,8 +153,8 @@ public abstract class KafkaIntegrationTest {
 
     public static <K, V> void produceRecordToTopic(List<ProducerRecord<K, V>> records, Properties properties) {
         try (KafkaProducer<K, V> producer = new KafkaProducer<>(properties)) {
-            for (ProducerRecord<K, V> record : records) {
-                producer.send(record);
+            for (ProducerRecord<K, V> producerRecord : records) {
+                producer.send(producerRecord);
             }
             producer.flush();
         }
@@ -170,8 +170,8 @@ public abstract class KafkaIntegrationTest {
             while (totalPollTimeMs < 30000 && consumerRecords.size() < expectedNumberOfRecords) {
                 totalPollTimeMs += pollIntervalMs;
                 final ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollIntervalMs));
-                for (final ConsumerRecord<K, V> record : records) {
-                    consumerRecords.add(record);
+                for (final ConsumerRecord<K, V> consumerRecord : records) {
+                    consumerRecords.add(consumerRecord);
                 }
             }
             return consumerRecords;

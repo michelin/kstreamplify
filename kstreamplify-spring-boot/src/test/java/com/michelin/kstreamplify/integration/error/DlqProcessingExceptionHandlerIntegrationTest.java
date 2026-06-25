@@ -74,11 +74,12 @@ class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
     @Test
     void shouldSendRecordToDlqWhenProcessingFails() {
         ProducerRecord<String, String> message = new ProducerRecord<>("STRING_TOPIC", "user", "Doe");
-        ProducerRecord<String, String> error_1 =
+        ProducerRecord<String, String> errorMessage1 =
                 new ProducerRecord<>("STRING_TOPIC", "key-error-1", "Filter Exception");
-        ProducerRecord<String, String> error_2 = new ProducerRecord<>("STRING_TOPIC", "Map Exception", "value-error-2");
+        ProducerRecord<String, String> errorMessage2 =
+                new ProducerRecord<>("STRING_TOPIC", "Map Exception", "value-error-2");
         List<ProducerRecord<String, String>> records =
-                List.of(message, message, error_1, message, message, error_2, message);
+                List.of(message, message, errorMessage1, message, message, errorMessage2, message);
         produceRecordToTopic(records, getKafkaGlobalProperties());
 
         Properties properties = getKafkaGlobalProperties();
@@ -92,44 +93,43 @@ class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest 
         List<ConsumerRecord<String, String>> consumerRecords = readAllRecordsFromTopic("OUTPUT_TOPIC", properties, 5);
         assertEquals(5, consumerRecords.size());
 
-        KafkaError kafkaError_1 = dlqConsumerRecords.get(0).value();
+        KafkaError kafkaError1 = dlqConsumerRecords.get(0).value();
         assertEquals(
                 "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.",
-                kafkaError_1.getContextMessage());
-        assertEquals(2, kafkaError_1.getOffset());
-        assertEquals(2, kafkaError_1.getPartition());
-        assertEquals("STRING_TOPIC", kafkaError_1.getTopic());
-        assertEquals("appKeyValueProcessingExceptionHandlerId", kafkaError_1.getApplicationId());
-        assertEquals("filter-values", kafkaError_1.getProcessorNodeId());
-        assertEquals("0_2", kafkaError_1.getTaskId());
-        assertEquals("Exception while filtering values...", kafkaError_1.getCause());
-        assertTrue(kafkaError_1.getStack().contains("java.lang.RuntimeException: Wrapper"));
-        assertEquals("Filter Exception", new String(kafkaError_1.getByteValue().array()));
-        assertEquals("key-error-1", new String(kafkaError_1.getSourceRawKey().array()));
+                kafkaError1.getContextMessage());
+        assertEquals(2, kafkaError1.getOffset());
+        assertEquals(2, kafkaError1.getPartition());
+        assertEquals("STRING_TOPIC", kafkaError1.getTopic());
+        assertEquals("appKeyValueProcessingExceptionHandlerId", kafkaError1.getApplicationId());
+        assertEquals("filter-values", kafkaError1.getProcessorNodeId());
+        assertEquals("0_2", kafkaError1.getTaskId());
+        assertEquals("Exception while filtering values...", kafkaError1.getCause());
+        assertTrue(kafkaError1.getStack().contains("java.lang.RuntimeException: Wrapper"));
+        assertEquals("Filter Exception", new String(kafkaError1.getByteValue().array()));
+        assertEquals("key-error-1", new String(kafkaError1.getSourceRawKey().array()));
         assertEquals(
-                "Filter Exception", new String(kafkaError_1.getSourceRawValue().array()));
-        assertNull(kafkaError_1.getValue());
+                "Filter Exception", new String(kafkaError1.getSourceRawValue().array()));
+        assertNull(kafkaError1.getValue());
 
-        KafkaError kafkaError_2 = dlqConsumerRecords.get(1).value();
+        KafkaError kafkaError2 = dlqConsumerRecords.get(1).value();
         assertEquals(
                 "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.",
-                kafkaError_1.getContextMessage());
-        assertEquals(0, kafkaError_2.getOffset());
-        assertEquals(0, kafkaError_2.getPartition());
+                kafkaError1.getContextMessage());
+        assertEquals(0, kafkaError2.getOffset());
+        assertEquals(0, kafkaError2.getPartition());
         assertEquals(
-                "appKeyValueProcessingExceptionHandlerId-repartitioned-values-repartition", kafkaError_2.getTopic());
-        assertEquals("appKeyValueProcessingExceptionHandlerId", kafkaError_2.getApplicationId());
-        assertEquals("map-values", kafkaError_2.getProcessorNodeId());
-        assertEquals("1_0", kafkaError_2.getTaskId());
-        assertEquals("Exception while mapping values...", kafkaError_2.getCause());
-        assertTrue(kafkaError_1.getStack().contains("java.lang.RuntimeException: Wrapper"));
+                "appKeyValueProcessingExceptionHandlerId-repartitioned-values-repartition", kafkaError2.getTopic());
+        assertEquals("appKeyValueProcessingExceptionHandlerId", kafkaError2.getApplicationId());
+        assertEquals("map-values", kafkaError2.getProcessorNodeId());
+        assertEquals("1_0", kafkaError2.getTaskId());
+        assertEquals("Exception while mapping values...", kafkaError2.getCause());
+        assertTrue(kafkaError1.getStack().contains("java.lang.RuntimeException: Wrapper"));
         assertEquals(
                 "transformed-value-error-2",
-                new String(kafkaError_2.getByteValue().array()));
-        assertEquals("Map Exception", new String(kafkaError_2.getSourceRawKey().array()));
-        assertEquals(
-                "value-error-2", new String(kafkaError_2.getSourceRawValue().array()));
-        assertNull(kafkaError_2.getValue());
+                new String(kafkaError2.getByteValue().array()));
+        assertEquals("Map Exception", new String(kafkaError2.getSourceRawKey().array()));
+        assertEquals("value-error-2", new String(kafkaError2.getSourceRawValue().array()));
+        assertNull(kafkaError2.getValue());
     }
 
     /**
