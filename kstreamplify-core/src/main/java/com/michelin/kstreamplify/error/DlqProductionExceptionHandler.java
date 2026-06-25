@@ -26,16 +26,17 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The class managing production exceptions. */
-@Slf4j
 public class DlqProductionExceptionHandler extends DlqExceptionHandler implements ProductionExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DlqProductionExceptionHandler.class);
 
     /** Constructor. */
     public DlqProductionExceptionHandler() {}
@@ -51,14 +52,16 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     @Override
     public Response handleError(
             ErrorHandlerContext context, ProducerRecord<byte[], byte[]> producerRecord, Exception exception) {
-        log.warn(
-                "Exception during production, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during production, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (exception instanceof RetriableException) {
             return Response.retry();
@@ -91,7 +94,7 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
      * Handles serialization exceptions by routing the record to the DLQ topic.
      *
      * @param context The error handler context
-     * @param record The record that failed serialization
+     * @param producerRecord The record that failed serialization
      * @param exception The exception that occurred
      * @param origin The origin of the serialization exception
      * @return A {@link Response} indicating how to proceed
@@ -99,18 +102,20 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
     @Override
     public Response handleSerializationError(
             ErrorHandlerContext context,
-            ProducerRecord record,
+            ProducerRecord producerRecord,
             Exception exception,
             SerializationExceptionOrigin origin) {
-        log.warn(
-                "Exception during serialization, origin: {}, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                origin,
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during serialization, origin: {}, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    origin,
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
             log.warn("Failed to route serialization error to DLQ. Define a DLQ topic in configuration.");
@@ -125,7 +130,12 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
 
         try {
             KafkaError error = buildKafkaError(
-                    context, record.topic(), context.sourceRawKey(), context.sourceRawValue(), exception, origin);
+                    context,
+                    producerRecord.topic(),
+                    context.sourceRawKey(),
+                    context.sourceRawValue(),
+                    exception,
+                    origin);
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(KafkaStreamsExecutionContext.getDlqTopicName(), error);
             return Response.resume(List.of(new ProducerRecord<>(
@@ -157,7 +167,6 @@ public class DlqProductionExceptionHandler extends DlqExceptionHandler implement
             byte[] value,
             Exception exception,
             SerializationExceptionOrigin origin) {
-
         String contextMessage = origin == null
                 ? "An exception occurred during the stream internal production. "
                         + "Please find more details about the exception in the cause and stack fields."

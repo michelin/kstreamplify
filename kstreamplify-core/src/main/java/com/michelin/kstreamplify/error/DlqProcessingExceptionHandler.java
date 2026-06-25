@@ -26,16 +26,17 @@ import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
 import org.apache.kafka.streams.processor.api.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The class managing processing exceptions. */
-@Slf4j
 public class DlqProcessingExceptionHandler extends DlqExceptionHandler implements ProcessingExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DlqProcessingExceptionHandler.class);
 
     /** Constructor. */
     public DlqProcessingExceptionHandler() {}
@@ -50,14 +51,16 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
      */
     @Override
     public Response handleError(ErrorHandlerContext context, Record<?, ?> processingRecord, Exception exception) {
-        log.warn(
-                "Exception during processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
             log.warn("Failed to route processing error to DLQ. Define a DLQ topic in configuration.");

@@ -18,7 +18,6 @@
  */
 package com.michelin.kstreamplify.error;
 
-import lombok.Getter;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.streams.processor.api.Record;
 
@@ -28,12 +27,8 @@ import org.apache.kafka.streams.processor.api.Record;
  * @param <V> The type of the successful record
  * @param <V2> The type of the failed record
  */
-@Getter
 public class ProcessingResult<V, V2> {
-    /** The successful record. */
     private V value;
-
-    /** The failed record wrapped in a processing error. */
     private ProcessingError<V2> error;
 
     /**
@@ -226,5 +221,23 @@ public class ProcessingResult<V, V2> {
      */
     public boolean isValid() {
         return value != null && error == null;
+    }
+
+    /**
+     * Get the successful record.
+     *
+     * @return The successful record
+     */
+    public V getValue() {
+        return value;
+    }
+
+    /**
+     * Get the failed record wrapped in a processing error.
+     *
+     * @return The processing error
+     */
+    public ProcessingError<V2> getError() {
+        return error;
     }
 }

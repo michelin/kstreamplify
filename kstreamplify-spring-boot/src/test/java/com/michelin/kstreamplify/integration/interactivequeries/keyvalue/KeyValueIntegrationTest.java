@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
@@ -71,12 +70,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("interactive-queries-key-value")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class KeyValueIntegrationTest extends KafkaIntegrationTest {
+
     @Autowired
     private KeyValueStoreService keyValueService;
 
@@ -254,9 +253,9 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics and
      * stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+
         public static void main(String[] args) {
             SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }

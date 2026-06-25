@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -49,6 +48,8 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -61,8 +62,9 @@ import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /** Base class for Kafka integration tests. */
-@Slf4j
 public abstract class KafkaIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(KafkaIntegrationTest.class);
+
     protected static final String CONFLUENT_PLATFORM_VERSION = "8.0.3";
     protected static final Network NETWORK = Network.newNetwork();
 
@@ -104,11 +106,12 @@ public abstract class KafkaIntegrationTest {
 
     protected static void createTopics(
             String bootstrapServers, Map<String, String> configs, TopicPartition... topicPartitions) {
-        var newTopics = Arrays.stream(topicPartitions)
+        List<NewTopic> newTopics = Arrays.stream(topicPartitions)
                 .map(topicPartition ->
                         new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1).configs(configs))
                 .toList();
-        try (var admin = AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+        try (AdminClient admin =
+                AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
         }
     }
@@ -136,8 +139,8 @@ public abstract class KafkaIntegrationTest {
 
     public static <K, V> void produceRecordToTopic(List<ProducerRecord<K, V>> records, Properties properties) {
         try (KafkaProducer<K, V> producer = new KafkaProducer<>(properties)) {
-            for (ProducerRecord<K, V> record : records) {
-                producer.send(record);
+            for (ProducerRecord<K, V> producerRecord : records) {
+                producer.send(producerRecord);
             }
             producer.flush();
         }
@@ -153,8 +156,8 @@ public abstract class KafkaIntegrationTest {
             while (totalPollTimeMs < 30000 && consumerRecords.size() < expectedNumberOfRecords) {
                 totalPollTimeMs += pollIntervalMs;
                 final ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollIntervalMs));
-                for (final ConsumerRecord<K, V> record : records) {
-                    consumerRecords.add(record);
+                for (final ConsumerRecord<K, V> consumerRecord : records) {
+                    consumerRecords.add(consumerRecord);
                 }
             }
             return consumerRecords;

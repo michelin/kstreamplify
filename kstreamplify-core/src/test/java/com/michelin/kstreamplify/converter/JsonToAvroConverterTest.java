@@ -25,10 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.michelin.kstreamplify.avro.EnumField;
 import com.michelin.kstreamplify.avro.KafkaRecordStub;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
 class JsonToAvroConverterTest {
 
     private static final String JSON = "{"

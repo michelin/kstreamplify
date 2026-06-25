@@ -25,7 +25,6 @@ import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.query.KeyQuery;
 import org.apache.kafka.streams.query.QueryResult;
@@ -35,8 +34,8 @@ import org.apache.kafka.streams.query.StateQueryResult;
 import org.apache.kafka.streams.state.KeyValueIterator;
 
 /** Key-value store service. */
-@Slf4j
 public class KeyValueStoreService extends CommonKeyValueStoreService {
+
     /**
      * Constructor.
      *

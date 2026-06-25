@@ -30,8 +30,8 @@ public final class SerdesUtils {
     /**
      * Return a key serde for a requested class.
      *
-     * @param <T> The class of requested serdes
-     * @return A serdes for requested class
+     * @param <T> The class of requested serDes
+     * @return A serDes for requested class
      */
     public static <T extends SpecificRecord> SpecificAvroSerde<T> getKeySerdes() {
         return getSerdes(true);
@@ -40,8 +40,8 @@ public final class SerdesUtils {
     /**
      * Return a value serdes for a requested class.
      *
-     * @param <T> The class of requested serdes
-     * @return A serdes for requested class
+     * @param <T> The class of requested serDes
+     * @return A serDes for requested class
      */
     public static <T extends SpecificRecord> SpecificAvroSerde<T> getValueSerdes() {
         return getSerdes(false);
@@ -50,9 +50,9 @@ public final class SerdesUtils {
     /**
      * Return a serdes for a requested class.
      *
-     * @param isSerdeForKey Is the serdes for a key or a value
-     * @param <T> The class of requested serdes
-     * @return A serdes for requested class
+     * @param isSerdeForKey Is the serDes for a key or a value
+     * @param <T> The class of requested serDes
+     * @return A serDes for requested class
      */
     private static <T extends SpecificRecord> SpecificAvroSerde<T> getSerdes(boolean isSerdeForKey) {
         SpecificAvroSerde<T> serde = new SpecificAvroSerde<>();

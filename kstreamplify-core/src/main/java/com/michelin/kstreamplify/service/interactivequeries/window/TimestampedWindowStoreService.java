@@ -26,7 +26,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.query.QueryResult;
@@ -39,7 +38,6 @@ import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /** Window store service. */
-@Slf4j
 public class TimestampedWindowStoreService extends CommonWindowStoreService {
 
     /**

@@ -36,7 +36,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -53,7 +52,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegrationTest {
 
@@ -127,8 +125,8 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics
      * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream(

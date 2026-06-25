@@ -15,6 +15,7 @@
 ## Coding Standards
 
 - Target Java 17.
+- Never use `var`. Always declare variables with their explicit type.
 - Code follows Palantir Java Format.
 - Add minimal Javadoc to every method in production code (`src/main`), including `@Override` methods, with descriptions for parameters and return values. Start each description with an uppercase letter.
 

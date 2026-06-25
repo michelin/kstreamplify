@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.Serdes;
@@ -72,17 +70,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("interactive-queries-window")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
 class WindowIntegrationTest extends KafkaIntegrationTest {
+
     @Autowired
     private WindowStoreService windowService;
 
     @BeforeAll
-    static void globalSetUp() throws ExecutionException, InterruptedException {
+    static void globalSetUp() {
         createTopics(
                 broker.getBootstrapServers(),
                 new TopicPartition("STRING_TOPIC", 3),
@@ -293,9 +291,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics and
      * stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+
         public static void main(String[] args) {
             SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }

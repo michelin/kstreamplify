@@ -21,6 +21,7 @@ package com.michelin.kstreamplify.utils;
 import java.time.Duration;
 import java.time.Instant;
 import org.apache.kafka.streams.state.WindowStore;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 /**
  * The window state store utils.
@@ -56,7 +57,7 @@ public class WindowStateStoreUtils {
      * @return The last value inserted in the state store for the key
      */
     public static <K, V> V get(WindowStore<K, V> stateStore, K key, int retentionDays) {
-        var resultIterator =
+        WindowStoreIterator<V> resultIterator =
                 stateStore.backwardFetch(key, Instant.now().minus(Duration.ofDays(retentionDays)), Instant.now());
 
         if (resultIterator != null && resultIterator.hasNext()) {

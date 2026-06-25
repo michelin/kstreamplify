@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.junit.jupiter.api.Test;
 
 class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
@@ -83,13 +85,16 @@ class GetSpecificPropertiesTest extends KafkaStreamsStarterTest {
     /** Test to verify that input and output topics are created with the correct prefixes. */
     @Test
     void shouldCreateInputAndOutputTopicsWithPrefixes() {
-        var inputTopicWithSerde = new TopicWithSerde<>(INPUT_TOPIC, "abc", Serdes.String(), Serdes.String());
-        var outputTopicWithSerde = new TopicWithSerde<>(OUTPUT_TOPIC, "def", Serdes.String(), Serdes.String());
-        var selfTopicWithSerde = new TopicWithSerde<>(SELF_TOPIC, Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> inputTopicWithSerde =
+                new TopicWithSerde<>(INPUT_TOPIC, "abc", Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> outputTopicWithSerde =
+                new TopicWithSerde<>(OUTPUT_TOPIC, "def", Serdes.String(), Serdes.String());
+        TopicWithSerde<String, String> selfTopicWithSerde =
+                new TopicWithSerde<>(SELF_TOPIC, Serdes.String(), Serdes.String());
 
-        var inputTopic = createInputTestTopic(inputTopicWithSerde);
-        var outputTopic = createOutputTestTopic(outputTopicWithSerde);
-        var selfTopic = createInputTestTopic(selfTopicWithSerde);
+        TestInputTopic<String, String> inputTopic = createInputTestTopic(inputTopicWithSerde);
+        TestOutputTopic<String, String> outputTopic = createOutputTestTopic(outputTopicWithSerde);
+        TestInputTopic<String, String> selfTopic = createInputTestTopic(selfTopicWithSerde);
 
         assertEquals(
                 "TestInputTopic[topic='abc.INPUT_TOPIC', keySerializer=StringSerializer, "

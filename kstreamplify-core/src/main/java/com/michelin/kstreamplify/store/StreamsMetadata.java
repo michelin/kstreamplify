@@ -20,12 +20,10 @@ package com.michelin.kstreamplify.store;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.state.HostInfo;
 
 /** State store metadata. */
-@Getter
 public class StreamsMetadata {
     private Set<String> stateStoreNames;
     private StreamsHostInfo hostInfo;
@@ -49,6 +47,33 @@ public class StreamsMetadata {
         this.topicPartitions = topicPartitions.stream()
                 .map(topicPartition -> topicPartition.topic() + "-" + topicPartition.partition())
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Get the state store names.
+     *
+     * @return The state store names
+     */
+    public Set<String> getStateStoreNames() {
+        return stateStoreNames;
+    }
+
+    /**
+     * Get the host information.
+     *
+     * @return The host information
+     */
+    public StreamsHostInfo getHostInfo() {
+        return hostInfo;
+    }
+
+    /**
+     * Get the topic partitions.
+     *
+     * @return The topic partitions
+     */
+    public Set<String> getTopicPartitions() {
+        return topicPartitions;
     }
 
     /**

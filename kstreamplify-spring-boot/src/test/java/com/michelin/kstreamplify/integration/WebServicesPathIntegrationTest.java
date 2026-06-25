@@ -28,7 +28,6 @@ import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -44,7 +43,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("web-services-path")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
@@ -122,7 +120,6 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
      * Kafka Streams starter implementation for integration tests. The topology simply forwards messages from inputTopic
      * to outputTopic.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         public static void main(String[] args) {

@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Properties;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -44,6 +42,8 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
 import org.apache.kafka.streams.kstream.KStream;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class KafkaStreamsStarterTest {
     @Test
@@ -85,7 +85,6 @@ class KafkaStreamsStarterTest {
     }
 
     /** Kafka Streams Starter implementation used for unit tests purpose. */
-    @Getter
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
         private boolean started;
 
@@ -146,10 +145,14 @@ class KafkaStreamsStarterTest {
                 return ProcessingResult.fail(new IOException("an exception occurred"), "output error 2");
             }
         }
+
+        public boolean isStarted() {
+            return started;
+        }
     }
 
     /**
-     * Topic with serdes helper used for unit tests purpose.
+     * Topic with serDes helper used for unit tests purpose.
      *
      * @param <K> The key type
      * @param <V> The value type
@@ -168,8 +171,9 @@ class KafkaStreamsStarterTest {
         }
     }
 
-    @Slf4j
     static class UncaughtExceptionHandlerStub implements StreamsUncaughtExceptionHandler {
+        private static final Logger log = LoggerFactory.getLogger(UncaughtExceptionHandlerStub.class);
+
         @Override
         public StreamThreadExceptionResponse handle(final Throwable t) {
             log.error("!Custom uncaught exception handler test!");

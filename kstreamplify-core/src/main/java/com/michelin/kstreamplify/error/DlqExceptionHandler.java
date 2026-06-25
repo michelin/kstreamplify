@@ -23,12 +23,10 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 
 /** The class to manage DLQ exception. */
-@Slf4j
 public abstract class DlqExceptionHandler {
 
     /** Constructor. */
