@@ -102,7 +102,7 @@
         <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
         <junit-jupiter.version>6.1.0</junit-jupiter.version>
         <kafka-streams-avro-serde.version>8.3.0</kafka-streams-avro-serde.version>
-        <kafka.version>4.3.0</kafka.version>
+        <kafka.version>4.3.1</kafka.version>
         <kstreamplify-core.version>1.7.1-SNAPSHOT</kstreamplify-core.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
