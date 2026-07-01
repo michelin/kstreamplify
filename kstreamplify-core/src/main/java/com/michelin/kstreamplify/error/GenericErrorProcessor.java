@@ -34,7 +34,7 @@ class GenericErrorProcessor<V> extends ContextualFixedKeyProcessor<String, Proce
     /**
      * Process the error.
      *
-     * @param fixedKeyRecord the record to process an error
+     * @param fixedKeyRecord The record to process an error
      */
     @Override
     public void process(FixedKeyRecord<String, ProcessingError<V>> fixedKeyRecord) {

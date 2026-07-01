@@ -33,7 +33,6 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
@@ -54,7 +53,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @ActiveProfiles("dlq-deserialization-exception-handler")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
@@ -120,9 +118,9 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
      * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics
      * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
             streamsBuilder.stream(

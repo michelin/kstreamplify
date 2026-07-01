@@ -52,13 +52,14 @@ public class JsonToAvroConverter {
             .setPrettyPrinting()
             .create();
 
+    /** Private constructor. */
     private JsonToAvroConverter() {}
 
     /**
-     * Convert a json string to an object.
+     * Convert a JSON string to an object.
      *
-     * @param json the json string
-     * @return the object
+     * @param json The JSON string
+     * @return The object
      */
     public static Object jsonToObject(String json) {
         if (json == null) {
@@ -69,22 +70,22 @@ public class JsonToAvroConverter {
     }
 
     /**
-     * Convert a file in json to avro.
+     * Convert a file in JSON to avro.
      *
-     * @param file the file in json
-     * @param schema the avro schema to use
-     * @return the record in avro
+     * @param file The file in json
+     * @param schema The avro schema to use
+     * @return The record in avro
      */
     public static SpecificRecordBase jsonToAvro(String file, Schema schema) {
         return jsonToAvro(JsonParser.parseString(file).getAsJsonObject(), schema);
     }
 
     /**
-     * Convert json to avro.
+     * Convert JSON to Avro.
      *
-     * @param jsonEvent the json record
-     * @param schema the avro schema to use
-     * @return the record in avro
+     * @param jsonEvent The JSON record
+     * @param schema The avro schema to use
+     * @return The record in avro
      */
     public static SpecificRecordBase jsonToAvro(JsonObject jsonEvent, Schema schema) {
         try {
@@ -101,14 +102,14 @@ public class JsonToAvroConverter {
     /**
      * Populate avro records from json.
      *
-     * @param jsonObject json data to provide to the avro record
-     * @param message the avro record to populate
+     * @param jsonObject Json data to provide to the avro record
+     * @param message The avro record to populate
      */
     private static void populateGenericRecordFromJson(JsonObject jsonObject, SpecificRecordBase message) {
         // Iterate over object attributes
         jsonObject.keySet().forEach(currentKey -> {
             try {
-                var currentValue = jsonObject.get(currentKey);
+                JsonElement currentValue = jsonObject.get(currentKey);
 
                 // If this is an object, add to prefix and call method again
                 if (currentValue instanceof JsonObject currentValueJsonObject) {
@@ -166,7 +167,8 @@ public class JsonToAvroConverter {
                     }
                 } else if (currentValue instanceof JsonArray jsonArray) {
                     // If this is an Array, call method for each one of them
-                    var arraySchema = message.getSchema().getField(currentKey).schema();
+                    Schema arraySchema =
+                            message.getSchema().getField(currentKey).schema();
                     Schema arrayType = arraySchema.getType() != Schema.Type.UNION
                             ? arraySchema
                             : arraySchema.getTypes().stream()
@@ -211,9 +213,9 @@ public class JsonToAvroConverter {
     /**
      * Populate field with corresponding type.
      *
-     * @param jsonElement the json element to convert
-     * @param type the type of the element
-     * @return the element converted with the corresponding type
+     * @param jsonElement The JSON element to convert
+     * @param type The type of the element
+     * @return The element converted with the corresponding type
      */
     private static Object populateFieldWithCorrespondingType(JsonElement jsonElement, Schema.Type type) {
         return switch (type) {
@@ -229,9 +231,9 @@ public class JsonToAvroConverter {
     /**
      * Populate field in record with corresponding type.
      *
-     * @param jsonObject data to provide to the avro record
-     * @param fieldName the name to populate
-     * @param result the avro record populated
+     * @param jsonObject Data to provide to the avro record
+     * @param fieldName The name to populate
+     * @param result The avro record populated
      */
     @SuppressWarnings("unchecked")
     private static void populateFieldInRecordWithCorrespondingType(
@@ -364,7 +366,7 @@ public class JsonToAvroConverter {
                 case ENUM -> {
                     try {
                         Class clazz = Class.forName(fieldSchema.getFullName());
-                        var value =
+                        Enum value =
                                 Enum.valueOf(clazz, jsonObject.get(fieldName).getAsString());
                         result.put(fieldName, value);
                     } catch (ClassNotFoundException e) {
@@ -379,9 +381,9 @@ public class JsonToAvroConverter {
     /**
      * Get base class.
      *
-     * @param baseNamespace the namespace of the class
-     * @param typeName the class type
-     * @return the base class
+     * @param baseNamespace The namespace of the class
+     * @param typeName The class type
+     * @return The base class
      */
     @SuppressWarnings("unchecked")
     private static Class<SpecificRecordBase> baseClass(String baseNamespace, String typeName) {

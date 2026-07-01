@@ -26,31 +26,14 @@ import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import com.michelin.kstreamplify.property.PropertiesUtils;
 import java.util.Map;
 import java.util.Properties;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /** The class to represent the context of the KStream. */
-@Slf4j
 public class KafkaStreamsExecutionContext {
-    @Getter
-    @Setter
     private static String dlqTopicName;
-
-    @Getter
-    @Setter
     private static Map<String, String> serdesConfig;
-
-    @Getter
-    @Setter
     private static Properties properties;
-
-    @Getter
-    @Setter
     private static Properties dlqProperties;
-
-    @Getter
     private static String prefix;
 
     /** Constructor. */
@@ -84,5 +67,86 @@ public class KafkaStreamsExecutionContext {
      */
     public static boolean isDlqFeatureEnabled(String key) {
         return PropertiesUtils.isFeatureEnabled(dlqProperties, key, false);
+    }
+
+    /**
+     * Get the DLQ topic name.
+     *
+     * @return The DLQ topic name
+     */
+    public static String getDlqTopicName() {
+        return dlqTopicName;
+    }
+
+    /**
+     * Set the DLQ topic name.
+     *
+     * @param dlqTopicName The DLQ topic name
+     */
+    public static void setDlqTopicName(String dlqTopicName) {
+        KafkaStreamsExecutionContext.dlqTopicName = dlqTopicName;
+    }
+
+    /**
+     * Get the serdes configuration.
+     *
+     * @return The serdes configuration
+     */
+    public static Map<String, String> getSerdesConfig() {
+        return serdesConfig;
+    }
+
+    /**
+     * Set the serdes configuration.
+     *
+     * @param serdesConfig The serdes configuration
+     */
+    public static void setSerdesConfig(Map<String, String> serdesConfig) {
+        KafkaStreamsExecutionContext.serdesConfig = serdesConfig;
+    }
+
+    /**
+     * Get the properties.
+     *
+     * @return The properties
+     */
+    public static Properties getProperties() {
+        return properties;
+    }
+
+    /**
+     * Set the properties.
+     *
+     * @param properties The properties
+     */
+    public static void setProperties(Properties properties) {
+        KafkaStreamsExecutionContext.properties = properties;
+    }
+
+    /**
+     * Get the DLQ properties.
+     *
+     * @return The DLQ properties
+     */
+    public static Properties getDlqProperties() {
+        return dlqProperties;
+    }
+
+    /**
+     * Set the DLQ properties.
+     *
+     * @param dlqProperties The DLQ properties
+     */
+    public static void setDlqProperties(Properties dlqProperties) {
+        KafkaStreamsExecutionContext.dlqProperties = dlqProperties;
+    }
+
+    /**
+     * Get the prefix.
+     *
+     * @return The prefix
+     */
+    public static String getPrefix() {
+        return prefix;
     }
 }

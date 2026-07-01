@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -38,6 +37,8 @@ import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -46,7 +47,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Slf4j
 @Testcontainers
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
@@ -144,9 +144,10 @@ class SpringBootKafkaStreamsInitializerIntegrationTest extends KafkaIntegrationT
      * Kafka Streams starter implementation for integration tests. The topology simply forwards messages from inputTopic
      * to outputTopic.
      */
-    @Slf4j
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
+
         public static void main(String[] args) {
             SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }

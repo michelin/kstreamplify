@@ -37,6 +37,7 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProductionExceptionHandler;
+import org.apache.kafka.streams.errors.ProductionExceptionHandler.SerializationExceptionOrigin;
 import org.apache.kafka.streams.processor.TaskId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,6 +138,120 @@ class DlqProductionExceptionHandlerTest {
                 errorHandlerContext, producerRecord, new RetriableCommitFailedException("Exception..."));
 
         assertEquals(ProductionExceptionHandler.Result.RETRY, response.result());
+        assertTrue(response.deadLetterQueueRecords().isEmpty());
+    }
+
+    @Test
+    void shouldReturnFailOnSerializationErrorWhenFlagDisabled() {
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+        handler.configure(Map.of());
+
+        @SuppressWarnings("rawtypes")
+        ProducerRecord rawRecord = new ProducerRecord<>("topic", "key", "value");
+
+        ProductionExceptionHandler.Response response = handler.handleSerializationError(
+                errorHandlerContext,
+                rawRecord,
+                new RuntimeException("Serialization failed"),
+                SerializationExceptionOrigin.VALUE);
+
+        assertEquals(ProductionExceptionHandler.Result.FAIL, response.result());
+        assertTrue(response.deadLetterQueueRecords().isEmpty());
+    }
+
+    @Test
+    void shouldReturnFailOnSerializationErrorWhenFlagEnabledButNoDlq() {
+        Properties properties = new Properties();
+        properties.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        properties.setProperty(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://");
+        properties.setProperty("dlq.production-handler.continue-on-serialization-exception", "true");
+        KafkaStreamsExecutionContext.registerProperties(properties);
+
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        handler.configure(Map.of());
+
+        @SuppressWarnings("rawtypes")
+        ProducerRecord rawRecord = new ProducerRecord<>("topic", "key", "value");
+
+        ProductionExceptionHandler.Response response = handler.handleSerializationError(
+                errorHandlerContext,
+                rawRecord,
+                new RuntimeException("Serialization failed"),
+                SerializationExceptionOrigin.VALUE);
+
+        assertEquals(ProductionExceptionHandler.Result.FAIL, response.result());
+        assertTrue(response.deadLetterQueueRecords().isEmpty());
+    }
+
+    @Test
+    void shouldRouteSerializationErrorToDlqWhenFlagEnabled() {
+        Properties properties = new Properties();
+        properties.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        properties.setProperty(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://");
+        properties.setProperty("dlq.production-handler.continue-on-serialization-exception", "true");
+        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+        KafkaStreamsExecutionContext.setSerdesConfig(
+                Map.of(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://"));
+
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        handler.configure(Map.of());
+
+        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
+        when(errorHandlerContext.partition()).thenReturn(0);
+        when(errorHandlerContext.sourceRawKey()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
+        when(errorHandlerContext.sourceRawValue()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
+
+        @SuppressWarnings("rawtypes")
+        ProducerRecord rawRecord = new ProducerRecord<>("topic", "key", "value");
+
+        Exception wrapped = new Exception("Wrapper", new KafkaException("Serialization failed"));
+
+        ProductionExceptionHandler.Response response = handler.handleSerializationError(
+                errorHandlerContext, rawRecord, wrapped, SerializationExceptionOrigin.VALUE);
+
+        assertEquals(ProductionExceptionHandler.Result.RESUME, response.result());
+
+        Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
+        KafkaError kafkaError = serde.deserializer()
+                .deserialize(
+                        "DLQ_TOPIC", response.deadLetterQueueRecords().get(0).value());
+
+        assertTrue(kafkaError.getContextMessage().contains("serialization exception"));
+        assertTrue(kafkaError.getContextMessage().contains("VALUE"));
+        assertEquals(0, kafkaError.getOffset());
+        assertEquals(0, kafkaError.getPartition());
+        assertEquals("topic", kafkaError.getTopic());
+        assertEquals("test-app", kafkaError.getApplicationId());
+        assertEquals("0_0", kafkaError.getTaskId());
+        assertEquals("Serialization failed", kafkaError.getCause());
+        assertTrue(kafkaError.getStack().contains("Serialization failed"));
+        assertEquals("key", new String(response.deadLetterQueueRecords().get(0).key()));
+    }
+
+    @Test
+    void shouldFailOnExceptionDuringSerializationErrorHandling() {
+        Properties properties = new Properties();
+        properties.setProperty(APPLICATION_ID_CONFIG, "test-app");
+        properties.setProperty(KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://");
+        properties.setProperty("dlq.production-handler.continue-on-serialization-exception", "true");
+        KafkaStreamsExecutionContext.registerProperties(properties);
+        KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
+
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        handler.configure(Map.of());
+
+        @SuppressWarnings("rawtypes")
+        ProducerRecord rawRecord = new ProducerRecord<>("topic", "key", "value");
+
+        ProductionExceptionHandler.Response response = handler.handleSerializationError(
+                errorHandlerContext,
+                rawRecord,
+                new KafkaException("Serialization failed"),
+                SerializationExceptionOrigin.KEY);
+
+        assertEquals(ProductionExceptionHandler.Result.FAIL, response.result());
         assertTrue(response.deadLetterQueueRecords().isEmpty());
     }
 }

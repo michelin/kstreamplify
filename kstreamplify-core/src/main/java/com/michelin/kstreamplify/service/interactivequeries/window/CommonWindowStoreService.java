@@ -26,15 +26,17 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StreamsMetadata;
 import org.apache.kafka.streams.errors.UnknownStateStoreException;
 import org.apache.kafka.streams.state.HostInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 abstract class CommonWindowStoreService extends CommonStoreService {
+    private static final Logger log = LoggerFactory.getLogger(CommonWindowStoreService.class);
+
     /**
      * Constructor.
      *

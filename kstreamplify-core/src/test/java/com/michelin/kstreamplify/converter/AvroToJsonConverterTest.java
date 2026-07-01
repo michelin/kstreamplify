@@ -34,11 +34,10 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
 class AvroToJsonConverterTest {
+
     @Test
     void shouldConvertObjectNull() {
         assertNull(AvroToJsonConverter.convertObject((Object) null));

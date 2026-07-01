@@ -48,7 +48,7 @@ class DlqProcessingExceptionHandlerTest {
     private ErrorHandlerContext errorHandlerContext;
 
     @Mock
-    private Record<String, String> record;
+    private Record<String, String> message;
 
     @BeforeEach
     void setUp() {
@@ -66,7 +66,7 @@ class DlqProcessingExceptionHandlerTest {
         DlqProcessingExceptionHandler handler = new DlqProcessingExceptionHandler();
 
         DlqProcessingExceptionHandler.Response response =
-                handler.handleError(errorHandlerContext, record, new RuntimeException("Exception..."));
+                handler.handleError(errorHandlerContext, message, new RuntimeException("Exception..."));
 
         assertEquals(ProcessingExceptionHandler.Result.FAIL, response.result());
         assertTrue(response.deadLetterQueueRecords().isEmpty());
@@ -79,7 +79,7 @@ class DlqProcessingExceptionHandlerTest {
         handler.configure(Map.of());
 
         DlqProcessingExceptionHandler.Response response =
-                handler.handleError(errorHandlerContext, record, new RuntimeException("Exception..."));
+                handler.handleError(errorHandlerContext, message, new RuntimeException("Exception..."));
 
         assertEquals(ProcessingExceptionHandler.Result.FAIL, response.result());
         assertTrue(response.deadLetterQueueRecords().isEmpty());
@@ -91,8 +91,8 @@ class DlqProcessingExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
         handler.configure(Map.of());
 
-        when(record.key()).thenReturn("key");
-        when(record.value()).thenReturn("value");
+        when(message.key()).thenReturn("key");
+        when(message.value()).thenReturn("value");
         when(errorHandlerContext.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
         when(errorHandlerContext.partition()).thenReturn(0);
@@ -104,7 +104,7 @@ class DlqProcessingExceptionHandlerTest {
         // Wrap the KafkaException so that getCause() instanceof KafkaException
         Exception wrapped = new Exception("Wrapper", new KafkaException("Exception..."));
 
-        ProcessingExceptionHandler.Response response = handler.handleError(errorHandlerContext, record, wrapped);
+        ProcessingExceptionHandler.Response response = handler.handleError(errorHandlerContext, message, wrapped);
 
         assertEquals(ProcessingExceptionHandler.Result.RESUME, response.result());
 

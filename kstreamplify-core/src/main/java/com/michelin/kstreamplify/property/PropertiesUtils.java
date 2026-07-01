@@ -107,7 +107,7 @@ public final class PropertiesUtils {
      * @param properties The properties
      * @param key The property key
      * @param defaultValue The default value if the property is not set
-     * @return true if the feature is enabled, false otherwise
+     * @return True if the feature is enabled, false otherwise
      */
     public static boolean isFeatureEnabled(Properties properties, String key, boolean defaultValue) {
         return Boolean.parseBoolean(properties.getProperty(key, Boolean.toString(defaultValue)));

@@ -26,82 +26,113 @@ import com.michelin.kstreamplify.serde.SerdesUtils;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.streams.errors.ErrorHandlerContext;
 import org.apache.kafka.streams.errors.ProcessingExceptionHandler;
 import org.apache.kafka.streams.processor.api.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** The class managing processing exceptions. */
-@Slf4j
 public class DlqProcessingExceptionHandler extends DlqExceptionHandler implements ProcessingExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(DlqProcessingExceptionHandler.class);
 
     /** Constructor. */
     public DlqProcessingExceptionHandler() {}
 
+    /**
+     * Handles processing exceptions by routing the record to the DLQ topic.
+     *
+     * @param context The error handler context
+     * @param processingRecord The record that failed processing
+     * @param exception The exception that occurred
+     * @return A {@link Response} indicating how to proceed
+     */
     @Override
     public Response handleError(ErrorHandlerContext context, Record<?, ?> processingRecord, Exception exception) {
-        log.warn(
-                "Exception during message Processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
-                context.processorNodeId(),
-                context.taskId(),
-                context.topic(),
-                context.partition(),
-                context.offset(),
-                exception);
+        if (log.isWarnEnabled()) {
+            log.warn(
+                    "Exception during processing, processor node: {}, taskId: {}, topic: {}, partition: {}, offset: {}",
+                    context.processorNodeId(),
+                    context.taskId(),
+                    context.topic(),
+                    context.partition(),
+                    context.offset(),
+                    exception);
+        }
 
         if (isDlqNotDefined()) {
-            log.warn("Failed to route processing error to DLQ.");
+            log.warn("Failed to route processing error to DLQ. Define a DLQ topic in configuration.");
             return Response.fail();
         }
 
         try {
-            KafkaError.Builder builder = KafkaError.newBuilder()
-                    .setContextMessage(
-                            "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.")
-                    .setOffset(context.offset())
-                    .setPartition(context.partition())
-                    .setTopic(context.topic())
-                    .setApplicationId(
-                            KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
-                    .setProcessorNodeId(context.processorNodeId())
-                    .setTaskId(context.taskId().toString())
-                    .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
-                    .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()))
-                    .setValue(
-                            processingRecord.value() == null
-                                    ? null
-                                    : processingRecord.value().toString());
-
-            KafkaError error = enrichWithException(
-                            builder,
-                            exception,
-                            processingRecord.key() != null
-                                    ? processingRecord.key().toString().getBytes()
-                                    : null,
-                            processingRecord.value() != null
-                                    ? processingRecord.value().toString().getBytes()
-                                    : null)
-                    .build();
-
+            KafkaError error = buildKafkaError(context, processingRecord, exception);
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
-            byte[] value = serde.serializer().serialize(deadLetterQueueTopic, error);
+            byte[] value = serde.serializer().serialize(KafkaStreamsExecutionContext.getDlqTopicName(), error);
 
             byte[] key = processingRecord.key() != null
                     ? processingRecord.key().toString().getBytes()
                     : null;
 
-            return Response.resume(List.of(new ProducerRecord<>(deadLetterQueueTopic, key, value)));
+            return Response.resume(
+                    List.of(new ProducerRecord<>(KafkaStreamsExecutionContext.getDlqTopicName(), key, value)));
         } catch (Exception e) {
-            log.error("Cannot send processing exception to DLQ topic {}", deadLetterQueueTopic, e);
+            log.error(
+                    "Cannot send processing exception to DLQ topic {}",
+                    KafkaStreamsExecutionContext.getDlqTopicName(),
+                    e);
             return Response.fail();
         }
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Builds a {@link KafkaError} from the record metadata and exception details.
+     *
+     * @param context The error handler context
+     * @param processingRecord The record that failed processing
+     * @param exception The exception that occurred
+     * @return The built {@link KafkaError}
+     */
+    private KafkaError buildKafkaError(
+            ErrorHandlerContext context, Record<?, ?> processingRecord, Exception exception) {
+
+        KafkaError.Builder builder = KafkaError.newBuilder()
+                .setContextMessage(
+                        "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.")
+                .setOffset(context.offset())
+                .setPartition(context.partition())
+                .setTopic(context.topic())
+                .setApplicationId(KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
+                .setProcessorNodeId(context.processorNodeId())
+                .setTaskId(context.taskId().toString())
+                .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
+                .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()))
+                .setValue(
+                        processingRecord.value() == null
+                                ? null
+                                : processingRecord.value().toString());
+
+        return enrichWithException(
+                        builder,
+                        exception,
+                        processingRecord.key() != null
+                                ? processingRecord.key().toString().getBytes()
+                                : null,
+                        processingRecord.value() != null
+                                ? processingRecord.value().toString().getBytes()
+                                : null)
+                .build();
+    }
+
+    /**
+     * Configures the handler.
+     *
+     * @param configs The configuration map
+     */
     @Override
     public void configure(Map<String, ?> configs) {
-        deadLetterQueueTopic = KafkaStreamsExecutionContext.getDlqTopicName();
+        // Do nothing
     }
 }

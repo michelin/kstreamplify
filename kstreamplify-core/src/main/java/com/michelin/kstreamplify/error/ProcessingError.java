@@ -19,7 +19,6 @@
 package com.michelin.kstreamplify.error;
 
 import com.michelin.kstreamplify.converter.AvroToJsonConverter;
-import lombok.Getter;
 import org.apache.avro.generic.GenericRecord;
 
 /**
@@ -27,15 +26,9 @@ import org.apache.avro.generic.GenericRecord;
  *
  * @param <V> The type of the failed record
  */
-@Getter
 public class ProcessingError<V> {
-    /** The exception that occurred. */
     private final Exception exception;
-
-    /** The failed Kafka record. */
     private final String kafkaRecord;
-
-    /** A context message defined when the error is caught. */
     private final String contextMessage;
 
     /**
@@ -64,5 +57,32 @@ public class ProcessingError<V> {
      */
     public ProcessingError(Exception exception, V kafkaRecord) {
         this(exception, "No context message", kafkaRecord);
+    }
+
+    /**
+     * Get the exception that occurred.
+     *
+     * @return The exception
+     */
+    public Exception getException() {
+        return exception;
+    }
+
+    /**
+     * Get the failed Kafka record.
+     *
+     * @return The failed Kafka record
+     */
+    public String getKafkaRecord() {
+        return kafkaRecord;
+    }
+
+    /**
+     * Get the context message defined when the error is caught.
+     *
+     * @return The context message
+     */
+    public String getContextMessage() {
+        return contextMessage;
     }
 }

@@ -22,10 +22,8 @@ import static com.michelin.kstreamplify.converter.AvroToJsonConverter.convertObj
 import static com.michelin.kstreamplify.converter.JsonToAvroConverter.jsonToObject;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
 
 /** The state store record class. */
-@Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StateStoreRecord {
     private String key;
@@ -59,5 +57,32 @@ public class StateStoreRecord {
     public StateStoreRecord(String key, Object value, Long timestamp) {
         this(key, value);
         this.timestamp = timestamp;
+    }
+
+    /**
+     * Get the key.
+     *
+     * @return The key
+     */
+    public String getKey() {
+        return key;
+    }
+
+    /**
+     * Get the value.
+     *
+     * @return The value
+     */
+    public Object getValue() {
+        return value;
+    }
+
+    /**
+     * Get the timestamp.
+     *
+     * @return The timestamp
+     */
+    public Long getTimestamp() {
+        return timestamp;
     }
 }

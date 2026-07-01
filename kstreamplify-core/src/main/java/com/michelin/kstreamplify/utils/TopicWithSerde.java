@@ -21,7 +21,6 @@ package com.michelin.kstreamplify.utils;
 import static com.michelin.kstreamplify.serde.TopicWithSerde.SELF;
 
 import com.michelin.kstreamplify.topic.TopicUtils;
-import lombok.Getter;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -36,19 +35,15 @@ import org.apache.kafka.streams.state.KeyValueStore;
 /**
  * Wrapper class for simplifying topics interactions and their behaviors.
  *
- * @param <K> The model used as the key avro of the topic. Can be String (Recommended)
- * @param <V> The model used as the value avro of the topic.
+ * @param <K> The model used as the key Avro of the topic. Can be String (Recommended)
+ * @param <V> The model used as the value Avro of the topic.
  * @deprecated Use {@link com.michelin.kstreamplify.serde.TopicWithSerde}.
  */
 @Deprecated(since = "1.1.0")
 public class TopicWithSerde<K, V> {
     private final String topicName;
     private final String prefixKey;
-
-    @Getter
     private final Serde<K> keySerde;
-
-    @Getter
     private final Serde<V> valueSerde;
 
     /**
@@ -78,6 +73,24 @@ public class TopicWithSerde<K, V> {
         this.prefixKey = prefixKey;
         this.keySerde = keySerde;
         this.valueSerde = valueSerde;
+    }
+
+    /**
+     * Get the key serde.
+     *
+     * @return The key serDe
+     */
+    public Serde<K> getKeySerde() {
+        return keySerde;
+    }
+
+    /**
+     * Get the value serde.
+     *
+     * @return The value serDe
+     */
+    public Serde<V> getValueSerde() {
+        return valueSerde;
     }
 
     /**

@@ -112,8 +112,8 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     void shouldContinueWhenProcessingValueIsValid() {
         stringInputTopic.pipeInput("key", "message");
 
-        var resultDlq = dlqTopic.readValuesToList();
-        var resultOutput = stringOutputTopic.readValuesToList();
+        List<KafkaError> resultDlq = dlqTopic.readValuesToList();
+        List<String> resultOutput = stringOutputTopic.readValuesToList();
 
         assertEquals(0, resultDlq.size());
         assertEquals(1, resultOutput.size());
@@ -123,15 +123,15 @@ class TopologyErrorHandlerTest extends KafkaStreamsStarterTest {
     void shouldSendExceptionToDlqWhenProcessingValueIsInvalid() {
         stringInputTopic.pipeInput("key", "error");
 
-        var resultDlq = dlqTopic.readValuesToList();
+        List<KafkaError> resultDlq = dlqTopic.readValuesToList();
         assertEquals(1, resultDlq.size());
-        var record = resultDlq.get(0);
+        KafkaError error = resultDlq.get(0);
 
-        assertEquals("test", record.getApplicationId());
-        assertEquals("stringTopic", record.getTopic());
-        assertEquals("error", record.getValue());
+        assertEquals("test", error.getApplicationId());
+        assertEquals("stringTopic", error.getTopic());
+        assertEquals("error", error.getValue());
 
-        var resultOutput = stringOutputTopic.readValuesToList();
+        List<String> resultOutput = stringOutputTopic.readValuesToList();
         assertEquals(0, resultOutput.size());
     }
 

@@ -136,7 +136,7 @@ public abstract class KafkaStreamsStarterTest {
     /**
      * Close everything after each test.
      *
-     * @throws IOException if an I/O error occurs while deleting the state directory
+     * @throws IOException If an I/O error occurs while deleting the state directory
      */
     @AfterEach
     protected void generalTearDown() throws IOException {

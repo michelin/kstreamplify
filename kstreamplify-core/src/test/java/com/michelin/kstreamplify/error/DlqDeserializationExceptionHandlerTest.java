@@ -99,7 +99,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
@@ -134,7 +133,6 @@ class DlqDeserializationExceptionHandlerTest {
     void shouldContinueOnRestClientExceptionWhenFeatureFlagEnabled() {
         DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
 
-        // Enable the feature flag
         Properties props = new Properties();
         props.setProperty(APPLICATION_ID_CONFIG, "test-app");
         props.setProperty(DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION, "true");
@@ -147,7 +145,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
@@ -164,7 +161,6 @@ class DlqDeserializationExceptionHandlerTest {
     void shouldFailOnRestClientExceptionWhenFeatureFlagDisabled() {
         DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
 
-        // Disable the feature flag
         Properties props = new Properties();
         props.setProperty(APPLICATION_ID_CONFIG, "test-app");
         props.setProperty(DLQ_DESERIALIZATION_HANDLER_FORWARD_REST_CLIENT_EXCEPTION, "false");
@@ -172,14 +168,6 @@ class DlqDeserializationExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         handler.configure(Map.of());
-
-        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.topic()).thenReturn("topic");
-        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
-        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
-        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
         Exception wrapped = new Exception("Wrapper", new RestClientException("schema error", 500, 500));
 
@@ -201,14 +189,6 @@ class DlqDeserializationExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         handler.configure(Map.of());
-
-        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.topic()).thenReturn("topic");
-        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
-        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
-        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
         Exception wrapped = new Exception("Wrapper", new RestClientException("schema error", 500, 500));
 
@@ -237,7 +217,6 @@ class DlqDeserializationExceptionHandlerTest {
         when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
         when(consumerRecord.topic()).thenReturn("topic");
         when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
         when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
         when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
@@ -255,7 +234,6 @@ class DlqDeserializationExceptionHandlerTest {
     void shouldFailOnUnhandledExceptionWhenFeatureFlagDisabled() {
         DlqDeserializationExceptionHandler handler = new DlqDeserializationExceptionHandler();
 
-        // Do NOT enable flag
         Properties props = new Properties();
         props.setProperty(APPLICATION_ID_CONFIG, "test-app");
 
@@ -263,14 +241,6 @@ class DlqDeserializationExceptionHandlerTest {
         KafkaStreamsExecutionContext.setDlqTopicName("DLQ_TOPIC");
 
         handler.configure(Map.of());
-
-        when(consumerRecord.key()).thenReturn("key".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.value()).thenReturn("value".getBytes(StandardCharsets.UTF_8));
-        when(consumerRecord.topic()).thenReturn("topic");
-        when(errorHandlerContext.taskId()).thenReturn(new TaskId(0, 0));
-        when(errorHandlerContext.partition()).thenReturn(0);
-        when(errorHandlerContext.sourceRawKey()).thenReturn("sourceKey".getBytes(StandardCharsets.UTF_8));
-        when(errorHandlerContext.sourceRawValue()).thenReturn("sourceValue".getBytes(StandardCharsets.UTF_8));
 
         Exception wrapped = new Exception("Wrapper", new RuntimeException("random error"));
 

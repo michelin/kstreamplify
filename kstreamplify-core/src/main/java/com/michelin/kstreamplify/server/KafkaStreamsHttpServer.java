@@ -114,6 +114,12 @@ public class KafkaStreamsHttpServer {
         }
     }
 
+    /**
+     * Create a Kubernetes probe endpoint.
+     *
+     * @param path The endpoint path
+     * @param kubernetesSupplier The supplier providing the HTTP status code
+     */
     private void createKubernetesEndpoint(String path, IntSupplier kubernetesSupplier) {
         server.createContext("/" + path, (exchange -> {
             int code = kubernetesSupplier.getAsInt();
@@ -122,6 +128,7 @@ public class KafkaStreamsHttpServer {
         }));
     }
 
+    /** Create the topology endpoint exposing the Kafka Streams topology. */
     private void createTopologyEndpoint() {
         String topologyEndpointPath = (String) kafkaStreamsInitializer
                 .getProperties()
@@ -139,6 +146,7 @@ public class KafkaStreamsHttpServer {
         }));
     }
 
+    /** Create the interactive queries endpoints exposing the state stores. */
     private void createStoreEndpoints() {
         server.createContext("/" + DEFAULT_STORE_PATH, (exchange -> {
             try {
@@ -171,13 +179,19 @@ public class KafkaStreamsHttpServer {
         }));
     }
 
+    /**
+     * Build the response for a store endpoint based on the request URI.
+     *
+     * @param exchange The HTTP exchange
+     * @return The response body to serialize
+     */
     private Object getResponseForStoreEndpoints(HttpExchange exchange) {
         if (exchange.getRequestURI().toString().equals("/" + DEFAULT_STORE_PATH)) {
             return keyValueService.getStateStores();
         }
 
         String store;
-        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/metadata/.*")) {
+        if (exchange.getRequestURI().toString().matches("/" + DEFAULT_STORE_PATH + "/metadata/[^/]+")) {
             store = parsePathParam(exchange, 3);
             return keyValueService.getStreamsMetadataForStore(store).stream()
                     .map(streamsMetadata -> new StreamsMetadata(
@@ -190,7 +204,7 @@ public class KafkaStreamsHttpServer {
         // Get all on local host for key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/local/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/local/[^/]+")) {
             store = parsePathParam(exchange, 4);
             return keyValueService.getAllOnLocalInstance(store);
         }
@@ -198,7 +212,7 @@ public class KafkaStreamsHttpServer {
         // Get all on local host for timestamped key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/local/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/local/[^/]+")) {
             store = parsePathParam(exchange, 5);
             return timestampedKeyValueService.getAllOnLocalInstance(store);
         }
@@ -206,7 +220,7 @@ public class KafkaStreamsHttpServer {
         // Get all on local host for window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/local/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/local/[^/]+")) {
             store = parsePathParam(exchange, 4);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
                     .map(Instant::parse)
@@ -221,7 +235,7 @@ public class KafkaStreamsHttpServer {
         // Get all on local host for timestamped window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/local/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/local/[^/]+")) {
             store = parsePathParam(exchange, 5);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
                     .map(Instant::parse)
@@ -236,7 +250,7 @@ public class KafkaStreamsHttpServer {
         // Get by key for timestamped key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/.*/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/[^/]+/[^/]+")) {
             store = parsePathParam(exchange, 4);
             String key = parsePathParam(exchange, 5);
             return timestampedKeyValueService.getByKey(store, key);
@@ -245,7 +259,7 @@ public class KafkaStreamsHttpServer {
         // Get all for timestamped key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/timestamped/[^/]+")) {
             store = parsePathParam(exchange, 4);
             return timestampedKeyValueService.getAll(store);
         }
@@ -253,7 +267,7 @@ public class KafkaStreamsHttpServer {
         // Get by key for key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/[^/]+/[^/]+")) {
             store = parsePathParam(exchange, 3);
             String key = parsePathParam(exchange, 4);
             return keyValueService.getByKey(store, key);
@@ -262,7 +276,7 @@ public class KafkaStreamsHttpServer {
         // Get all for key-value store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_KEY_VALUE_STORE_PATH + "/[^/]+")) {
             store = parsePathParam(exchange, 3);
             return keyValueService.getAll(store);
         }
@@ -270,7 +284,7 @@ public class KafkaStreamsHttpServer {
         // Get by key for timestamped window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/.*/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/[^/]+/[^/]+")) {
             store = parsePathParam(exchange, 4);
             String key = parsePathParam(exchange, 5);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
@@ -286,7 +300,7 @@ public class KafkaStreamsHttpServer {
         // Get all for timestamped window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/timestamped/[^/]+")) {
             store = parsePathParam(exchange, 4);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
                     .map(Instant::parse)
@@ -301,7 +315,7 @@ public class KafkaStreamsHttpServer {
         // Get by key for window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/[^/]+/[^/]+")) {
             store = parsePathParam(exchange, 3);
             String key = parsePathParam(exchange, 4);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
@@ -317,7 +331,7 @@ public class KafkaStreamsHttpServer {
         // Get all for window store
         if (exchange.getRequestURI()
                 .toString()
-                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/.*")) {
+                .matches("/" + DEFAULT_STORE_PATH + "/" + DEFAULT_WINDOW_STORE_PATH + "/[^/]+")) {
             store = parsePathParam(exchange, 3);
             Instant instantFrom = parseRequestParam(exchange, START_TIME_REQUEST_PARAM)
                     .map(Instant::parse)
@@ -332,10 +346,24 @@ public class KafkaStreamsHttpServer {
         return null;
     }
 
+    /**
+     * Parse a path parameter from the request URI.
+     *
+     * @param exchange The HTTP exchange
+     * @param index The index of the path segment to extract
+     * @return The path parameter value
+     */
     private String parsePathParam(HttpExchange exchange, int index) {
         return exchange.getRequestURI().toString().split("\\?")[0].split("/")[index];
     }
 
+    /**
+     * Parse a query request parameter from the request URI.
+     *
+     * @param exchange The HTTP exchange
+     * @param key The request parameter name
+     * @return The request parameter value, or empty if absent
+     */
     private Optional<String> parseRequestParam(HttpExchange exchange, String key) {
         String[] uriAndParams = exchange.getRequestURI().toString().split("\\?");
 

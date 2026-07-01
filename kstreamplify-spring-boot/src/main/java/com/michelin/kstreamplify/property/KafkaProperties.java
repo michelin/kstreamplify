@@ -21,14 +21,10 @@ package com.michelin.kstreamplify.property;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /** The Kafka properties class. */
-@Getter
-@Setter
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProperties {
@@ -37,6 +33,24 @@ public class KafkaProperties {
     /** Constructor. */
     public KafkaProperties() {
         // Default constructor
+    }
+
+    /**
+     * Get the Kafka properties.
+     *
+     * @return The Kafka properties
+     */
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    /**
+     * Set the Kafka properties.
+     *
+     * @param properties The Kafka properties
+     */
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     /**

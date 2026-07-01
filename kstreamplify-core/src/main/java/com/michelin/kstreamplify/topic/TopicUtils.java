@@ -32,6 +32,7 @@ public final class TopicUtils {
     /** The remap property name. */
     public static final String REMAP_PROPERTY_NAME = "remap";
 
+    /** Private constructor. */
     private TopicUtils() {}
 
     /**

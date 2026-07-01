@@ -100,7 +100,7 @@ Using the [Spring Boot Starter Parent](https://docs.spring.io/spring-boot/maven-
 
 ```xml
 <properties>
-    <kafka.version>4.2.0</kafka.version>
+    <kafka.version>4.3.1</kafka.version>
 </properties>
 
 <dependency>
@@ -560,6 +560,20 @@ kafka:
 ```
 
 It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
+
+Additionally, serialization exceptions can optionally be forwarded to the DLQ by enabling the following property:
+
+```yml
+kafka:
+  properties:
+    dlq:
+      production-handler:
+        continue-on-serialization-exception: true
+```
+
+| Property                                                             | Description                                                                                              |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `dlq.production-handler.continue-on-serialization-exception`         | Routes serialization errors to the DLQ and continues processing instead of failing the application       |
 
 ### Avro Kafka Error
 

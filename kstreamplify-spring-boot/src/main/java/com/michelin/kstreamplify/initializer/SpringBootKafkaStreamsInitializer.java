@@ -24,10 +24,11 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.property.KafkaProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaStreamsMetrics;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.errors.StreamsUncaughtExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -36,10 +37,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 /** The Kafka Streams initializer. */
-@Slf4j
 @Component
 @ConditionalOnBean(KafkaStreamsStarter.class)
 public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer implements ApplicationRunner {
+    private static final Logger log = LoggerFactory.getLogger(SpringBootKafkaStreamsInitializer.class);
+
     private final ConfigurableApplicationContext applicationContext;
     private final MeterRegistry registry;
 
@@ -98,7 +100,10 @@ public class SpringBootKafkaStreamsInitializer extends KafkaStreamsInitializer i
 
         kafkaStreamsStarter.onStart(kafkaStreams);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(kafkaStreams::close));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            kafkaStreams.close();
+            kafkaStreamsMetrics.close();
+        }));
 
         kafkaStreams.setUncaughtExceptionHandler(
                 ofNullable(kafkaStreamsStarter.uncaughtExceptionHandler()).orElse(this::uncaughtExceptionHandler));
