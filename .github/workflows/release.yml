@@ -45,8 +45,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
-        # zizmor: ignore[superfluous-actions] ncipollo/release-action provides allowUpdates semantics that gh release cannot replicate in a single command
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
+        # ncipollo/release-action v1.21.0 (pinned by SHA). Kept over `gh release` for its
+        # allowUpdates support, which has no single-command equivalent.
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # zizmor: ignore[superfluous-actions]
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ steps.build_changelog.outputs.changelog }}

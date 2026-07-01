@@ -12,6 +12,8 @@ updates:
       day: "monday"
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -19,3 +21,5 @@ updates:
       day: "monday"
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
