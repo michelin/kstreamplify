@@ -12,16 +12,21 @@ jobs:
     name: Create Branch
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
     steps:
       - name: Checkout project
-        uses: actions/checkout@v7
+        # zizmor: ignore[artipacked] persisted credentials are required to push the hotfix branch below
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
           token: ${{ secrets.CI_CD_TOKEN }}
 
       - name: Create branch
+        env:
+          TAG_VERSION: ${{ github.event.inputs.tag_version }}
         run: |
-          START_TAG=v${{ github.event.inputs.tag_version }}
+          START_TAG=v$TAG_VERSION
           echo "Start from tag $START_TAG"
           MAJOR_MINOR_DIGIT=$(echo "$START_TAG" | cut -d '.' -f 1-2)
           PATCH_DIGIT=$(echo "$START_TAG" | cut -d '.' -f 3)
