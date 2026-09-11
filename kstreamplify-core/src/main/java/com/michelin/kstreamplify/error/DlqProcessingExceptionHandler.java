@@ -72,7 +72,7 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
             Serde<KafkaError> serde = SerdesUtils.getValueSerdes();
             byte[] value = serde.serializer().serialize(KafkaStreamsExecutionContext.getDlqTopicName(), error);
 
-            byte[] key = processingRecord.key() != null
+            byte[] key = processingRecord != null && processingRecord.key() != null
                     ? processingRecord.key().toString().getBytes()
                     : null;
 
@@ -103,26 +103,26 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
                         "An exception occurred during the stream processing of a record. Please find more details about the exception in the cause and stack fields.")
                 .setOffset(context.offset())
                 .setPartition(context.partition())
-                .setTopic(context.topic())
+                .setTopic(context.topic() != null ? context.topic() : "Outside topic context")
                 .setApplicationId(KafkaStreamsExecutionContext.getProperties().getProperty(APPLICATION_ID_CONFIG))
                 .setProcessorNodeId(context.processorNodeId())
                 .setTaskId(context.taskId().toString())
-                .setSourceRawKey(ByteBuffer.wrap(context.sourceRawKey()))
-                .setSourceRawValue(ByteBuffer.wrap(context.sourceRawValue()))
+                .setSourceRawKey(context.sourceRawKey() != null ? ByteBuffer.wrap(context.sourceRawKey()) : null)
+                .setSourceRawValue(context.sourceRawValue() != null ? ByteBuffer.wrap(context.sourceRawValue()) : null)
                 .setValue(
-                        processingRecord.value() == null
+                        processingRecord == null || processingRecord.value() == null
                                 ? null
                                 : processingRecord.value().toString());
 
         return enrichWithException(
-                        builder,
-                        exception,
-                        processingRecord.key() != null
-                                ? processingRecord.key().toString().getBytes()
-                                : null,
-                        processingRecord.value() != null
-                                ? processingRecord.value().toString().getBytes()
-                                : null)
+                builder,
+                exception,
+                processingRecord != null && processingRecord.key() != null
+                        ? processingRecord.key().toString().getBytes()
+                        : null,
+                processingRecord != null && processingRecord.value() != null
+                        ? processingRecord.value().toString().getBytes()
+                        : null)
                 .build();
     }
 
