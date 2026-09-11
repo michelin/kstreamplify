@@ -58,7 +58,9 @@ public abstract class DlqExceptionHandler {
                                         + " bytes). The key will be used instead"
                                 : null)
                 .setByteValue(
-                        tooLarge ? key != null ? ByteBuffer.wrap(key) : null : value != null ? ByteBuffer.wrap(value) : null);
+                        tooLarge
+                                ? key != null ? ByteBuffer.wrap(key) : null
+                                : value != null ? ByteBuffer.wrap(value) : null);
     }
 
     /**

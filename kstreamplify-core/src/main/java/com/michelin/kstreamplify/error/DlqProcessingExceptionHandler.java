@@ -115,14 +115,14 @@ public class DlqProcessingExceptionHandler extends DlqExceptionHandler implement
                                 : processingRecord.value().toString());
 
         return enrichWithException(
-                builder,
-                exception,
-                processingRecord != null && processingRecord.key() != null
-                        ? processingRecord.key().toString().getBytes()
-                        : null,
-                processingRecord != null && processingRecord.value() != null
-                        ? processingRecord.value().toString().getBytes()
-                        : null)
+                        builder,
+                        exception,
+                        processingRecord != null && processingRecord.key() != null
+                                ? processingRecord.key().toString().getBytes()
+                                : null,
+                        processingRecord != null && processingRecord.value() != null
+                                ? processingRecord.value().toString().getBytes()
+                                : null)
                 .build();
     }
 
