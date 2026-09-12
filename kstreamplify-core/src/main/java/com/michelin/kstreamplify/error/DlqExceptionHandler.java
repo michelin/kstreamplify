@@ -57,7 +57,10 @@ public abstract class DlqExceptionHandler {
                                 ? "The record is too large to be set as value (" + value.length
                                         + " bytes). The key will be used instead"
                                 : null)
-                .setByteValue(tooLarge ? ByteBuffer.wrap(key) : ByteBuffer.wrap(value));
+                .setByteValue(
+                        tooLarge
+                                ? key != null ? ByteBuffer.wrap(key) : null
+                                : value != null ? ByteBuffer.wrap(value) : null);
     }
 
     /**

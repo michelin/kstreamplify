@@ -73,4 +73,23 @@ class DlqExceptionHandlerTest {
                 "The record is too large to be set as value (5 bytes). " + "The key will be used instead",
                 error.getValue());
     }
+
+    @Test
+    void shouldEnrichWithNullKeyAndNullValue() {
+        KafkaError.Builder kafkaError = KafkaError.newBuilder()
+                .setTopic("topic")
+                .setStack("stack")
+                .setPartition(0)
+                .setOffset(0)
+                .setCause("cause")
+                .setValue("value");
+
+        DlqProductionExceptionHandler handler = new DlqProductionExceptionHandler();
+        KafkaError.Builder enrichedBuilder =
+                handler.enrichWithException(kafkaError, new RuntimeException("Exception..."), null, null);
+
+        KafkaError error = enrichedBuilder.build();
+        assertEquals("Unknown cause", error.getCause());
+        assertNull(error.getByteValue());
+    }
 }
