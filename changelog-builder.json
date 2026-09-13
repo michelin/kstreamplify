@@ -19,6 +19,12 @@
       ]
     },
     {
+      "title": "## :recycle: Refactor",
+      "labels": [
+        "refactor"
+      ]
+    },
+    {
       "title": "## :memo: Documentation",
       "labels": [
         "documentation"
