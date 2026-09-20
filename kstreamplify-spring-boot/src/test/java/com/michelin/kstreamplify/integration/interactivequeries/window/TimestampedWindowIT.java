@@ -28,7 +28,7 @@ import static org.springframework.http.HttpMethod.GET;
 
 import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.service.interactivequeries.window.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
@@ -71,10 +71,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@ActiveProfiles("interactive-queries-window")
+@ActiveProfiles("interactive-queries-timestamped-window")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
-class WindowIntegrationTest extends KafkaIntegrationTest {
+class TimestampedWindowIT extends KafkaIT {
 
     @Autowired
     private WindowStoreService windowService;
@@ -105,8 +105,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void setUp() throws InterruptedException {
         waitingForKafkaStreamsToStart();
         waitingForLocalStoreToReachOffset(Map.of(
-                "STRING_STRING_WINDOW_STORE", Map.of(2, 1L),
-                "STRING_AVRO_WINDOW_STORE", Map.of(0, 1L),
+                "STRING_STRING_TIMESTAMPED_STORE", Map.of(2, 1L),
+                "STRING_AVRO_TIMESTAMPED_STORE", Map.of(0, 1L),
                 "STRING_AVRO_KV_STORE", Map.of(0, 1L)));
     }
 
@@ -114,17 +114,17 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
         ResponseEntity<List<String>> stores =
-                restTemplate.exchange("http://localhost:8004/store", GET, null, new ParameterizedTypeReference<>() {});
+                restTemplate.exchange("http://localhost:8005/store", GET, null, new ParameterizedTypeReference<>() {});
 
         assertEquals(200, stores.getStatusCode().value());
         assertNotNull(stores.getBody());
         assertTrue(stores.getBody()
-                .containsAll(
-                        List.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE")));
+                .containsAll(List.of(
+                        "STRING_STRING_TIMESTAMPED_STORE", "STRING_AVRO_TIMESTAMPED_STORE", "STRING_AVRO_KV_STORE")));
 
         // Get hosts
         ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate.exchange(
-                "http://localhost:8004/store/metadata/STRING_STRING_WINDOW_STORE",
+                "http://localhost:8005/store/metadata/STRING_STRING_TIMESTAMPED_STORE",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {});
@@ -132,10 +132,10 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, streamsMetadata.getStatusCode().value());
         assertNotNull(streamsMetadata.getBody());
         assertEquals(
-                Set.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE"),
+                Set.of("STRING_STRING_TIMESTAMPED_STORE", "STRING_AVRO_TIMESTAMPED_STORE", "STRING_AVRO_KV_STORE"),
                 streamsMetadata.getBody().get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8004, streamsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(8005, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(
                 Set.of("AVRO_TOPIC-0", "AVRO_TOPIC-1", "STRING_TOPIC-0", "STRING_TOPIC-1", "STRING_TOPIC-2"),
                 streamsMetadata.getBody().get(0).getTopicPartitions());
@@ -143,9 +143,9 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8004/store/window/WRONG_STORE/user,State store WRONG_STORE not found",
-        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8004/store/window/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8005/store/window/WRONG_STORE/user,State store WRONG_STORE not found",
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8005/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
@@ -157,7 +157,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
         ResponseEntity<String> response =
-                restTemplate.getForEntity("http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user", String.class);
+                restTemplate.getForEntity("http://localhost:8005/store/window/STRING_AVRO_KV_STORE/user", String.class);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -166,7 +166,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringStringStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
-                "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
+                "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/user",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {});
@@ -181,7 +181,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStore() {
         ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
-                "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user",
+                "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/user",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {});
@@ -200,8 +200,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
-        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/user",
+        "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/user"
     })
     void shouldNotFoundWhenStartTimeIsTooLate(String url) {
         Instant tooLate = Instant.now().plus(Duration.ofDays(1));
@@ -213,8 +213,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
-        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE/user",
+        "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE/user"
     })
     void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
         Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
@@ -226,8 +226,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE",
-        "http://localhost:8004/store/window/local/STRING_STRING_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_STRING_TIMESTAMPED_STORE",
+        "http://localhost:8005/store/window/local/STRING_STRING_TIMESTAMPED_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response =
@@ -242,8 +242,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE",
-        "http://localhost:8004/store/window/local/STRING_AVRO_WINDOW_STORE"
+        "http://localhost:8005/store/window/STRING_AVRO_TIMESTAMPED_STORE",
+        "http://localhost:8005/store/window/local/STRING_AVRO_TIMESTAMPED_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
         ResponseEntity<List<StateStoreRecord>> response =
@@ -263,7 +263,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetByKeyInStringAvroStoreFromService() {
         List<StateStoreRecord> stateStoreRecord =
-                windowService.getByKey("STRING_AVRO_WINDOW_STORE", "user", Instant.EPOCH, Instant.now());
+                windowService.getByKey("STRING_AVRO_TIMESTAMPED_STORE", "user", Instant.EPOCH, Instant.now());
 
         assertEquals("user", stateStoreRecord.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
@@ -277,7 +277,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
     @Test
     void shouldGetAllInStringAvroStoreFromService() {
         List<StateStoreRecord> stateQueryData =
-                windowService.getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
+                windowService.getAll("STRING_AVRO_TIMESTAMPED_STORE", Instant.EPOCH, Instant.now());
 
         assertEquals("user", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
@@ -307,7 +307,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
                             StoreBuilder<WindowStore<String, String>> stringStringWindowStoreBuilder =
                                     Stores.windowStoreBuilder(
                                             Stores.persistentWindowStore(
-                                                    "STRING_STRING_WINDOW_STORE",
+                                                    "STRING_STRING_TIMESTAMPED_STORE",
                                                     Duration.ofMinutes(5),
                                                     Duration.ofMinutes(1),
                                                     false),
@@ -324,7 +324,8 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
                                 @Override
                                 public void init(ProcessorContext<String, String> context) {
-                                    this.stringStringWindowStore = context.getStateStore("STRING_STRING_WINDOW_STORE");
+                                    this.stringStringWindowStore =
+                                            context.getStateStore("STRING_STRING_TIMESTAMPED_STORE");
                                 }
 
                                 @Override
@@ -343,7 +344,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
                             StoreBuilder<WindowStore<String, KafkaUserStub>> stringAvroWindowStoreBuilder =
                                     Stores.windowStoreBuilder(
                                             Stores.persistentWindowStore(
-                                                    "STRING_AVRO_WINDOW_STORE",
+                                                    "STRING_AVRO_TIMESTAMPED_STORE",
                                                     Duration.ofMinutes(5),
                                                     Duration.ofMinutes(1),
                                                     false),
@@ -367,7 +368,7 @@ class WindowIntegrationTest extends KafkaIntegrationTest {
 
                                 @Override
                                 public void init(ProcessorContext<String, KafkaUserStub> context) {
-                                    this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_WINDOW_STORE");
+                                    this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_TIMESTAMPED_STORE");
                                     this.stringAvroKeyValueStore = context.getStateStore("STRING_AVRO_KV_STORE");
                                 }
 

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
+class WebServicesPathIT extends KafkaIT {
 
     @BeforeAll
     static void globalSetUp() {
@@ -64,7 +64,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 "custom-topology"));
 
         initializer = new KafkaStreamInitializerStub(
-                new KafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub(), 8081, properties);
+                new KafkaStreamsInitializerIT.KafkaStreamsStarterStub(), 8081, properties);
 
         initializer.start();
     }

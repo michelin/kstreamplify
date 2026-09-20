@@ -18,25 +18,29 @@
  */
 package com.michelin.kstreamplify.integration.interactivequeries.keyvalue;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_ID_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.http.HttpMethod.GET;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.service.interactivequeries.keyvalue.KeyValueStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -60,24 +64,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@ActiveProfiles("interactive-queries-key-value")
-@SpringBootTest(webEnvironment = DEFINED_PORT)
-@AutoConfigureTestRestTemplate
-class KeyValueIntegrationTest extends KafkaIntegrationTest {
+class KeyValueIT extends KafkaIT {
 
-    @Autowired
-    private KeyValueStoreService keyValueService;
+    private final KeyValueStoreService keyValueService = new KeyValueStoreService(initializer);
 
     @BeforeAll
     static void globalSetUp() {
@@ -99,6 +91,12 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
                 .build();
         ProducerRecord<String, KafkaUserStub> avroMessage = new ProducerRecord<>("AVRO_TOPIC", "user", kafkaUserStub);
         produceRecordToTopic(List.of(avroMessage), properties);
+
+        properties = getKafkaStreamProperties();
+        properties.put(KAFKA_PROPERTIES_PREFIX + APPLICATION_ID_CONFIG, "appKeyValueInteractiveQueriesId");
+        initializer = new KafkaIT.KafkaStreamInitializerStub(new KafkaStreamsStarterStub(), 8082, properties);
+
+        initializer.start();
     }
 
     @BeforeEach
@@ -111,118 +109,144 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldGetStoresAndStoreMetadata() {
+    void shouldGetStoresAndStoreMetadata() throws IOException, InterruptedException {
         // Get stores
-        ResponseEntity<List<String>> stores =
-                restTemplate.exchange("http://localhost:8002/store", GET, null, new ParameterizedTypeReference<>() {});
+        HttpRequest storesRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8082/store"))
+                .GET()
+                .build();
 
-        assertEquals(200, stores.getStatusCode().value());
-        assertNotNull(stores.getBody());
-        assertTrue(stores.getBody()
-                .containsAll(List.of("STRING_STRING_KV_STORE", "STRING_AVRO_KV_STORE", "STRING_AVRO_WINDOW_STORE")));
+        HttpResponse<String> storesResponse = httpClient.send(storesRequest, HttpResponse.BodyHandlers.ofString());
+        List<String> stores = objectMapper.readValue(storesResponse.body(), new TypeReference<>() {});
 
-        // Get hosts
-        ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate.exchange(
-                "http://localhost:8002/store/metadata/STRING_STRING_KV_STORE",
-                GET,
-                null,
-                new ParameterizedTypeReference<>() {});
+        assertEquals(200, storesResponse.statusCode());
+        assertTrue(stores.containsAll(
+                List.of("STRING_STRING_KV_STORE", "STRING_AVRO_KV_STORE", "STRING_AVRO_WINDOW_STORE")));
 
-        assertEquals(200, streamsMetadata.getStatusCode().value());
-        assertNotNull(streamsMetadata.getBody());
+        // Get store metadata
+        HttpRequest streamsMetadataRequest = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8082/store/metadata/STRING_STRING_KV_STORE"))
+                .GET()
+                .build();
+
+        HttpResponse<String> streamsMetadataResponse =
+                httpClient.send(streamsMetadataRequest, HttpResponse.BodyHandlers.ofString());
+
+        List<StreamsMetadata> streamsMetadata =
+                objectMapper.readValue(streamsMetadataResponse.body(), new TypeReference<>() {});
+
+        assertEquals(200, streamsMetadataResponse.statusCode());
         assertEquals(
                 Set.of("STRING_STRING_KV_STORE", "STRING_AVRO_KV_STORE", "STRING_AVRO_WINDOW_STORE"),
-                streamsMetadata.getBody().get(0).getStateStoreNames());
-        assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8002, streamsMetadata.getBody().get(0).getHostInfo().port());
+                streamsMetadata.get(0).getStateStoreNames());
+        assertEquals("localhost", streamsMetadata.get(0).getHostInfo().host());
+        assertEquals(8082, streamsMetadata.get(0).getHostInfo().port());
         assertEquals(
                 Set.of("AVRO_TOPIC-0", "AVRO_TOPIC-1", "STRING_TOPIC-0", "STRING_TOPIC-1", "STRING_TOPIC-2"),
-                streamsMetadata.getBody().get(0).getTopicPartitions());
+                streamsMetadata.get(0).getTopicPartitions());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8002/store/key-value/WRONG_STORE/user,State store WRONG_STORE not found",
-        "http://localhost:8002/store/key-value/STRING_STRING_KV_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8002/store/key-value/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8082/store/key-value/WRONG_STORE/user,State store WRONG_STORE not found",
+        "http://localhost:8082/store/key-value/STRING_STRING_KV_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8082/store/key-value/WRONG_STORE,State store WRONG_STORE not found"
     })
-    void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+    void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) throws IOException, InterruptedException {
+        HttpRequest request =
+                HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
 
-        assertEquals(404, response.getStatusCode().value());
-        assertEquals(message, response.getBody());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode());
+        assertEquals(message, response.body());
     }
 
     @Test
-    void shouldGetErrorWhenQueryingWrongStoreType() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "http://localhost:8002/store/key-value/STRING_AVRO_WINDOW_STORE/user", String.class);
+    void shouldGetErrorWhenQueryingWrongStoreType() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8082/store/key-value/STRING_AVRO_WINDOW_STORE/user"))
+                .GET()
+                .build();
 
-        assertEquals(400, response.getStatusCode().value());
-        assertNotNull(response.getBody());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(400, response.statusCode());
+        assertNotNull(response.body());
     }
 
     @Test
-    void shouldGetByKeyInStringStringStore() {
-        ResponseEntity<StateStoreRecord> response = restTemplate.getForEntity(
-                "http://localhost:8002/store/key-value/STRING_STRING_KV_STORE/user", StateStoreRecord.class);
+    void shouldGetByKeyInStringStringStore() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8082/store/key-value/STRING_STRING_KV_STORE/user"))
+                .GET()
+                .build();
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().getKey());
-        assertEquals("Doe", response.getBody().getValue());
-        assertNull(response.getBody().getTimestamp());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        StateStoreRecord body = objectMapper.readValue(response.body(), StateStoreRecord.class);
+
+        assertEquals(200, response.statusCode());
+        assertEquals("user", body.getKey());
+        assertEquals("Doe", body.getValue());
+        assertNull(body.getTimestamp());
     }
 
     @Test
-    void shouldGetByKeyInStringAvroStore() {
-        ResponseEntity<StateStoreRecord> response = restTemplate.getForEntity(
-                "http://localhost:8002/store/key-value/STRING_AVRO_KV_STORE/user", StateStoreRecord.class);
+    void shouldGetByKeyInStringAvroStore() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8082/store/key-value/STRING_AVRO_KV_STORE/user"))
+                .GET()
+                .build();
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().getKey());
-        assertEquals(1, ((HashMap<?, ?>) response.getBody().getValue()).get("id"));
-        assertEquals("John", ((HashMap<?, ?>) response.getBody().getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) response.getBody().getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().getValue()).get("birthDate"));
-        assertNull(response.getBody().getTimestamp());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        StateStoreRecord body = objectMapper.readValue(response.body(), StateStoreRecord.class);
+
+        assertEquals(200, response.statusCode());
+        assertEquals("user", body.getKey());
+        assertEquals(1, ((Map<?, ?>) body.getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.getValue()).get("birthDate"));
+        assertNull(body.getTimestamp());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8002/store/key-value/STRING_STRING_KV_STORE",
-        "http://localhost:8002/store/key-value/local/STRING_STRING_KV_STORE"
+        "http://localhost:8082/store/key-value/STRING_STRING_KV_STORE",
+        "http://localhost:8082/store/key-value/local/STRING_STRING_KV_STORE"
     })
-    void shouldGetAllInStringStringStore(String url) {
-        ResponseEntity<List<StateStoreRecord>> response =
-                restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<>() {});
+    void shouldGetAllInStringStringStore(String url) throws IOException, InterruptedException {
+        HttpRequest request =
+                HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().get(0).getKey());
-        assertEquals("Doe", response.getBody().get(0).getValue());
-        assertNull(response.getBody().get(0).getTimestamp());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+
+        assertEquals(200, response.statusCode());
+        assertEquals("user", body.get(0).getKey());
+        assertEquals("Doe", body.get(0).getValue());
+        assertNull(body.get(0).getTimestamp());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8002/store/key-value/STRING_AVRO_KV_STORE",
-        "http://localhost:8002/store/key-value/local/STRING_AVRO_KV_STORE"
+        "http://localhost:8082/store/key-value/STRING_AVRO_KV_STORE",
+        "http://localhost:8082/store/key-value/local/STRING_AVRO_KV_STORE"
     })
-    void shouldGetAllFromStringAvroStores(String url) {
-        ResponseEntity<List<StateStoreRecord>> response =
-                restTemplate.exchange(url, GET, null, new ParameterizedTypeReference<>() {});
+    void shouldGetAllFromStringAvroStores(String url) throws IOException, InterruptedException {
+        HttpRequest request =
+                HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().get(0).getKey());
-        assertEquals(1, ((Map<?, ?>) response.getBody().get(0).getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
-        assertEquals(
-                "2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNull(response.getBody().get(0).getTimestamp());
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StateStoreRecord> body = objectMapper.readValue(response.body(), new TypeReference<>() {});
+
+        assertEquals(200, response.statusCode());
+        assertEquals("user", body.get(0).getKey());
+        assertEquals(1, ((Map<?, ?>) body.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) body.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) body.get(0).getValue()).get("lastName"));
+        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) body.get(0).getValue()).get("birthDate"));
+        assertNull(body.get(0).getTimestamp());
     }
 
     @Test
@@ -250,15 +274,10 @@ class KeyValueIntegrationTest extends KafkaIntegrationTest {
     }
 
     /**
-     * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics and
-     * stores them in dedicated stores so that they can be queried.
+     * Kafka Streams starter implementation for integration tests. The topology consumes events from multiple topics
+     * (string, Java, Avro) and stores them in dedicated stores so that they can be queried.
      */
-    @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
-
-        public static void main(String[] args) {
-            SpringApplication.run(KafkaStreamsStarterStub.class, args);
-        }
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {

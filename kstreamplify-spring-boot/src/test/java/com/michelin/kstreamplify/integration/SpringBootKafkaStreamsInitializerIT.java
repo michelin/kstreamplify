@@ -19,12 +19,14 @@
 package com.michelin.kstreamplify.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,19 +37,22 @@ import org.apache.kafka.streams.StreamsMetadata;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@ActiveProfiles("web-services-path")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
-class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
+class SpringBootKafkaStreamsInitializerIT extends KafkaIT {
+    @Autowired
+    private MeterRegistry registry;
 
     @BeforeAll
     static void globalSetUp() {
@@ -63,7 +68,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
     }
 
     @Test
-    void shouldInitAndRunWithWebServicesExposedOnCustomPaths() {
+    void shouldStartAndRun() {
         assertEquals(KafkaStreams.State.RUNNING, initializer.getKafkaStreams().state());
 
         List<StreamsMetadata> streamsMetadata =
@@ -71,7 +76,7 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
 
         // Assert Kafka Streams initialization
         assertEquals("localhost", streamsMetadata.get(0).hostInfo().host());
-        assertEquals(8001, streamsMetadata.get(0).hostInfo().port());
+        assertEquals(8000, streamsMetadata.get(0).hostInfo().port());
         assertTrue(streamsMetadata.get(0).stateStoreNames().isEmpty());
 
         Set<TopicPartition> topicPartitions = streamsMetadata.get(0).topicPartitions();
@@ -88,21 +93,19 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
                 KafkaStreamsExecutionContext.getSerdesConfig().get("default.value.serde"));
 
         assertEquals(
-                "localhost:8001", KafkaStreamsExecutionContext.getProperties().get("application.server"));
+                "localhost:8000", KafkaStreamsExecutionContext.getProperties().get("application.server"));
 
         // Assert HTTP probes
-        ResponseEntity<Void> responseReady =
-                restTemplate.getForEntity("http://localhost:8001/custom-readiness", Void.class);
+        ResponseEntity<Void> responseReady = restTemplate.getForEntity("http://localhost:8000/ready", Void.class);
 
         assertEquals(200, responseReady.getStatusCode().value());
 
-        ResponseEntity<Void> responseLiveness =
-                restTemplate.getForEntity("http://localhost:8001/custom-liveness", Void.class);
+        ResponseEntity<Void> responseLiveness = restTemplate.getForEntity("http://localhost:8000/liveness", Void.class);
 
         assertEquals(200, responseLiveness.getStatusCode().value());
 
         ResponseEntity<String> responseTopology =
-                restTemplate.getForEntity("http://localhost:8001/custom-topology", String.class);
+                restTemplate.getForEntity("http://localhost:8000/topology", String.class);
 
         assertEquals(200, responseTopology.getStatusCode().value());
         assertEquals("""
@@ -116,14 +119,37 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
             """, responseTopology.getBody());
     }
 
+    @Test
+    void shouldRegisterKafkaMetrics() {
+        // Kafka Streams metrics are registered
+        assertFalse(registry.getMeters().stream()
+                .filter(metric -> metric.getId().getName().startsWith("kafka.stream"))
+                .toList()
+                .isEmpty());
+
+        // Kafka producer metrics are registered
+        assertFalse(registry.getMeters().stream()
+                .filter(metric -> metric.getId().getName().startsWith("kafka.producer"))
+                .toList()
+                .isEmpty());
+
+        // Kafka consumer metrics are registered
+        assertFalse(registry.getMeters().stream()
+                .filter(metric -> metric.getId().getName().startsWith("kafka.consumer"))
+                .toList()
+                .isEmpty());
+    }
+
     /**
      * Kafka Streams starter implementation for integration tests. The topology simply forwards messages from inputTopic
      * to outputTopic.
      */
     @SpringBootApplication
     static class KafkaStreamsStarterStub extends KafkaStreamsStarter {
+        private static final Logger log = LoggerFactory.getLogger(KafkaStreamsStarterStub.class);
+
         public static void main(String[] args) {
-            SpringApplication.run(SpringBootKafkaStreamsInitializerIntegrationTest.KafkaStreamsStarterStub.class, args);
+            SpringApplication.run(KafkaStreamsStarterStub.class, args);
         }
 
         @Override
@@ -134,6 +160,11 @@ class WebServicesPathIntegrationTest extends KafkaIntegrationTest {
         @Override
         public String dlqTopic() {
             return "DLQ_TOPIC";
+        }
+
+        @Override
+        public void onStart(KafkaStreams kafkaStreams) {
+            log.info("Starting Kafka Streams from integration tests!");
         }
     }
 }
