@@ -16,20 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.michelin.kstreamplify.integration.interactivequeries.keyvalue;
+package com.michelin.kstreamplify.integration.interactivequeries.window;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.http.HttpMethod.GET;
 
 import com.michelin.kstreamplify.avro.KafkaUserStub;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import com.michelin.kstreamplify.serde.SerdesUtils;
-import com.michelin.kstreamplify.service.interactivequeries.keyvalue.TimestampedKeyValueStoreService;
+import com.michelin.kstreamplify.service.interactivequeries.window.WindowStoreService;
 import com.michelin.kstreamplify.store.StateStoreRecord;
 import com.michelin.kstreamplify.store.StreamsMetadata;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
@@ -50,10 +51,9 @@ import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
 import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
-import org.apache.kafka.streams.state.TimestampedKeyValueStore;
-import org.apache.kafka.streams.state.ValueAndTimestamp;
 import org.apache.kafka.streams.state.WindowStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,13 +71,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@ActiveProfiles("interactive-queries-timestamped-key-value")
+@ActiveProfiles("interactive-queries-window")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
-class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
+class WindowIT extends KafkaIT {
 
     @Autowired
-    private TimestampedKeyValueStoreService timestampedKeyValueService;
+    private WindowStoreService windowService;
 
     @BeforeAll
     static void globalSetUp() {
@@ -105,28 +105,26 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
     void setUp() throws InterruptedException {
         waitingForKafkaStreamsToStart();
         waitingForLocalStoreToReachOffset(Map.of(
-                "STRING_STRING_TIMESTAMPED_STORE", Map.of(2, 1L),
-                "STRING_AVRO_TIMESTAMPED_STORE", Map.of(0, 1L),
-                "STRING_AVRO_WINDOW_STORE", Map.of(0, 1L)));
+                "STRING_STRING_WINDOW_STORE", Map.of(2, 1L),
+                "STRING_AVRO_WINDOW_STORE", Map.of(0, 1L),
+                "STRING_AVRO_KV_STORE", Map.of(0, 1L)));
     }
 
     @Test
     void shouldGetStoresAndStoreMetadata() {
         // Get stores
         ResponseEntity<List<String>> stores =
-                restTemplate.exchange("http://localhost:8003/store", GET, null, new ParameterizedTypeReference<>() {});
+                restTemplate.exchange("http://localhost:8004/store", GET, null, new ParameterizedTypeReference<>() {});
 
         assertEquals(200, stores.getStatusCode().value());
         assertNotNull(stores.getBody());
         assertTrue(stores.getBody()
-                .containsAll(List.of(
-                        "STRING_STRING_TIMESTAMPED_STORE",
-                        "STRING_AVRO_TIMESTAMPED_STORE",
-                        "STRING_AVRO_WINDOW_STORE")));
+                .containsAll(
+                        List.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE")));
 
         // Get hosts
         ResponseEntity<List<StreamsMetadata>> streamsMetadata = restTemplate.exchange(
-                "http://localhost:8003/store/metadata/STRING_STRING_TIMESTAMPED_STORE",
+                "http://localhost:8004/store/metadata/STRING_STRING_WINDOW_STORE",
                 GET,
                 null,
                 new ParameterizedTypeReference<>() {});
@@ -134,10 +132,10 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         assertEquals(200, streamsMetadata.getStatusCode().value());
         assertNotNull(streamsMetadata.getBody());
         assertEquals(
-                Set.of("STRING_STRING_TIMESTAMPED_STORE", "STRING_AVRO_TIMESTAMPED_STORE", "STRING_AVRO_WINDOW_STORE"),
+                Set.of("STRING_STRING_WINDOW_STORE", "STRING_AVRO_WINDOW_STORE", "STRING_AVRO_KV_STORE"),
                 streamsMetadata.getBody().get(0).getStateStoreNames());
         assertEquals("localhost", streamsMetadata.getBody().get(0).getHostInfo().host());
-        assertEquals(8003, streamsMetadata.getBody().get(0).getHostInfo().port());
+        assertEquals(8004, streamsMetadata.getBody().get(0).getHostInfo().port());
         assertEquals(
                 Set.of("AVRO_TOPIC-0", "AVRO_TOPIC-1", "STRING_TOPIC-0", "STRING_TOPIC-1", "STRING_TOPIC-2"),
                 streamsMetadata.getBody().get(0).getTopicPartitions());
@@ -145,9 +143,9 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8003/store/key-value/timestamped/WRONG_STORE/user,State store WRONG_STORE not found",
-        "http://localhost:8003/store/key-value/timestamped/STRING_STRING_TIMESTAMPED_STORE/wrongKey,Key wrongKey not found",
-        "http://localhost:8003/store/key-value/timestamped/WRONG_STORE,State store WRONG_STORE not found"
+        "http://localhost:8004/store/window/WRONG_STORE/user,State store WRONG_STORE not found",
+        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/wrongKey,Key wrongKey not found",
+        "http://localhost:8004/store/window/WRONG_STORE,State store WRONG_STORE not found"
     })
     void shouldNotFoundWhenKeyOrStoreNotFound(String url, String message) {
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
@@ -158,8 +156,8 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetErrorWhenQueryingWrongStoreType() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "http://localhost:8003/store/key-value/timestamped/STRING_AVRO_WINDOW_STORE/user", String.class);
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("http://localhost:8004/store/window/STRING_AVRO_KV_STORE/user", String.class);
 
         assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
@@ -167,37 +165,69 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
 
     @Test
     void shouldGetByKeyInStringStringStore() {
-        ResponseEntity<StateStoreRecord> response = restTemplate.getForEntity(
-                "http://localhost:8003/store/key-value/timestamped/STRING_STRING_TIMESTAMPED_STORE/user",
-                StateStoreRecord.class);
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
+                "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
+                GET,
+                null,
+                new ParameterizedTypeReference<>() {});
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().getKey());
-        assertEquals("Doe", response.getBody().getValue());
-        assertNotNull(response.getBody().getTimestamp());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals("Doe", response.getBody().get(0).getValue());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test
     void shouldGetByKeyInStringAvroStore() {
-        ResponseEntity<StateStoreRecord> response = restTemplate.getForEntity(
-                "http://localhost:8003/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE/user",
-                StateStoreRecord.class);
+        ResponseEntity<List<StateStoreRecord>> response = restTemplate.exchange(
+                "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user",
+                GET,
+                null,
+                new ParameterizedTypeReference<>() {});
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals("user", response.getBody().getKey());
-        assertEquals(1, ((HashMap<?, ?>) response.getBody().getValue()).get("id"));
-        assertEquals("John", ((HashMap<?, ?>) response.getBody().getValue()).get("firstName"));
-        assertEquals("Doe", ((HashMap<?, ?>) response.getBody().getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((HashMap<?, ?>) response.getBody().getValue()).get("birthDate"));
-        assertNotNull(response.getBody().getTimestamp());
+        assertEquals("user", response.getBody().get(0).getKey());
+        assertEquals(1, ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("id"));
+        assertEquals("John", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
+        assertEquals(
+                "2000-01-01T01:00:00Z",
+                ((HashMap<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8003/store/key-value/timestamped/STRING_STRING_TIMESTAMPED_STORE",
-        "http://localhost:8003/store/key-value/timestamped/local/STRING_STRING_TIMESTAMPED_STORE"
+        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
+        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user"
+    })
+    void shouldNotFoundWhenStartTimeIsTooLate(String url) {
+        Instant tooLate = Instant.now().plus(Duration.ofDays(1));
+        ResponseEntity<String> response = restTemplate.getForEntity(url + "?startTime=" + tooLate, String.class);
+
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("Key user not found", response.getBody());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE/user",
+        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE/user"
+    })
+    void shouldNotFoundWhenEndTimeIsTooEarly(String url) {
+        Instant tooEarly = Instant.now().minus(Duration.ofDays(1));
+        ResponseEntity<String> response = restTemplate.getForEntity(url + "?endTime=" + tooEarly, String.class);
+
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals("Key user not found", response.getBody());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "http://localhost:8004/store/window/STRING_STRING_WINDOW_STORE",
+        "http://localhost:8004/store/window/local/STRING_STRING_WINDOW_STORE"
     })
     void shouldGetAllInStringStringStore(String url) {
         ResponseEntity<List<StateStoreRecord>> response =
@@ -207,13 +237,13 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         assertNotNull(response.getBody());
         assertEquals("user", response.getBody().get(0).getKey());
         assertEquals("Doe", response.getBody().get(0).getValue());
-        assertNotNull(response.getBody().get(0).getTimestamp());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "http://localhost:8003/store/key-value/timestamped/STRING_AVRO_TIMESTAMPED_STORE",
-        "http://localhost:8003/store/key-value/timestamped/local/STRING_AVRO_TIMESTAMPED_STORE"
+        "http://localhost:8004/store/window/STRING_AVRO_WINDOW_STORE",
+        "http://localhost:8004/store/window/local/STRING_AVRO_WINDOW_STORE"
     })
     void shouldGetAllFromStringAvroStores(String url) {
         ResponseEntity<List<StateStoreRecord>> response =
@@ -227,32 +257,34 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
         assertEquals("Doe", ((Map<?, ?>) response.getBody().get(0).getValue()).get("lastName"));
         assertEquals(
                 "2000-01-01T01:00:00Z", ((Map<?, ?>) response.getBody().get(0).getValue()).get("birthDate"));
-        assertNotNull(response.getBody().get(0).getTimestamp());
+        assertNull(response.getBody().get(0).getTimestamp());
     }
 
     @Test
     void shouldGetByKeyInStringAvroStoreFromService() {
-        StateStoreRecord stateStoreRecord =
-                timestampedKeyValueService.getByKey("STRING_AVRO_TIMESTAMPED_STORE", "user");
+        List<StateStoreRecord> stateStoreRecord =
+                windowService.getByKey("STRING_AVRO_WINDOW_STORE", "user", Instant.EPOCH, Instant.now());
 
-        assertEquals("user", stateStoreRecord.getKey());
-        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.getValue()).get("id"));
-        assertEquals("John", ((Map<?, ?>) stateStoreRecord.getValue()).get("firstName"));
-        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.getValue()).get("lastName"));
-        assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.getValue()).get("birthDate"));
-        assertNotNull(stateStoreRecord.getTimestamp());
+        assertEquals("user", stateStoreRecord.get(0).getKey());
+        assertEquals(1L, ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("id"));
+        assertEquals("John", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("firstName"));
+        assertEquals("Doe", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("lastName"));
+        assertEquals(
+                "2000-01-01T01:00:00Z", ((Map<?, ?>) stateStoreRecord.get(0).getValue()).get("birthDate"));
+        assertNull(stateStoreRecord.get(0).getTimestamp());
     }
 
     @Test
     void shouldGetAllInStringAvroStoreFromService() {
-        List<StateStoreRecord> stateQueryData = timestampedKeyValueService.getAll("STRING_AVRO_TIMESTAMPED_STORE");
+        List<StateStoreRecord> stateQueryData =
+                windowService.getAll("STRING_AVRO_WINDOW_STORE", Instant.EPOCH, Instant.now());
 
         assertEquals("user", stateQueryData.get(0).getKey());
         assertEquals(1L, ((Map<?, ?>) stateQueryData.get(0).getValue()).get("id"));
         assertEquals("John", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("firstName"));
         assertEquals("Doe", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("lastName"));
         assertEquals("2000-01-01T01:00:00Z", ((Map<?, ?>) stateQueryData.get(0).getValue()).get("birthDate"));
-        assertNotNull(stateQueryData.get(0).getTimestamp());
+        assertNull(stateQueryData.get(0).getTimestamp());
     }
 
     /**
@@ -272,32 +304,32 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
                     .process(new ProcessorSupplier<String, String, String, String>() {
                         @Override
                         public Set<StoreBuilder<?>> stores() {
-                            StoreBuilder<TimestampedKeyValueStore<String, String>> stringStringKeyValueStoreBuilder =
-                                    Stores.timestampedKeyValueStoreBuilder(
-                                            Stores.persistentTimestampedKeyValueStore(
-                                                    "STRING_STRING_TIMESTAMPED_STORE"),
+                            StoreBuilder<WindowStore<String, String>> stringStringWindowStoreBuilder =
+                                    Stores.windowStoreBuilder(
+                                            Stores.persistentWindowStore(
+                                                    "STRING_STRING_WINDOW_STORE",
+                                                    Duration.ofMinutes(5),
+                                                    Duration.ofMinutes(1),
+                                                    false),
                                             Serdes.String(),
                                             Serdes.String());
 
-                            return Set.of(stringStringKeyValueStoreBuilder);
+                            return Set.of(stringStringWindowStoreBuilder);
                         }
 
                         @Override
                         public Processor<String, String, String, String> get() {
                             return new Processor<>() {
-                                private TimestampedKeyValueStore<String, String> stringStringKeyValueStore;
+                                private WindowStore<String, String> stringStringWindowStore;
 
                                 @Override
                                 public void init(ProcessorContext<String, String> context) {
-                                    this.stringStringKeyValueStore =
-                                            context.getStateStore("STRING_STRING_TIMESTAMPED_STORE");
+                                    this.stringStringWindowStore = context.getStateStore("STRING_STRING_WINDOW_STORE");
                                 }
 
                                 @Override
                                 public void process(Record<String, String> message) {
-                                    stringStringKeyValueStore.put(
-                                            message.key(),
-                                            ValueAndTimestamp.make(message.value(), message.timestamp()));
+                                    stringStringWindowStore.put(message.key(), message.value(), message.timestamp());
                                 }
                             };
                         }
@@ -308,12 +340,6 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
                     .process(new ProcessorSupplier<String, KafkaUserStub, String, KafkaUserStub>() {
                         @Override
                         public Set<StoreBuilder<?>> stores() {
-                            StoreBuilder<TimestampedKeyValueStore<String, KafkaUserStub>>
-                                    stringAvroKeyValueStoreBuilder = Stores.timestampedKeyValueStoreBuilder(
-                                            Stores.persistentTimestampedKeyValueStore("STRING_AVRO_TIMESTAMPED_STORE"),
-                                            Serdes.String(),
-                                            SerdesUtils.getValueSerdes());
-
                             StoreBuilder<WindowStore<String, KafkaUserStub>> stringAvroWindowStoreBuilder =
                                     Stores.windowStoreBuilder(
                                             Stores.persistentWindowStore(
@@ -324,29 +350,31 @@ class TimestampedKeyValueIntegrationTest extends KafkaIntegrationTest {
                                             Serdes.String(),
                                             SerdesUtils.getValueSerdes());
 
-                            return Set.of(stringAvroKeyValueStoreBuilder, stringAvroWindowStoreBuilder);
+                            StoreBuilder<KeyValueStore<String, KafkaUserStub>> stringAvroKeyValueStoreBuilder =
+                                    Stores.keyValueStoreBuilder(
+                                            Stores.persistentKeyValueStore("STRING_AVRO_KV_STORE"),
+                                            Serdes.String(),
+                                            SerdesUtils.getValueSerdes());
+
+                            return Set.of(stringAvroWindowStoreBuilder, stringAvroKeyValueStoreBuilder);
                         }
 
                         @Override
                         public Processor<String, KafkaUserStub, String, KafkaUserStub> get() {
                             return new Processor<>() {
-                                private TimestampedKeyValueStore<String, KafkaUserStub> stringAvroKeyValueStore;
                                 private WindowStore<String, KafkaUserStub> stringAvroWindowStore;
+                                private KeyValueStore<String, KafkaUserStub> stringAvroKeyValueStore;
 
                                 @Override
                                 public void init(ProcessorContext<String, KafkaUserStub> context) {
-                                    this.stringAvroKeyValueStore =
-                                            context.getStateStore("STRING_AVRO_TIMESTAMPED_STORE");
-
                                     this.stringAvroWindowStore = context.getStateStore("STRING_AVRO_WINDOW_STORE");
+                                    this.stringAvroKeyValueStore = context.getStateStore("STRING_AVRO_KV_STORE");
                                 }
 
                                 @Override
                                 public void process(Record<String, KafkaUserStub> message) {
-                                    stringAvroKeyValueStore.put(
-                                            message.key(),
-                                            ValueAndTimestamp.make(message.value(), message.timestamp()));
                                     stringAvroWindowStore.put(message.key(), message.value(), message.timestamp());
+                                    stringAvroKeyValueStore.put(message.key(), message.value());
                                 }
                             };
                         }

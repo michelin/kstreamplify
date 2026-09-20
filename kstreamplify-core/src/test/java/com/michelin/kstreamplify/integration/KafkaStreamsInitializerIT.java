@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-class KafkaStreamsInitializerIntegrationTest extends KafkaIntegrationTest {
+class KafkaStreamsInitializerIT extends KafkaIT {
     @BeforeAll
     static void globalSetUp() {
         createTopics(

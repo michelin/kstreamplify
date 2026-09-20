@@ -18,24 +18,34 @@
  */
 package com.michelin.kstreamplify.integration.container;
 
+import static com.michelin.kstreamplify.property.PropertiesUtils.KAFKA_PROPERTIES_PREFIX;
 import static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG;
 import static io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG;
+import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.AUTO_OFFSET_RESET_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.streams.StreamsConfig.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.APPLICATION_SERVER_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.COMMIT_INTERVAL_MS_CONFIG;
+import static org.apache.kafka.streams.StreamsConfig.STATE_DIR_CONFIG;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsInitializer;
+import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
+import com.michelin.kstreamplify.property.PropertiesUtils;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.kafka.clients.CommonClientConfigs;
+import java.util.stream.Collectors;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -48,12 +58,9 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.LagInfo;
+import org.apache.kafka.streams.state.HostInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.TestRestTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -62,17 +69,15 @@ import org.testcontainers.kafka.ConfluentKafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /** Base class for Kafka integration tests. */
-public abstract class KafkaIntegrationTest {
-    private static final Logger log = LoggerFactory.getLogger(KafkaIntegrationTest.class);
+public abstract class KafkaIT {
+    private static final Logger log = LoggerFactory.getLogger(KafkaIT.class);
 
     protected static final String CONFLUENT_PLATFORM_VERSION = "8.0.3";
     protected static final Network NETWORK = Network.newNetwork();
-
-    @Autowired
-    protected KafkaStreamsInitializer initializer;
-
-    @Autowired
-    protected TestRestTemplate restTemplate;
+    protected final HttpClient httpClient = HttpClient.newBuilder().build();
+    protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected static KafkaStreamsInitializer initializer;
+    private static final String KAFKA_PREFIX = "kafka.properties.";
 
     @Container
     protected static ConfluentKafkaContainer broker = new ConfluentKafkaContainer(
@@ -92,14 +97,6 @@ public abstract class KafkaIntegrationTest {
             .withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", "broker:9093")
             .waitingFor(Wait.forHttp("/subjects").forStatusCode(200));
 
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("kafka.properties." + BOOTSTRAP_SERVERS_CONFIG, broker::getBootstrapServers);
-        registry.add(
-                "kafka.properties." + SCHEMA_REGISTRY_URL_CONFIG,
-                () -> "http://" + schemaRegistry.getHost() + ":" + schemaRegistry.getFirstMappedPort());
-    }
-
     protected static void createTopics(String bootstrapServers, TopicPartition... topicPartitions) {
         createTopics(bootstrapServers, null, topicPartitions);
     }
@@ -110,16 +107,27 @@ public abstract class KafkaIntegrationTest {
                 .map(topicPartition ->
                         new NewTopic(topicPartition.topic(), topicPartition.partition(), (short) 1).configs(configs))
                 .toList();
-        try (AdminClient admin =
-                AdminClient.create(Map.of(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
+        try (AdminClient admin = AdminClient.create(Map.of(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers))) {
             admin.createTopics(newTopics);
         }
+    }
+
+    public static Properties getKafkaStreamProperties() {
+        return withKafkaPrefix(Map.of(
+                BOOTSTRAP_SERVERS_CONFIG,
+                broker.getBootstrapServers(),
+                SCHEMA_REGISTRY_URL_CONFIG,
+                schemaRegistryUrl(),
+                COMMIT_INTERVAL_MS_CONFIG,
+                "1",
+                STATE_DIR_CONFIG,
+                "/tmp/kstreamplify/kstreamplify-core-test"));
     }
 
     public static Properties getKafkaGlobalProperties() {
         Properties properties = new Properties();
 
-        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
+        properties.put(BOOTSTRAP_SERVERS_CONFIG, broker.getBootstrapServers());
         properties.put(SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl());
 
         properties.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -131,6 +139,12 @@ public abstract class KafkaIntegrationTest {
         properties.put(SPECIFIC_AVRO_READER_CONFIG, "true");
 
         return properties;
+    }
+
+    private static Properties withKafkaPrefix(Map<String, ?> configs) {
+        Properties props = new Properties();
+        configs.forEach((k, v) -> props.put(KAFKA_PREFIX + k, v));
+        return props;
     }
 
     private static String schemaRegistryUrl() {
@@ -193,5 +207,36 @@ public abstract class KafkaIntegrationTest {
                                         .get(partitionOffsetEntry.getKey())
                                         .currentOffsetPosition()
                                 == partitionOffsetEntry.getValue()));
+    }
+
+    /**
+     * Define a KafkaStreamsInitializer stub for testing.
+     *
+     * <p>This stub allows to override some properties of the application.properties file or to set some properties
+     * dynamically from Testcontainers.
+     */
+    public static class KafkaStreamInitializerStub extends KafkaStreamsInitializer {
+        public KafkaStreamInitializerStub(
+                KafkaStreamsStarter kafkaStreamsStarter, Integer serverPort, Properties additionalProperties) {
+            super(kafkaStreamsStarter);
+            this.serverPort = serverPort;
+            this.properties.putAll(additionalProperties);
+
+            Properties convertedAdditionalProperties = new Properties();
+            convertedAdditionalProperties.putAll(additionalProperties);
+            kafkaProperties.putAll(
+                    PropertiesUtils.extractSubProperties(convertedAdditionalProperties, KAFKA_PROPERTIES_PREFIX, true));
+            KafkaStreamsExecutionContext.registerProperties(kafkaProperties);
+            KafkaStreamsExecutionContext.setSerdesConfig(kafkaProperties.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            e -> String.valueOf(e.getKey()),
+                            e -> String.valueOf(e.getValue()),
+                            (prev, next) -> next,
+                            HashMap::new)));
+
+            this.hostInfo = new HostInfo(hostInfo.host(), serverPort);
+            KafkaStreamsExecutionContext.getProperties()
+                    .put(APPLICATION_SERVER_CONFIG, "%s:%s".formatted(hostInfo.host(), hostInfo.port()));
+        }
     }
 }

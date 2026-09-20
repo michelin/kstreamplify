@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-class DlqProcessingExceptionHandlerIntegrationTest extends KafkaIntegrationTest {
+class DlqProcessingExceptionHandlerIT extends KafkaIT {
 
     @BeforeAll
     static void globalSetUp() {

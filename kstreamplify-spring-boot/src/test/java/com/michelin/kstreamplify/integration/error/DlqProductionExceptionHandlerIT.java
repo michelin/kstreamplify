@@ -20,7 +20,6 @@ package com.michelin.kstreamplify.integration.error;
 
 import static org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,15 +27,15 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 import com.michelin.kstreamplify.avro.KafkaError;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
-import com.michelin.kstreamplify.integration.container.KafkaIntegrationTest;
+import com.michelin.kstreamplify.integration.container.KafkaIT;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.KafkaStreams;
@@ -54,18 +53,22 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-@ActiveProfiles("dlq-deserialization-exception-handler")
+@ActiveProfiles("dlq-production-exception-handler")
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 @AutoConfigureTestRestTemplate
-class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegrationTest {
+class DlqProductionExceptionHandlerIT extends KafkaIT {
 
     @BeforeAll
     static void globalSetUp() {
         createTopics(
+                broker.getBootstrapServers(), new TopicPartition("INPUT_TOPIC", 3), new TopicPartition("DLQ_TOPIC", 3));
+
+        createTopics(
                 broker.getBootstrapServers(),
-                new TopicPartition("INPUT_TOPIC", 3),
-                new TopicPartition("OUTPUT_TOPIC", 3),
-                new TopicPartition("DLQ_TOPIC", 3));
+                Map.of(
+                        "max.message.bytes", "500" // 1 MB
+                        ),
+                new TopicPartition("OUTPUT_TOPIC", 3));
     }
 
     @BeforeEach
@@ -74,16 +77,10 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
     }
 
     @Test
-    void shouldSendRecordToDlqWhenValueDeserializationFails() {
+    void shouldSendRecordToDlqWhenProductionFails() {
         Properties properties = getKafkaGlobalProperties();
-        properties.put(VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        ProducerRecord<String, byte[]> message = new ProducerRecord<>(
-                "INPUT_TOPIC",
-                "key",
-                ByteBuffer.allocate(Long.BYTES).putLong(1L).array());
-        ProducerRecord<String, byte[]> error =
-                new ProducerRecord<>("INPUT_TOPIC", "key-error", "error-value".getBytes());
-
+        ProducerRecord<String, String> message = new ProducerRecord<>("INPUT_TOPIC", "key", "value");
+        ProducerRecord<String, String> error = new ProducerRecord<>("INPUT_TOPIC", "key-error", "value-error");
         produceRecordToTopic(List.of(message, error, message), properties);
 
         properties.put(GROUP_ID_CONFIG, "test-dlq-consumer-group");
@@ -98,20 +95,22 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
 
         KafkaError kafkaError = dlqConsumerRecords.get(0).value();
         assertEquals(
-                "An exception occurred during the stream internal deserialization. Please find more details about the exception in the cause and stack fields.",
+                "An exception occurred during the stream internal production. Please find more details about the exception in the cause and stack fields.",
                 kafkaError.getContextMessage());
         assertEquals(1, kafkaError.getOffset());
         assertEquals(1, kafkaError.getPartition());
-        assertEquals("INPUT_TOPIC", kafkaError.getTopic());
-        assertEquals("appKeyValueDeserializationExceptionHandlerId", kafkaError.getApplicationId());
-        assertEquals("source-processor", kafkaError.getProcessorNodeId());
+        assertEquals("OUTPUT_TOPIC", kafkaError.getTopic());
+        assertEquals("appKeyValueProductionExceptionHandlerId", kafkaError.getApplicationId());
+        assertEquals("sink-processor", kafkaError.getProcessorNodeId());
         assertEquals("0_1", kafkaError.getTaskId());
         assertEquals("Unknown cause", kafkaError.getCause());
-        assertTrue(kafkaError.getStack().contains("org.apache.kafka.common.errors.SerializationException"));
-        assertEquals("error-value", new String(kafkaError.getByteValue().array()));
-        assertEquals("key-error", new String(kafkaError.getSourceRawKey().array()));
-        assertEquals("error-value", new String(kafkaError.getSourceRawValue().array()));
-        assertNull(kafkaError.getValue());
+        assertTrue(kafkaError.getStack().contains("org.apache.kafka.common.errors.RecordTooLargeException"));
+        assertEquals("key-error", new String(kafkaError.getByteValue().array()));
+        assertEquals(
+                "The record is too large to be set as value (1048588 bytes). The key will be used instead",
+                kafkaError.getValue());
+        assertNull(kafkaError.getSourceRawKey());
+        assertNull(kafkaError.getSourceRawValue());
     }
 
     /**
@@ -123,11 +122,21 @@ class DlqDeserializationExceptionHandlerIntegrationTest extends KafkaIntegration
 
         @Override
         public void topology(StreamsBuilder streamsBuilder) {
-            streamsBuilder.stream(
-                            "INPUT_TOPIC",
-                            Consumed.with(Serdes.String(), Serdes.Long()).withName("source-processor"))
-                    .mapValues(String::valueOf, Named.as("transformed-key-values"))
-                    .to("OUTPUT_TOPIC", Produced.with(Serdes.String(), Serdes.String()));
+            streamsBuilder.stream("INPUT_TOPIC", Consumed.with(Serdes.String(), Serdes.String()))
+                    .mapValues(
+                            v -> {
+                                if (v.equals("value-error")) {
+                                    int recordSize = 1048588;
+                                    char[] chars = new char[recordSize];
+                                    Arrays.fill(chars, 'A'); // fill with 'A'
+                                    return new String(chars);
+                                }
+                                return "transformed-" + v;
+                            },
+                            Named.as("transformed-values"))
+                    .to(
+                            "OUTPUT_TOPIC",
+                            Produced.with(Serdes.String(), Serdes.String()).withName("sink-processor"));
         }
 
         @Override

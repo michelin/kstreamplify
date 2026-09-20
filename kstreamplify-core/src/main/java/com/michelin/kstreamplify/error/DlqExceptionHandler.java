@@ -23,6 +23,7 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.errors.RecordTooLargeException;
 
@@ -57,10 +58,9 @@ public abstract class DlqExceptionHandler {
                                 ? "The record is too large to be set as value (" + value.length
                                         + " bytes). The key will be used instead"
                                 : null)
-                .setByteValue(
-                        tooLarge
-                                ? key != null ? ByteBuffer.wrap(key) : null
-                                : value != null ? ByteBuffer.wrap(value) : null);
+                .setByteValue(Optional.ofNullable(tooLarge ? key : value)
+                        .map(ByteBuffer::wrap)
+                        .orElse(null));
     }
 
     /**
