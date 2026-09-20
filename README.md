@@ -305,7 +305,7 @@ Kstreamplify makes it easy to handle errors and route them to a dead-letter queu
 
 ### Set up DLQ Topic
 
-Override the `dlqTopic()` method and return the name of your DLQ topic:
+Override the `dlqTopic()` method and return the name of your DLQ topic, which will be used by Kstreamplify's provided exception handlers and the `ProcessingResult` API:
 
 ```java
 @Component
