@@ -301,6 +301,8 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 Kstreamplify makes it easy to handle errors and route them to a dead-letter queue (DLQ) topic.
 
+> Since Apache Kafka 4.2.0, Kafka Streams' native DLQ support from [KIP-1034](https://cwiki.apache.org/confluence/spaces/KAFKA/pages/300026655/KIP-1034+Dead+letter+queue+in+Kafka+Streams) is recommended over Kstreamplify's.
+
 ### Set up DLQ Topic
 
 Override the `dlqTopic()` method and return the name of your DLQ topic:
@@ -322,16 +324,14 @@ public class MyKafkaStreams extends KafkaStreamsStarter {
 
 ### Processing Errors
 
-Kstreamplify provides two ways to handle processing errors and route problematic records to a DLQ topic:
+Kstreamplify provides two processing-error APIs:
 
 - Processing Exception Handler (recommended)
 - Processing Result API (legacy)
 
 #### Processing Exception Handler
 
-Kstreamplify provides a built-in implementation of the `ProcessingExceptionHandler` interface introduced by [KIP-1033](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1033%3A+Add+Kafka+Streams+exception+handler+for+exceptions+occurring+during+processing). It forwards failed records to the configured DLQ topic and resumes stream processing, or fails the stream if no DLQ topic is configured.
-
-It leverages the native dead letter queue mechanism introduced by [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams). It can be configured as follows:
+Kstreamplify provides a built-in [`ProcessingExceptionHandler`](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1033%3A+Add+Kafka+Streams+exception+handler+for+exceptions+occurring+during+processing) implementation that forwards failed records to the configured DLQ topic and resumes processing, or fails the stream when no DLQ topic is configured. Configure it as follows:
 
 ```yml
 kafka:
@@ -343,9 +343,9 @@ It routes a [`KafkaError`](#avro-kafka-error) Avro object to the DLQ topic.
 
 #### Processing Result API
 
-The `ProcessingResult` API represents success or failure during processing.
+The `ProcessingResult` API represents processing success or failure.
 
-> It is considered legacy (since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams)) and may be deprecated in a future Kstreamplify release. New topologies should prefer [`ProcessingExceptionHandler`](#processing-exception-handler).
+> This API is legacy since [KIP-1033](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1033%3A+Add+Kafka+Streams+exception+handler+for+exceptions+occurring+during+processing) and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams), and may be deprecated in a future Kstreamplify release. New topologies should use [`ProcessingExceptionHandler`](#processing-exception-handler).
 
 `ProcessingResult<V, V2>` contains:
 - `V`: The transformed value when processing succeeds.
@@ -394,7 +394,7 @@ To mark it as failed:
 ProcessingResult.fail(e, value, "Something went wrong...");
 ```
 
-Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. It returns a healthy stream that can be further processed as needed.
+Use `TopologyErrorHandler#catchErrors()` to route failed records to the DLQ topic and continue with a healthy stream.
 
 ##### Processor API
 
@@ -440,13 +440,15 @@ To mark it as failed:
 ProcessingResult.wrapRecordFailure(e, record, "Something went wrong...");
 ```
 
-Use `TopologyErrorHandler#catchErrors()` to catch and route failed records to the DLQ topic. A healthy stream is returned and can be further processed as needed.
+Use `TopologyErrorHandler#catchErrors()` to route failed records to the DLQ topic and continue with a healthy stream.
 
 ##### Migrating to Processing Exception Handler
 
-Since Apache Kafka 4.2.0 and [KIP-1034](https://cwiki.apache.org/confluence/display/KAFKA/KIP-1034%3A+Dead+letter+queue+in+Kafka+Streams), the `ProcessingExceptionHandler` is recommended over the `ProcessingResult` API for managing errors. Follow these steps to migrate.
+Kstreamplify provides a `ProcessingExceptionHandler` implementation that forwards `KafkaError` records to the DLQ. It is backward compatible with the `ProcessingResult` API, allowing you to migrate incrementally while supporting more processing exceptions.
 
-1. Replace methods that return `ProcessingResult`.
+1. Configure the provided `ProcessingExceptionHandler` implementation as described in [Processing Exception Handler](#processing-exception-handler).
+
+2. Replace methods that return `ProcessingResult`.
 
 Before:
 
@@ -460,7 +462,7 @@ After:
 private static KafkaUser toUpperCase(KafkaUser value);
 ```
 
-2. Remove `ProcessingResult.success()` and `ProcessingResult.fail()`.
+3. Remove `ProcessingResult.success()` and `ProcessingResult.fail()`.
 
 Do not catch exceptions unless you intend to handle them manually. This ensures that Kstreamplify routes failed records to the DLQ using the `ProcessingExceptionHandler`.
 
@@ -482,7 +484,7 @@ value.setLastName(value.getLastName().toUpperCase());
 return value;
 ```
 
-3. Remove `TopologyErrorHandler.catchErrors()` from the topology.
+4. Remove `TopologyErrorHandler.catchErrors()` from the topology.
 
 Before:
 
@@ -500,7 +502,7 @@ stream
     .to("output_topic");
 ```
 
-4. Update Processor API implementations.
+5. Update Processor API implementations.
 
 Do not catch exceptions inside your processor unless you intend to handle them manually.
 Letting exceptions propagate is required to trigger the `ProcessingExceptionHandler` and ensure that failed records are sent to the DLQ.

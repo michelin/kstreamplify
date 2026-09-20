@@ -38,9 +38,11 @@ public abstract class KafkaStreamsStarter {
     /**
      * The Kafka Streams DLQ topic name.
      *
-     * @return The DLQ topic name
+     * @return The DLQ topic name, or {@code null} when no DLQ is configured
      */
-    public abstract String dlqTopic();
+    public String dlqTopic() {
+        return null;
+    }
 
     /**
      * Runnable code after the Kafka Streams startup.
