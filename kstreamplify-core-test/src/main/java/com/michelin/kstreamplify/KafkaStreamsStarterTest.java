@@ -28,6 +28,7 @@ import com.michelin.kstreamplify.context.KafkaStreamsExecutionContext;
 import com.michelin.kstreamplify.initializer.KafkaStreamsStarter;
 import com.michelin.kstreamplify.serde.SerdesUtils;
 import com.michelin.kstreamplify.serde.TopicWithSerde;
+import com.michelin.kstreamplify.test.KstreamplifyTestContext;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,6 +58,8 @@ public abstract class KafkaStreamsStarterTest {
     /** The DLQ topic. */
     protected TestOutputTopic<String, KafkaError> dlqTopic;
 
+    private KstreamplifyTestContext testContext;
+
     /** Constructor. */
     protected KafkaStreamsStarterTest() {}
 
@@ -84,6 +87,8 @@ public abstract class KafkaStreamsStarterTest {
                 KafkaStreamsExecutionContext.getDlqTopicName(),
                 new StringDeserializer(),
                 SerdesUtils.<KafkaError>getValueSerdes().deserializer());
+
+        testContext = new KstreamplifyTestContext(testDriver, dlqTopic, getInitialWallClockTime());
     }
 
     /**
@@ -134,12 +139,24 @@ public abstract class KafkaStreamsStarterTest {
     }
 
     /**
+     * Start a fluent {@code Given → When → Then} test scenario on the topology under test. The same context is returned
+     * for the whole test method, so the event time advancement and the records already read are preserved across the
+     * calls.
+     *
+     * @return The {@link KstreamplifyTestContext} bound to the current test driver
+     */
+    protected KstreamplifyTestContext test() {
+        return testContext;
+    }
+
+    /**
      * Close everything after each test.
      *
      * @throws IOException If an I/O error occurs while deleting the state directory
      */
     @AfterEach
     protected void generalTearDown() throws IOException {
+        testContext = null;
         testDriver.close();
         Files.deleteIfExists(
                 Path.of(KafkaStreamsExecutionContext.getProperties().getProperty(STATE_DIR_CONFIG)));
