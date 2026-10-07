@@ -16,7 +16,6 @@ jobs:
       contents: read
     steps:
       - name: Checkout project
-        # Persisted credentials are required to push the release commit and tag below
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ secrets.CI_CD_TOKEN }}

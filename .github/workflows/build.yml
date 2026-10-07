@@ -62,7 +62,7 @@ jobs:
         if: always()
         uses: mikepenz/action-junit-report@a9170d5795813c01ab4901ffb045b52bab4ab09d # v6.5.0
         with:
-          report_paths: '**/target/surefire-reports/TEST-*.xml'
+          report_paths: '**/target/{surefire,failsafe}-reports/TEST-*.xml'
 
       - name: Sonar
         if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
