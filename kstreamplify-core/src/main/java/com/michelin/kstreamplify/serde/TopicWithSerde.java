@@ -223,6 +223,7 @@ public class TopicWithSerde<K, V> {
      * @param streamsBuilder The streams builder
      * @param storeBuilder The store builder
      * @param processorSupplier The processor supplier
+     * @param name The name of the stream processor
      * @return A ${@link StreamsBuilder}
      */
     public StreamsBuilder addGlobalStore(
