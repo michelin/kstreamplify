@@ -25,10 +25,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
           server-id: central
-          server-username: SONATYPE_USERNAME
-          server-password: SONATYPE_TOKEN
+          server-username-env-var: SONATYPE_USERNAME
+          server-password-env-var: SONATYPE_TOKEN
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+          gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
 
       - name: Cache Maven packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
