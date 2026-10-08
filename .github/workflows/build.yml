@@ -66,7 +66,7 @@ jobs:
 
       - name: Sonar
         if: matrix.java == '17' && github.event.pull_request.head.repo.fork == false
-        run: mvn verify sonar:sonar
+        run: mvn sonar:sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
