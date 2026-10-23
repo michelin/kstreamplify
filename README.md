@@ -32,6 +32,7 @@ Kstreamplify adds extra features to Kafka Streams, simplifying development so yo
   * [Java](#java)
   * [Unit Test](#unit-test)
     * [Override Properties](#override-properties)
+    * [Fluent Testing DSL](#fluent-testing-dsl)
 * [Avro Serializer and Deserializer](#avro-serializer-and-deserializer)
 * [Error Handling](#error-handling)
   * [Set up DLQ Topic](#set-up-dlq-topic)
@@ -268,6 +269,143 @@ public class MyKafkaStreamsTest extends KafkaStreamsStarterTest {
     }
 }
 ```
+
+#### Fluent Testing DSL
+
+`KafkaStreamsStarterTest` also provides a fluent, type-safe `Given → When → Then` DSL through the `test()` method. It
+is built on top of the same Topology Test Driver infrastructure and reuses your `TopicWithSerde` declarations, so you no
+longer need to create `TestInputTopic`/`TestOutputTopic` instances or read records manually.
+
+The following test pipes a record and asserts the output:
+
+```java
+@Test
+void shouldUpperCase() {
+    test()
+        .given(inputTopic)
+        .record("1", inputValue)
+        .when()
+        .then(outputTopic)
+        .hasExactly(1)
+        .containsKey("1")
+        .satisfies(record -> assertEquals(expectedOutputValue, record.value()));
+}
+```
+
+Feed multiple input topics (useful for joins and enrichment) with `and(...)`, and pipe several records or a bulk
+collection:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", firstInputValue)
+    .record("2", secondInputValue)
+    .records(List.of(KeyValue.pair("3", thirdInputValue)))
+    .and(secondInputTopic)
+    .record("1", otherInputValue)
+    .when()
+    .then(outputTopic)
+    .hasExactly(3);
+```
+
+The available output assertions are `hasExactly(...)`, `isEmpty()`, `containsKey(...)`, `doesNotContainKey(...)`,
+`containsRecord(...)`, `containsValue(...)`, `containsHeader(...)`, `containsExactly(...)`, `satisfies(...)`,
+`satisfies(index, ...)` and `allSatisfy(...)`:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", inputValue)
+    .when()
+    .then(outputTopic)
+    .containsExactly(Map.entry("1", expectedOutputValue))
+    .containsValue(expectedOutputValue::equals)
+    .containsHeader("correlation-id", "CORRELATION-1")
+    .allSatisfy(record -> assertNotNull(record.value()));
+```
+
+Assert dead letter queue (DLQ) records without reading the DLQ topic yourself. The internal `KafkaError`
+representation is hidden behind `DlqRecord`:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", invalidInputValue)
+    .when()
+    .thenDlq()
+    .hasExactly(1)
+    .containsKey("1")
+    .containsError(IllegalStateException.class, "Invalid value")
+    .containsHeader("correlation-id", "CORRELATION-1")
+    .satisfies(error -> {
+        assertEquals("1", error.key());
+        assertEquals("java.lang.IllegalStateException", error.exceptionTypeName());
+        assertEquals("Invalid value", error.errorMessage());
+    });
+```
+
+Assert the content of a state store:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", inputValue)
+    .when()
+    .thenStateStore("my-store")
+    .hasExactly(1)
+    .contains("1", inputValue)
+    .doesNotContainKey("999")
+    .containsValue(expectedStoreValue::equals);
+```
+
+A single chain can assert several output topics, the DLQ and the state stores, and can even feed additional records
+with `andGiven(...)`:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", inputValue)
+    .and(secondInputTopic)
+    .record("1", otherInputValue)
+    .when()
+    .then(outputTopic)
+    .containsRecord("1", expectedOutputValue)
+    .andDlq()
+    .isEmpty()
+    .andStateStore("my-store")
+    .containsKey("1");
+```
+
+For windowed and time-dependent topologies, control event time and wall clock time. As defined by Kafka Streams,
+`advanceTime(...)` only moves the event time used by the records piped afterwards, while `advanceWallClockTime(...)`
+only triggers the wall-clock-time punctuators:
+
+```java
+test()
+    .given(inputTopic)
+    .record("1", firstInputValue, Instant.parse("2026-08-17T10:00:00Z"))
+    .advanceTime(Duration.ofMinutes(5))
+    .record("2", secondInputValue)
+    .when()
+    .advanceWallClockTime(Duration.ofSeconds(10))
+    .then(outputTopic)
+    .containsKey("1");
+```
+
+A record piped without an explicit timestamp uses the current event time, which starts at `getInitialWallClockTime()`
+and moves with `advanceTime(...)` and with the last explicitly timestamped record.
+
+When an assertion fails, the DSL reports the topic, the expectation and the records actually produced:
+
+```
+Expected 2 record(s) on topic 'output_topic' but found 1.
+Actual records:
+  1=EXPECTED_OUTPUT_VALUE
+```
+
+The DSL is an additive layer: existing tests keep working and advanced scenarios can still access the underlying
+`TopologyTestDriver` through `driver()`, which is available on every stage. The same context is used for the whole test
+method, so the records read by `then(...)` and `thenDlq()` are accumulated and can be asserted several times.
 
 ## Avro Serializer and Deserializer
 
