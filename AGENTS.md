@@ -23,7 +23,7 @@
 
 ## Testing Standards
 
-- Name test classes `<ClassName>Test`.
+- Name test classes `<ClassName>Test` and integration test classes `<Feature>IT`.
 - Name unit tests with the "should..." convention (e.g. `shouldNotRegisterPropertiesWhenNull`).
 - Use JUnit Jupiter assertions (`org.junit.jupiter.api.Assertions`).
 - Use Mockito with `@ExtendWith(MockitoExtension.class)`.
