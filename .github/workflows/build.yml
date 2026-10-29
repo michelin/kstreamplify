@@ -77,7 +77,7 @@ jobs:
 
       - name: Deploy
         if: matrix.java == '17' && github.ref == 'refs/heads/main' && endsWith(steps.metadata.outputs.current_version, '-SNAPSHOT')
-        run: mvn -B deploy -DskipTests -Psign
+        run: mvn -B deploy -DskipTests -DskipITs -Psign
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}

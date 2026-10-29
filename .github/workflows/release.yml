@@ -38,7 +38,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Deploy
-        run: mvn -B clean deploy -DskipTests -Psign
+        run: mvn -B clean deploy -DskipTests -DskipITs -Psign
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
